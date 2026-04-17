@@ -90,56 +90,59 @@ export default function App() {
   const [cancelConfirmId, setCancelConfirmId] = useState<string | null>(null);
 
   const fetchClubPoints = async () => {
-    setIsSyncing(true);
-    try {
-      const { data, error } = await supabase
-        .from('team_wallet_view')
-        .select('*')
-        .order('club_name', { ascending: true });
+  setIsSyncing(true);
+  try {
+    const { data, error } = await supabase
+      .from('team_wallet_view')
+      .select('*')
+      .order('club_name', { ascending: true });
 
-      if (error) throw error;
-      if (data) {
-        setClubPoints(data);
+    if (error) throw error;
+    if (data) {
+      setClubPoints(data);
+      
+      setGameState(prev => {
+        const playersMap = new Map(prev.players.map(p => [p.name, p]));
         
-        setGameState(prev => {
-          const playersMap = new Map<string, Player>(prev.players.map(p => [p.name, p]));
-          
-          const updatedPlayers = (data as any[]).map((club, idx) => {
-            const existing = playersMap.get(club.club_name);
-            if (existing) {
-              return {
-                id: existing.id,
-                name: existing.name,
-                color: existing.color,
-                characterUrl: existing.characterUrl,
+        const updatedPlayers = (data as any[]).map((club, idx) => {
+          const existing = playersMap.get(club.club_name);
+          return existing
+            ? { ...existing, gold: club.remaining_evangelism_points, buildingPower: club.remaining_speech_points }
+            : {
+                id: `club-${Math.random().toString(36).substr(2, 5)}`,
+                name: club.club_name,
+                color: TEAM_COLORS[(prev.players.length + idx) % TEAM_COLORS.length],
+                characterUrl: `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${club.club_name}`,
                 gold: club.remaining_evangelism_points,
                 buildingPower: club.remaining_speech_points
-              } as Player;
-            }
-            
-            return {
-              id: `club-${Math.random().toString(36).substr(2, 5)}`,
-              name: club.club_name,
-              color: TEAM_COLORS[(prev.players.length + idx) % TEAM_COLORS.length],
-              characterUrl: `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${club.club_name}`,
-              gold: club.remaining_evangelism_points,
-              buildingPower: club.remaining_speech_points
-            } as Player;
-          });
-
-          return {
-            ...prev,
-            players: updatedPlayers
-          };
+              };
         });
-      }
-    } catch (err) {
-      console.error('Supabase fetch error:', err);
-    } finally {
-      setIsSyncing(false);
-    }
-  };
 
+        // ✅ 추가: Supabase 동아리 이름으로 users 목록도 동기화
+        const existingAdmins = prev.users.filter(u => u.role === 'admin');
+        const clubUsers = updatedPlayers.map(p => ({
+          id: p.id,
+          username: p.name,
+          role: 'member' as const
+        }));
+        const mergedUsers = [
+          ...existingAdmins,
+          ...clubUsers.filter(cu => !existingAdmins.find(a => a.username === cu.username))
+        ];
+
+        return {
+          ...prev,
+          players: updatedPlayers,
+          users: mergedUsers  // ✅ users도 업데이트
+        };
+      });
+    }
+  } catch (err) {
+    console.error('Supabase fetch error:', err);
+  } finally {
+    setIsSyncing(false);
+  }
+};
   useEffect(() => {
     fetchClubPoints();
   }, []);
