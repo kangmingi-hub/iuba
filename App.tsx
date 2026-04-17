@@ -167,46 +167,30 @@ export default function App() {
 
 const handleLogin = async (e: React.FormEvent) => {
   e.preventDefault();
-  if (!loginUsername.trim()) return;
 
-  // 1. admin 먼저 확인 (로컬)
-  const adminUser = gameState.users.find(
-    u => u.username === loginUsername && u.role === 'admin'
-  );
-  if (adminUser) {
-    setCurrentUser(adminUser);
-    setLoginUsername('');
-    return;
-  }
+  console.log('=== 로그인 시도 ===');
+  console.log('입력값:', loginUsername);
+  console.log('현재 gameState.users:', gameState.users);
+  console.log('현재 gameState.players:', gameState.players);
+  console.log('현재 clubPoints:', clubPoints);
 
-  // 2. Supabase에서 직접 실시간 조회
-  try {
-    const { data, error } = await supabase
-      .from('team_wallet_view')
-      .select('*')
-      .eq('club_name', loginUsername)
-      .single();
+  // Supabase 직접 조회
+  const { data, error } = await supabase
+    .from('team_wallet_view')
+    .select('*');
 
-    if (error || !data) {
-      alert('등록되지 않은 이름입니다. 관리자에게 문의하세요.');
-      return;
-    }
+  console.log('Supabase 직접 조회 결과:', data);
+  console.log('Supabase 오류:', error);
 
-    // 찾았으면 로그인 성공
-    const player = gameState.players.find(p => p.name === loginUsername);
-    setCurrentUser({
-      id: player?.id || `club-${loginUsername}`,
-      username: loginUsername,
-      role: 'member'
-    });
-    setLoginUsername('');
-
-  } catch (err) {
-    console.error('로그인 오류:', err);
-    alert('로그인 중 오류가 발생했습니다. 다시 시도해주세요.');
-  }
+  alert(`
+    입력값: ${loginUsername}
+    players 수: ${gameState.players.length}
+    clubPoints 수: ${clubPoints.length}
+    Supabase 조회 수: ${data?.length ?? '오류'}
+    Supabase 첫번째 club_name: ${data?.[0]?.club_name ?? '없음'}
+  `);
 };
-
+  
   const handleLogout = () => {
     setCurrentUser(null);
     setActiveTab('map');
