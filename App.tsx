@@ -162,11 +162,29 @@ export default function App() {
     }
   }, [currentUser]);
 
-  const handleLogin = (e: React.FormEvent) => {
+   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    const user = gameState.users.find(u => u.username === loginUsername);
+    
+    // 1. users 목록에서 찾기
+    let user = gameState.users.find(u => u.username === loginUsername);
+    
+    // 2. 만약 users에 없다면 players 목록에서도 찾아보기 (일반 대원 대응)
+    if (!user) {
+      const playerAsUser = gameState.players.find(p => p.name === loginUsername);
+      if (playerAsUser) {
+        user = {
+          id: playerAsUser.id,
+          username: playerAsUser.name,
+          role: 'member' // 대원은 기본적으로 member 권한
+        };
+      }
+    }
+  
     if (user) {
       setCurrentUser(user);
+      setLoginUsername(''); // 로그인 성공 시 입력창 비우기
+    } else {
+      alert('등록되지 않은 이름입니다. 관리자에게 문의하세요.');
     }
   };
 
