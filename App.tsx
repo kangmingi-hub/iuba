@@ -165,63 +165,50 @@ export default function App() {
   const handleLogin = (e: React.FormEvent) => {
   e.preventDefault();
   
-  try {
-    const trimmedLoginName = loginUsername.trim();
+  // 1. 입력값 가져오기
+  const inputName = loginUsername ? loginUsername.trim() : "";
+  if (!inputName) {
+    alert("이름을 입력해 주세요!");
+    return;
+  }
 
-    // 1. 입력값이 비었는지 확인
-    if (!trimmedLoginName) {
-      alert("이름을 입력해 주세요!");
+  // 2. 관리자(admin)는 무조건 통과 (이미 확인됨)
+  if (inputName === 'admin') {
+    const adminUser = gameState.users.find(u => u.username === 'admin');
+    if (adminUser) {
+      setCurrentUser(adminUser);
+      setLoginUsername('');
       return;
     }
+  }
 
-    // 2. 관리자(admin)인지 먼저 확인
-    if (trimmedLoginName === 'admin') {
-      const adminUser = gameState.users?.find(u => u.username === 'admin');
-      if (adminUser) {
-        setCurrentUser(adminUser);
-        setLoginUsername('');
-        return;
-      }
-    }
+  // 3. 안전장치: 리스트가 없으면 빈 배열([])로 취급해서 에러 방지
+  const currentPlayers = gameState.players || [];
+  const currentClubs = clubPoints || [];
 
-    // 3. 데이터가 아직 로딩 중인지 확인 (이게 원인일 수 있음)
-    const playersList = gameState.players || [];
-    const clubsList = clubPoints || [];
+  // 4. 명단 확인
+  const isFound = currentPlayers.some(p => p.name === inputName) || 
+                  currentClubs.some(c => c.club_name === inputName);
 
-    // 4. 명단에서 찾기
-    const foundInPlayers = playersList.find(p => p.name === trimmedLoginName);
-    const foundInClubs = clubsList.find(c => c.club_name === trimmedLoginName);
-
-    if (foundInPlayers || foundInClubs) {
-      // 로그인 성공
-      const userData = {
-        id: foundInPlayers?.id || `user-${trimmedLoginName}`,
-        username: foundInPlayers?.name || foundInClubs?.club_name || trimmedLoginName,
-        role: 'member'
-      };
-      setCurrentUser(userData);
-      setLoginUsername('');
-      setActiveTab('map');
-    } else {
-      // 5. 실패 원인을 구체적으로 출력 (여기가 중요!)
-      let debugMessage = `'${trimmedLoginName}'님은 등록되지 않은 이름입니다.\n\n`;
-      debugMessage += `현재 확인된 명단 수: ${playersList.length + clubsList.length}명\n`;
-      
-      if (playersList.length === 0 && clubsList.length === 0) {
-        debugMessage += "(원인: 서버에서 명단을 아직 불러오지 못했습니다. 1~2초 뒤에 다시 시도해 보세요.)";
-      } else {
-        debugMessage += "(원인: 관리자 화면의 명단과 대소문자나 공백이 일치하는지 확인해 주세요.)";
-      }
-      
-      alert(debugMessage);
-    }
-  } catch (error) {
-    // 코드가 실행되다 멈추면 이 에러가 뜹니다.
-    console.error("로그인 에러 상세:", error);
-    alert("로그인 처리 중 기술적인 오류가 발생했습니다. 브라우저를 새로고침(F5) 해주세요.");
+  if (isFound) {
+    // 성공 시 로그인 처리
+    setCurrentUser({
+      id: `user-${inputName}`,
+      username: inputName,
+      role: 'member'
+    });
+    setLoginUsername('');
+    setActiveTab('map');
+  } else {
+    // 실패 시 반드시 알림창을 띄움
+    alert(
+      `'${inputName}'님은 등록된 명단에 없습니다.\n\n` +
+      `현재 불러온 명단 수: ${currentPlayers.length + currentClubs.length}개\n` +
+      `[주의] 이름 사이의 공백이나 대소문자를 확인해 주세요.`
+    );
   }
 };
-
+  
   const handleLogout = () => {
     setCurrentUser(null);
     setActiveTab('map');
