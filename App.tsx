@@ -162,33 +162,32 @@ export default function App() {
     }
   }, [currentUser]);
 
-   const handleLogin = (e: React.FormEvent) => {
+const handleLogin = (e: React.FormEvent) => {
   e.preventDefault();
   
-  const inputName = loginUsername?.trim() || "";
-  if (!inputName) return;
-
-  // 1. 유저 객체 생성
-  const isTargetAdmin = inputName === 'admin';
-  const userData = {
-    id: isTargetAdmin ? 'admin-1' : `user-${Date.now()}`,
-    username: inputName,
-    role: isTargetAdmin ? 'admin' : 'member'
-  };
-
-  // 2. 중요: 현재 유저를 먼저 설정 (이게 되어야 Overlay가 사라짐)
-  setCurrentUser(userData);
+  // 1. users 목록에서 찾기
+  let user = gameState.users.find(u => u.username === loginUsername);
   
-  // 3. 탭을 지도로 강제 전환
-  setActiveTab('map');
-  
-  // 4. 입력창 비우기
-  setLoginUsername('');
+  // 2. 만약 users에 없다면 players 목록에서도 찾아보기 (일반 대원 대응)
+  if (!user) {
+    const playerAsUser = gameState.players.find(p => p.name === loginUsername);
+    if (playerAsUser) {
+      user = {
+        id: playerAsUser.id,
+        username: playerAsUser.name,
+        role: 'member' // 대원은 기본적으로 member 권한
+      };
+    }
+  }
 
-  // 5. [확인용] 로그 출력
-  console.log("로그인 완료:", userData.username);
+  if (user) {
+    setCurrentUser(user);
+    setLoginUsername(''); // 로그인 성공 시 입력창 비우기
+  } else {
+    alert('등록되지 않은 이름입니다. 관리자에게 문의하세요.');
+  }
 };
-  
+
   const handleLogout = () => {
     setCurrentUser(null);
     setActiveTab('map');
