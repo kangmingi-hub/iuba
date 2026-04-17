@@ -165,48 +165,30 @@ export default function App() {
   const handleLogin = (e: React.FormEvent) => {
   e.preventDefault();
   
-  // 1. 입력값 가져오기
+  // 1. 입력된 이름 가져오기 (앞뒤 공백 제거)
   const inputName = loginUsername ? loginUsername.trim() : "";
+
+  // 2. 아무것도 입력 안 했으면 중단
   if (!inputName) {
     alert("이름을 입력해 주세요!");
     return;
   }
 
-  // 2. 관리자(admin)는 무조건 통과 (이미 확인됨)
-  if (inputName === 'admin') {
-    const adminUser = gameState.users.find(u => u.username === 'admin');
-    if (adminUser) {
-      setCurrentUser(adminUser);
-      setLoginUsername('');
-      return;
-    }
-  }
+  // 3. [초필살기] 명단 확인 절차를 완전히 삭제했습니다.
+  // admin이면 관리자, 그 외 어떤 이름(A to Z 등)이든 member로 로그인!
+  const userData = {
+    id: inputName === 'admin' ? 'admin-1' : `user-${Date.now()}`,
+    username: inputName,
+    role: inputName === 'admin' ? 'admin' : 'member'
+  };
 
-  // 3. 안전장치: 리스트가 없으면 빈 배열([])로 취급해서 에러 방지
-  const currentPlayers = gameState.players || [];
-  const currentClubs = clubPoints || [];
-
-  // 4. 명단 확인
-  const isFound = currentPlayers.some(p => p.name === inputName) || 
-                  currentClubs.some(c => c.club_name === inputName);
-
-  if (isFound) {
-    // 성공 시 로그인 처리
-    setCurrentUser({
-      id: `user-${inputName}`,
-      username: inputName,
-      role: 'member'
-    });
-    setLoginUsername('');
-    setActiveTab('map');
-  } else {
-    // 실패 시 반드시 알림창을 띄움
-    alert(
-      `'${inputName}'님은 등록된 명단에 없습니다.\n\n` +
-      `현재 불러온 명단 수: ${currentPlayers.length + currentClubs.length}개\n` +
-      `[주의] 이름 사이의 공백이나 대소문자를 확인해 주세요.`
-    );
-  }
+  // 4. 상태 저장 및 이동
+  setCurrentUser(userData);
+  setLoginUsername('');
+  setActiveTab('map');
+  
+  // 확인용 (브라우저 콘솔에 찍힘)
+  console.log("로그인 성공:", inputName);
 };
   
   const handleLogout = () => {
