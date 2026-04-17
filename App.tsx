@@ -167,6 +167,13 @@ export default function App() {
 
 const handleLogin = (e: React.FormEvent) => {
   e.preventDefault();
+
+   console.log('입력한 이름:', loginUsername);
+  console.log('users 목록:', gameState.users);
+  console.log('players 목록:', gameState.players);
+  console.log('clubPoints 목록:', clubPoints);
+
+  let user = gameState.users.find(u => u.username === loginUsername);
   
   // 1. admin 등 users 목록에서 먼저 찾기
   let user = gameState.users.find(u => u.username === loginUsername);
