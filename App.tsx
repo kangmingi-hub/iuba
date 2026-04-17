@@ -162,33 +162,31 @@ export default function App() {
     }
   }, [currentUser]);
 
-  const handleLogin = (e: React.FormEvent) => {
+   const handleLogin = (e: React.FormEvent) => {
   e.preventDefault();
   
-  // 1. 입력된 이름 가져오기 (앞뒤 공백 제거)
-  const inputName = loginUsername ? loginUsername.trim() : "";
+  const inputName = loginUsername?.trim() || "";
+  if (!inputName) return;
 
-  // 2. 아무것도 입력 안 했으면 중단
-  if (!inputName) {
-    alert("이름을 입력해 주세요!");
-    return;
-  }
-
-  // 3. [초필살기] 명단 확인 절차를 완전히 삭제했습니다.
-  // admin이면 관리자, 그 외 어떤 이름(A to Z 등)이든 member로 로그인!
+  // 1. 유저 객체 생성
+  const isTargetAdmin = inputName === 'admin';
   const userData = {
-    id: inputName === 'admin' ? 'admin-1' : `user-${Date.now()}`,
+    id: isTargetAdmin ? 'admin-1' : `user-${Date.now()}`,
     username: inputName,
-    role: inputName === 'admin' ? 'admin' : 'member'
+    role: isTargetAdmin ? 'admin' : 'member'
   };
 
-  // 4. 상태 저장 및 이동
+  // 2. 중요: 현재 유저를 먼저 설정 (이게 되어야 Overlay가 사라짐)
   setCurrentUser(userData);
-  setLoginUsername('');
+  
+  // 3. 탭을 지도로 강제 전환
   setActiveTab('map');
   
-  // 확인용 (브라우저 콘솔에 찍힘)
-  console.log("로그인 성공:", inputName);
+  // 4. 입력창 비우기
+  setLoginUsername('');
+
+  // 5. [확인용] 로그 출력
+  console.log("로그인 완료:", userData.username);
 };
   
   const handleLogout = () => {
