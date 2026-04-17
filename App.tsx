@@ -174,9 +174,7 @@ const handleLogin = (e: React.FormEvent) => {
   console.log('clubPoints 목록:', clubPoints);
 
   let user = gameState.users.find(u => u.username === loginUsername);
-  
-  // 1. admin 등 users 목록에서 먼저 찾기
-  let user = gameState.users.find(u => u.username === loginUsername);
+
   
   // 2. players 목록에서 찾기 (Supabase에서 동기화된 동아리명)
   if (!user) {
