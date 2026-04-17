@@ -162,37 +162,63 @@ export default function App() {
     }
   }, [currentUser]);
 
-   const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = (e: React.FormEvent) => {
   e.preventDefault();
-  const trimmedLoginName = loginUsername.trim();
+  
+  try {
+    const trimmedLoginName = loginUsername.trim();
 
-  // 1. 관리자 계정인지 먼저 확인
-  let user = gameState.users.find(u => u.username === trimmedLoginName);
+    // 1. 입력값이 비었는지 확인
+    if (!trimmedLoginName) {
+      alert("이름을 입력해 주세요!");
+      return;
+    }
 
-  // 2. 관리자가 아니라면, 현재 점수판(clubPoints)이나 플레이어 목록에 있는 이름인지 확인
-  if (!user) {
-    // 플레이어 목록에서 찾기
-    const foundInPlayers = gameState.players.find(p => p.name === trimmedLoginName);
-    // 혹은 Supabase에서 가져온 원본 데이터(clubPoints)에서 찾기
-    const foundInClubs = clubPoints.find(c => c.club_name === trimmedLoginName);
+    // 2. 관리자(admin)인지 먼저 확인
+    if (trimmedLoginName === 'admin') {
+      const adminUser = gameState.users?.find(u => u.username === 'admin');
+      if (adminUser) {
+        setCurrentUser(adminUser);
+        setLoginUsername('');
+        return;
+      }
+    }
+
+    // 3. 데이터가 아직 로딩 중인지 확인 (이게 원인일 수 있음)
+    const playersList = gameState.players || [];
+    const clubsList = clubPoints || [];
+
+    // 4. 명단에서 찾기
+    const foundInPlayers = playersList.find(p => p.name === trimmedLoginName);
+    const foundInClubs = clubsList.find(c => c.club_name === trimmedLoginName);
 
     if (foundInPlayers || foundInClubs) {
-      user = {
+      // 로그인 성공
+      const userData = {
         id: foundInPlayers?.id || `user-${trimmedLoginName}`,
-        username: foundInPlayers?.name || foundInClubs?.club_name || '',
+        username: foundInPlayers?.name || foundInClubs?.club_name || trimmedLoginName,
         role: 'member'
       };
+      setCurrentUser(userData);
+      setLoginUsername('');
+      setActiveTab('map');
+    } else {
+      // 5. 실패 원인을 구체적으로 출력 (여기가 중요!)
+      let debugMessage = `'${trimmedLoginName}'님은 등록되지 않은 이름입니다.\n\n`;
+      debugMessage += `현재 확인된 명단 수: ${playersList.length + clubsList.length}명\n`;
+      
+      if (playersList.length === 0 && clubsList.length === 0) {
+        debugMessage += "(원인: 서버에서 명단을 아직 불러오지 못했습니다. 1~2초 뒤에 다시 시도해 보세요.)";
+      } else {
+        debugMessage += "(원인: 관리자 화면의 명단과 대소문자나 공백이 일치하는지 확인해 주세요.)";
+      }
+      
+      alert(debugMessage);
     }
-  }
-
-  if (user) {
-    setCurrentUser(user);
-    setLoginUsername('');
-    // 로그인 성공 시 지도로 이동
-    setActiveTab('map');
-  } else {
-    // 로그인이 안 될 때 어떤 이름들을 비교했는지 알 수 있게 경고창에 띄워줍니다.
-    alert(`'${trimmedLoginName}'님은 등록되지 않은 이름입니다.\n관리자 화면의 명단에 있는 이름과 정확히 일치해야 합니다.`);
+  } catch (error) {
+    // 코드가 실행되다 멈추면 이 에러가 뜹니다.
+    console.error("로그인 에러 상세:", error);
+    alert("로그인 처리 중 기술적인 오류가 발생했습니다. 브라우저를 새로고침(F5) 해주세요.");
   }
 };
 
