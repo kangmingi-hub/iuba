@@ -163,30 +163,38 @@ export default function App() {
   }, [currentUser]);
 
    const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // 1. users 목록에서 찾기
-    let user = gameState.users.find(u => u.username === loginUsername);
-    
-    // 2. 만약 users에 없다면 players 목록에서도 찾아보기 (일반 대원 대응)
-    if (!user) {
-      const playerAsUser = gameState.players.find(p => p.name === loginUsername);
-      if (playerAsUser) {
-        user = {
-          id: playerAsUser.id,
-          username: playerAsUser.name,
-          role: 'member' // 대원은 기본적으로 member 권한
-        };
-      }
+  e.preventDefault();
+  const trimmedLoginName = loginUsername.trim();
+
+  // 1. 관리자 계정인지 먼저 확인
+  let user = gameState.users.find(u => u.username === trimmedLoginName);
+
+  // 2. 관리자가 아니라면, 현재 점수판(clubPoints)이나 플레이어 목록에 있는 이름인지 확인
+  if (!user) {
+    // 플레이어 목록에서 찾기
+    const foundInPlayers = gameState.players.find(p => p.name === trimmedLoginName);
+    // 혹은 Supabase에서 가져온 원본 데이터(clubPoints)에서 찾기
+    const foundInClubs = clubPoints.find(c => c.club_name === trimmedLoginName);
+
+    if (foundInPlayers || foundInClubs) {
+      user = {
+        id: foundInPlayers?.id || `user-${trimmedLoginName}`,
+        username: foundInPlayers?.name || foundInClubs?.club_name || '',
+        role: 'member'
+      };
     }
-  
-    if (user) {
-      setCurrentUser(user);
-      setLoginUsername(''); // 로그인 성공 시 입력창 비우기
-    } else {
-      alert('등록되지 않은 이름입니다. 관리자에게 문의하세요.');
-    }
-  };
+  }
+
+  if (user) {
+    setCurrentUser(user);
+    setLoginUsername('');
+    // 로그인 성공 시 지도로 이동
+    setActiveTab('map');
+  } else {
+    // 로그인이 안 될 때 어떤 이름들을 비교했는지 알 수 있게 경고창에 띄워줍니다.
+    alert(`'${trimmedLoginName}'님은 등록되지 않은 이름입니다.\n관리자 화면의 명단에 있는 이름과 정확히 일치해야 합니다.`);
+  }
+};
 
   const handleLogout = () => {
     setCurrentUser(null);
