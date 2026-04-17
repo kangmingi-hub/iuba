@@ -165,46 +165,45 @@ export default function App() {
     }
   }, [currentUser]);
 
-const handleLogin = (e: React.FormEvent) => {
+const handleLogin = async (e: React.FormEvent) => {
   e.preventDefault();
+  if (!loginUsername.trim()) return;
 
-   console.log('입력한 이름:', loginUsername);
-  console.log('users 목록:', gameState.users);
-  console.log('players 목록:', gameState.players);
-  console.log('clubPoints 목록:', clubPoints);
-
-  let user = gameState.users.find(u => u.username === loginUsername);
-
-  
-  // 2. players 목록에서 찾기 (Supabase에서 동기화된 동아리명)
-  if (!user) {
-    const playerAsUser = gameState.players.find(p => p.name === loginUsername);
-    if (playerAsUser) {
-      user = {
-        id: playerAsUser.id,
-        username: playerAsUser.name,
-        role: 'member'
-      };
-    }
-  }
-
-  // 3. 그래도 없으면 clubPoints(Supabase 원본)에서도 찾기 ✅ 이게 핵심 추가
-  if (!user) {
-    const clubMatch = clubPoints.find(c => c.club_name === loginUsername);
-    if (clubMatch) {
-      user = {
-        id: `club-${loginUsername}`,
-        username: loginUsername,
-        role: 'member'
-      };
-    }
-  }
-
-  if (user) {
-    setCurrentUser(user);
+  // 1. admin 먼저 확인 (로컬)
+  const adminUser = gameState.users.find(
+    u => u.username === loginUsername && u.role === 'admin'
+  );
+  if (adminUser) {
+    setCurrentUser(adminUser);
     setLoginUsername('');
-  } else {
-    alert('등록되지 않은 이름입니다. 관리자에게 문의하세요.');
+    return;
+  }
+
+  // 2. Supabase에서 직접 실시간 조회
+  try {
+    const { data, error } = await supabase
+      .from('team_wallet_view')
+      .select('*')
+      .eq('club_name', loginUsername)
+      .single();
+
+    if (error || !data) {
+      alert('등록되지 않은 이름입니다. 관리자에게 문의하세요.');
+      return;
+    }
+
+    // 찾았으면 로그인 성공
+    const player = gameState.players.find(p => p.name === loginUsername);
+    setCurrentUser({
+      id: player?.id || `club-${loginUsername}`,
+      username: loginUsername,
+      role: 'member'
+    });
+    setLoginUsername('');
+
+  } catch (err) {
+    console.error('로그인 오류:', err);
+    alert('로그인 중 오류가 발생했습니다. 다시 시도해주세요.');
   }
 };
 
