@@ -168,24 +168,36 @@ export default function App() {
 const handleLogin = (e: React.FormEvent) => {
   e.preventDefault();
   
-  // 1. users 목록에서 찾기
+  // 1. admin 등 users 목록에서 먼저 찾기
   let user = gameState.users.find(u => u.username === loginUsername);
   
-  // 2. 만약 users에 없다면 players 목록에서도 찾아보기 (일반 대원 대응)
+  // 2. players 목록에서 찾기 (Supabase에서 동기화된 동아리명)
   if (!user) {
     const playerAsUser = gameState.players.find(p => p.name === loginUsername);
     if (playerAsUser) {
       user = {
         id: playerAsUser.id,
         username: playerAsUser.name,
-        role: 'member' // 대원은 기본적으로 member 권한
+        role: 'member'
+      };
+    }
+  }
+
+  // 3. 그래도 없으면 clubPoints(Supabase 원본)에서도 찾기 ✅ 이게 핵심 추가
+  if (!user) {
+    const clubMatch = clubPoints.find(c => c.club_name === loginUsername);
+    if (clubMatch) {
+      user = {
+        id: `club-${loginUsername}`,
+        username: loginUsername,
+        role: 'member'
       };
     }
   }
 
   if (user) {
     setCurrentUser(user);
-    setLoginUsername(''); // 로그인 성공 시 입력창 비우기
+    setLoginUsername('');
   } else {
     alert('등록되지 않은 이름입니다. 관리자에게 문의하세요.');
   }
