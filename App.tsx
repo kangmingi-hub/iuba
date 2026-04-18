@@ -166,11 +166,13 @@ export default function App() {
   }, [currentUser]);
 
 const handleLogin = async (e: React.FormEvent) => {
+
+  const handleLogin = async (e: React.FormEvent) => {
   e.preventDefault();
-  alert('로그인 함수 실행됨!'); 
+  alert('실행됨');
+
   if (!loginUsername.trim()) return;
 
-  // 1. admin 확인
   const adminUser = gameState.users.find(
     u => u.username === loginUsername && u.role === 'admin'
   );
@@ -180,7 +182,6 @@ const handleLogin = async (e: React.FormEvent) => {
     return;
   }
 
-  // 2. Supabase에서 직접 조회
   try {
     const { data, error } = await supabase
       .from('team_wallet_view')
@@ -189,7 +190,7 @@ const handleLogin = async (e: React.FormEvent) => {
       .single();
 
     if (error || !data) {
-      alert('등록되지 않은 이름입니다. 관리자에게 문의하세요.');
+      alert('등록되지 않은 이름입니다.');
       return;
     }
 
@@ -202,7 +203,7 @@ const handleLogin = async (e: React.FormEvent) => {
     setLoginUsername('');
 
   } catch (err) {
-    alert('등록되지 않은 이름입니다. 관리자에게 문의하세요.');
+    alert('오류 발생: ' + err);
   }
 };
   
