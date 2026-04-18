@@ -271,29 +271,29 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
               };
               const buildingImgSrc = BUILDING_IMAGES[state!.buildings] || '/buildings/building1.png';
             if (hasBuilding) {
-              // 건물이 있으면 공간을 나누어 배치 (캐릭터는 약간 왼쪽, 건물은 약간 오른쪽)
-              const offset = imgSize * 0.1;
-
-              // 1. 왼쪽으로 비켜난 캐릭터 이미지
-              countryG.append('image')
-                .attr('href', imgSrc)
-                .attr('x', centroid[0] - offset - imgSize / 2)
-                .attr('y', centroid[1] - imgSize / 2)
-                .attr('width', imgSize)
-                .attr('height', imgSize)
-                .attr('class', 'pointer-events-none')
-                .style('filter', 'drop-shadow(0px 2px 4px rgba(0,0,0,0.4))')
-                .raise();
-
-              // 2. 오른쪽에 생긴 건물 이미지
+              const offset = imgSize * 0.25;
+            
+              // 1. 건물 먼저 (뒤에 배치)
               countryG.append('image')
                 .attr('href', buildingImgSrc)
-                .attr('x', centroid[0] + offset - imgSize / 2)
+                .attr('x', centroid[0] - imgSize / 2)
                 .attr('y', centroid[1] - imgSize / 2)
                 .attr('width', imgSize)
                 .attr('height', imgSize)
                 .attr('class', 'pointer-events-none')
                 .style('filter', 'drop-shadow(0px 2px 4px rgba(0,0,0,0.6))')
+                .raise();
+            
+              // 2. 캐릭터 나중에 (앞에 배치) + 크기 작게
+              const charSize = imgSize * 0.55;
+              countryG.append('image')
+                .attr('href', imgSrc)
+                .attr('x', centroid[0] - offset - charSize / 2)
+                .attr('y', centroid[1] + imgSize * 0.1)
+                .attr('width', charSize)
+                .attr('height', charSize)
+                .attr('class', 'pointer-events-none')
+                .style('filter', 'drop-shadow(0px 2px 4px rgba(0,0,0,0.4))')
                 .raise();
             } else {
               // 건물이 없으면 기존처럼 한가운데 캐릭터 하나만 표시
