@@ -122,8 +122,9 @@ export function useGameState() {
       }, []);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...gameState, countries: {} }));
-  }, [gameState]);
+  const { countries, ...rest } = gameState;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(rest));
+}, [gameState]);
 
   useEffect(() => {
     if (currentUser) {
