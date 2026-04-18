@@ -262,7 +262,7 @@ if (isOwned) {
   if (centroid && !isNaN(centroid[0]) && !isNaN(centroid[1])) {
     const boundsWidth = bounds[1][0] - bounds[0][0];
     const boundsHeight = bounds[1][1] - bounds[0][1];
-    const minSide = Math.min(boundsWidth, boundsHeight);
+    const area = boundsWidth * boundsHeight;
     const imgSize = Math.max(12, Math.min(minSide * 0.5, 60)); // 최소 2, 최대 60
 
     const owner = players.find(p => p.id === state!.ownerId);
