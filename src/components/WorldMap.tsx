@@ -75,26 +75,23 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
     const gMain = svg.append('g').attr('class', 'main-group');
 
     // Drag & Zoom Interactions
-    const zoom = d3.zoom<SVGSVGElement, unknown>()
+   const zoom = d3.zoom<SVGSVGElement, unknown>()
       .scaleExtent([1, 15])
       .on('zoom', (event) => {
-        if (viewMode === '2d') {
-          gMain.attr('transform', event.transform);
-        } else {
-          setZoomLevel(event.transform.k);
-        }
+        ...
       })
       .filter((event) => {
-        // Only allow zoom with wheel or touch pinch, don't let it steal drag if we are in 3D
+        if (event.type === 'touchstart' || event.type === 'touchmove') return false; // 터치는 직접 처리
         return viewMode === '2d' || event.type !== 'mousedown';
       });
-    
+        
     // @ts-ignore
     zoomRef.current = zoom;
     svg.call(zoom);
 
     // Unified Drag Handler
-    const drag = d3.drag<SVGSVGElement, unknown>()
+   const drag = d3.drag<SVGSVGElement, unknown>()
+      .filter((event) => event.type !== 'touchstart') // 터치는 직접 처리
       .on('drag', (event) => {
         if (viewMode === '3d') {
           const sensitivity = 0.4 / zoomLevel;
