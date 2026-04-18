@@ -199,7 +199,7 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
        const state = countries[countryName] || countries[feature.id] || 
   Object.values(countries).find(c => c.name === countryName || c.id === countryName);
 const isOwned = !!(state?.ownerId && players.some(p => p.id === state.ownerId));
-        const targetDepth = isOwned ? (3 + state.buildings * 2) : 0;
+        const targetDepth = isOwned ? (1 + state.buildings * 1) : 0;
 
         const countryG = gCountries.append('g').attr('class', 'country-stack');
 
