@@ -37,6 +37,13 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
   const [zoomLevel, setZoomLevel] = useState(1);
   const [selectedContinent, setSelectedContinent] = useState<Continent>('world');
   const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown>>(null);
+  const rotationRef = useRef(rotation);
+  const zoomLevelRef = useRef(zoomLevel);
+  const viewModeRef = useRef(viewMode);
+  
+  useEffect(() => { rotationRef.current = rotation; }, [rotation]);
+  useEffect(() => { zoomLevelRef.current = zoomLevel; }, [zoomLevel]);
+  useEffect(() => { viewModeRef.current = viewMode; }, [viewMode]);
 
   useEffect(() => {
     fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
