@@ -263,7 +263,7 @@ if (isOwned) {
  const boundsWidth = bounds[1][0] - bounds[0][0];
   const boundsHeight = bounds[1][1] - bounds[0][1];
   const area = boundsWidth * boundsHeight;
-  const imgSize = Math.max(6, Math.min(Math.sqrt(area) * 0.3, 50)); // 최소 2, 최대 60
+  const imgSize = Math.max(6, Math.min(Math.sqrt(area) * 0.5, 50)); // 최소 2, 최대 60
 
     const owner = players.find(p => p.id === state!.ownerId);
     const imgSrc = CLUB_IMAGES[owner?.name || ''] || owner?.characterUrl || '';
