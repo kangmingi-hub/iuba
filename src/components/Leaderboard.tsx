@@ -57,7 +57,7 @@ export default function Leaderboard({ clubPoints, players, countries, isSyncing,
                 <div className="flex items-center gap-3">
                   <div className="relative">
                     <img
-                    src={CLUB_IMAGES[club.club_name] || player?.characterUrl || `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${club.club_name}`
+                      src={CLUB_IMAGES[club.club_name] || player?.characterUrl || `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${club.club_name}`}
                       alt={club.club_name}
                       className="w-9 h-9 rounded-full border-2 p-0.5 bg-white shadow-sm"
                       style={{ borderColor: player?.color || '#CBD5E1' }}
