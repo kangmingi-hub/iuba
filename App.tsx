@@ -165,8 +165,6 @@ export default function App() {
     }
   }, [currentUser]);
 
-const handleLogin = async (e: React.FormEvent) => {
-
   const handleLogin = async (e: React.FormEvent) => {
   e.preventDefault();
   alert('실행됨');
