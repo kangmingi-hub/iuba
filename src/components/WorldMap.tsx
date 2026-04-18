@@ -183,7 +183,18 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
 
     // Individual country stacking with "Rising" animation
     if (viewMode === '2d') {
-      filteredFeatures.forEach((feature: any) => {
+      const unownedFeatures = filteredFeatures.filter((f: any) => {
+          const name = f.properties.name;
+          const state = countries[name] || countries[f.id] || Object.values(countries).find(c => c.name === name || c.id === name);
+          return !(state?.ownerId && players.some(p => p.id === state.ownerId));
+        });
+        const ownedFeatures = filteredFeatures.filter((f: any) => {
+          const name = f.properties.name;
+          const state = countries[name] || countries[f.id] || Object.values(countries).find(c => c.name === name || c.id === name);
+          return !!(state?.ownerId && players.some(p => p.id === state.ownerId));
+        });
+
+[...unownedFeatures, ...ownedFeatures].forEach((feature: any) => {
         const countryName = feature.properties.name;
        const state = countries[countryName] || countries[feature.id] || 
   Object.values(countries).find(c => c.name === countryName || c.id === countryName);
