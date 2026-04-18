@@ -264,8 +264,12 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
             // 💡 건물 존재 여부 확인
             const hasBuilding = state!.buildings > 0;
             // 💡 건물 이미지 주소 (나중에 실제 가지고 계신 파일 경로로 수정하세요!)
-            const buildingImgSrc = "https://cdn-icons-png.flaticon.com/512/2555/2555572.png"; 
-
+           const BUILDING_IMAGES: Record<number, string> = {
+                1: '/buildings/예배소.png',
+                2: '/buildings/지교회.png',
+                3: '/buildings/정교회.png',
+              };
+              const buildingImgSrc = BUILDING_IMAGES[state!.buildings] || '/buildings/building1.png';
             if (hasBuilding) {
               // 건물이 있으면 공간을 나누어 배치 (캐릭터는 약간 왼쪽, 건물은 약간 오른쪽)
               const offset = imgSize * 0.5;
