@@ -8,10 +8,12 @@ import { twMerge } from 'tailwind-merge';
 
 function cn(...inputs: ClassValue[]) { return twMerge(clsx(inputs)); }
 
+// Props 수정
 interface Props {
   players: Player[];
   countries: Record<string, CountryState>;
   onCancel: (countryId: string) => void;
+  onCancelBuilding: (countryId: string) => void; // ← 추가
   onHealGhosts: () => void;
 }
 
