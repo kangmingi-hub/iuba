@@ -447,6 +447,7 @@ const drag = d3.drag<SVGSVGElement, unknown>()
       rotationRef.current = newRotation; // ref 즉시 업데이트
       setRotation(newRotation);          // React 상태도 업데이트
     }
+  }; 
 
   svgEl.addEventListener('touchstart', onTouchStart, { passive: true });
   svgEl.addEventListener('touchmove', onTouchMove, { passive: false });
