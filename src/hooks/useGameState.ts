@@ -11,11 +11,12 @@ export function useGameState() {
     const saved = localStorage.getItem(STORAGE_KEY);
     const parsed = saved ? JSON.parse(saved) : null;
     return {
-      players: (parsed?.players || INITIAL_TEAMS).filter((p: any) =>
-        !['A to Z', 'TOY', 'Blossom', 'Evergreen', 'The First', 'Perlfect', 'EBS', 'YITC', 'BPM'].includes(p.name) &&
-        !/^team-\d+$/.test(p.id) &&
-        !/^\d+팀$/.test(p.name)
-      ),
+   players: (parsed?.players || INITIAL_TEAMS).filter((p: any) =>
+      p && p.name && p.id &&
+      !['A to Z', 'TOY', 'Blossom', 'Evergreen', 'The First', 'Perlfect', 'EBS', 'YITC', 'BPM'].includes(p.name) &&
+      !/^team-\d+$/.test(p.id) &&
+      !/^\d+팀$/.test(p.name)
+    ),
       countries: {},
       logs: parsed?.logs || [{
         id: 'start',
@@ -23,9 +24,7 @@ export function useGameState() {
         message: '새로운 선교 원정이 시작되었습니다!',
         type: 'purchase' as any
       }],
-      users: parsed?.users || [
-        { id: 'admin-1', username: 'admin', role: 'admin' }
-      ]
+    users: (parsed?.users || [{ id: 'admin-1', username: 'admin', role: 'admin' }]).filter((u: any) => u && u.id && u.username)
     };
   });
 
