@@ -1,0 +1,106 @@
+import React, { useState } from 'react';
+import { motion } from 'motion/react';
+import { Flag, X } from 'lucide-react';
+import { Player, CountryState } from '../types';
+import { COUNTRY_PRICES, DEFAULT_COUNTRY_PRICE, BUILDING_TIERS } from '../constants';
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+function cn(...inputs: ClassValue[]) { return twMerge(clsx(inputs)); }
+
+interface Props {
+  players: Player[];
+  countries: Record<string, CountryState>;
+  onCancel: (countryId: string) => void;
+  onHealGhosts: () => void;
+}
+
+export default function TerritoriesPanel({ players, countries, onCancel, onHealGhosts }: Props) {
+  const [cancelConfirmId, setCancelConfirmId] = useState<string | null>(null);
+  const occupiedCountries = Object.values(countries).filter(c => c.ownerId);
+
+  const handleCancel = (countryId: string) => {
+    onCancel(countryId);
+    setCancelConfirmId(null);
+  };
+
+  return (
+    <motion.div
+      key="territories"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 20 }}
+      className="sleek-card flex flex-col"
+    >
+      <div className="sleek-panel-header flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <h2 className="sleek-panel-title">점령 현황 관리</h2>
+          <button type="button" onClick={onHealGhosts}
+            className="flex items-center gap-1 px-2.5 py-1 bg-red-50 text-red-500 border border-red-100 hover:bg-red-100 text-[10px] font-black rounded-lg transition-colors">
+            🧹 유령 영토 청소
+          </button>
+        </div>
+        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+          총 {occupiedCountries.length}개 나라 점령 중
+        </span>
+      </div>
+
+      <div className="p-6 overflow-y-auto custom-scrollbar max-h-[calc(100vh-280px)]">
+        {occupiedCountries.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+            <Flag className="w-10 h-10 mb-3 opacity-30" />
+            <p className="text-sm font-bold">현재 점령된 나라가 없습니다.</p>
+          </div>
+        ) : (
+          <div className="space-y-5">
+            {players.map(player => {
+              const ownedList = Object.values(countries).filter(c => c.ownerId === player.id);
+              if (ownedList.length === 0) return null;
+
+              return (
+                <div key={player.id} className="rounded-2xl border border-[#E2E8F0] overflow-hidden bg-white shadow-sm">
+                  <div className="flex items-center gap-3 px-5 py-3 border-b border-[#E2E8F0]" style={{ backgroundColor: `${player.color}12` }}>
+                    <img src={player.characterUrl} alt={player.name} className="w-8 h-8 rounded-full border-2 p-0.5 bg-white shadow-sm" style={{ borderColor: player.color }} />
+                    <span className="font-black text-sm uppercase tracking-tight" style={{ color: player.color }}>{player.name}</span>
+                    <span className="ml-auto text-[10px] font-bold text-slate-400 bg-white border border-[#E2E8F0] px-2 py-0.5 rounded-full">{ownedList.length}개 점령</span>
+                  </div>
+                  <div className="divide-y divide-[#F1F5F9]">
+                    {ownedList.map(country => {
+                      const buildingLabel = country.buildings === 0 ? '센터 없음' : BUILDING_TIERS[country.buildings - 1].name;
+                      const refundGold = COUNTRY_PRICES[country.id] || DEFAULT_COUNTRY_PRICE;
+                      const isConfirming = cancelConfirmId === country.id;
+
+                      return (
+                        <div key={country.id} className={cn("flex items-center gap-4 px-5 py-3.5 transition-colors", isConfirming ? "bg-red-50" : "hover:bg-slate-50")}>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-black text-[#1E293B] truncate uppercase tracking-tight">{country.id}</p>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <span className="text-[10px] font-bold text-slate-400">{buildingLabel}</span>
+                              <span className="text-[10px] text-slate-300">|</span>
+                              <span className="text-[10px] font-bold text-amber-500">환불 {refundGold}G</span>
+                            </div>
+                          </div>
+                          {isConfirming ? (
+                            <div className="flex items-center gap-2">
+                              <button onClick={() => handleCancel(country.id)} className="px-3 py-1.5 bg-red-500 text-white text-[11px] font-black rounded-lg">확인</button>
+                              <button onClick={() => setCancelConfirmId(null)} className="px-3 py-1.5 bg-slate-100 text-slate-600 text-[11px] font-black rounded-lg">아니오</button>
+                            </div>
+                          ) : (
+                            <button onClick={() => setCancelConfirmId(country.id)}
+                              className="flex items-center gap-1.5 px-3 py-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 border border-red-100 rounded-lg text-[11px] font-black transition-all">
+                              <X className="w-3 h-3" /> 점령 취소
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+}
