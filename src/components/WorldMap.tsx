@@ -445,16 +445,8 @@ useEffect(() => {
         rotationRef.current[1] - dy * sensitivity,
         rotationRef.current[2]
       ];
-      rotationRef.current = newRotation;
-
-      // 이전 프레임 취소 후 새 프레임 요청
-      if (rafId) cancelAnimationFrame(rafId);
-      rafId = requestAnimationFrame(() => {
-        setRotation([...newRotation] as [number, number, number]);
-        rafId = null;
-      });
-    }
-  };
+    rotationRef.current = newRotation;
+    setRotation(newRotation);
 
   svgEl.addEventListener('touchstart', onTouchStart, { passive: true });
   svgEl.addEventListener('touchmove', onTouchMove, { passive: false });
