@@ -78,7 +78,6 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
    const zoom = d3.zoom<SVGSVGElement, unknown>()
       .scaleExtent([1, 15])
       .on('zoom', (event) => {
-        ...
       })
       .filter((event) => {
         if (event.type === 'touchstart' || event.type === 'touchmove') return false; // 터치는 직접 처리
