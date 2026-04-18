@@ -414,12 +414,13 @@ const drag = d3.drag<SVGSVGElement, unknown>()
     return () => observer.disconnect();
   }, []);
 
- useEffect(() => {
+useEffect(() => {
   const svgEl = svgRef.current;
   if (!svgEl) return;
 
   let lastX = 0;
   let lastY = 0;
+  let rafId: number | null = null;  // requestAnimationFrame ID
 
   const onTouchStart = (e: TouchEvent) => {
     if (e.touches.length === 1) {
@@ -437,17 +438,23 @@ const drag = d3.drag<SVGSVGElement, unknown>()
     lastX = e.touches[0].clientX;
     lastY = e.touches[0].clientY;
 
-   if (viewModeRef.current === '3d') {
+    if (viewModeRef.current === '3d') {
       const sensitivity = 0.5 / zoomLevelRef.current;
       const newRotation: [number, number, number] = [
         rotationRef.current[0] + dx * sensitivity,
         rotationRef.current[1] - dy * sensitivity,
         rotationRef.current[2]
       ];
-      rotationRef.current = newRotation; // ref 즉시 업데이트
-      setRotation(newRotation);          // React 상태도 업데이트
+      rotationRef.current = newRotation;
+
+      // 이전 프레임 취소 후 새 프레임 요청
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        setRotation([...newRotation] as [number, number, number]);
+        rafId = null;
+      });
     }
-  }; 
+  };
 
   svgEl.addEventListener('touchstart', onTouchStart, { passive: true });
   svgEl.addEventListener('touchmove', onTouchMove, { passive: false });
@@ -455,6 +462,7 @@ const drag = d3.drag<SVGSVGElement, unknown>()
   return () => {
     svgEl.removeEventListener('touchstart', onTouchStart);
     svgEl.removeEventListener('touchmove', onTouchMove);
+    if (rafId) cancelAnimationFrame(rafId);
   };
 }, []);
   
