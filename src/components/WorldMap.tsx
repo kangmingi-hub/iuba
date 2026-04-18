@@ -244,7 +244,6 @@ const isOwned = !!(state?.ownerId && players.some(p => p.id === state.ownerId));
                 .attr('stroke', '#3b82f6')
                 .attr('stroke-width', '1.5')
                 .attr('vector-effect', 'non-scaling-stroke')
-                .raise();
             })
             .on('mousemove', handleMouseMove)
             .on('mouseout', function() {
