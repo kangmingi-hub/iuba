@@ -292,7 +292,7 @@ useEffect(() => {
     setGameState(prev => ({
       ...prev,
       players: prev.players.map(p => p.id === playerId ? { ...p, gold: p.gold - price } : p),
-      countries: { ...prev.countries, [countryId]: { id: countryId, name: countryName, ownerId: playerId, buildings: 0 } }
+     countries: { ...prev.countries, [countryId]: { id: countryId, name: countryName, ownerId: `club-${player.name.replace(/\s+/g, '-').toLowerCase()}`, buildings: 0 } }
     }));
     addLog(`${player.name}님이 ${countryName}를 ${price}G에 점령했습니다!`, 'purchase');
   };
