@@ -17,7 +17,7 @@ interface Props {
   onHealGhosts: () => void;
 }
 
-export default function TerritoriesPanel({ players, countries, onCancel, onHealGhosts }: Props) {
+  export default function TerritoriesPanel({ players, countries, onCancel, onCancelBuilding, onHealGhosts }: Props) {
   const [cancelConfirmId, setCancelConfirmId] = useState<string | null>(null);
   const occupiedCountries = Object.values(countries).filter(c => c.ownerId);
 
