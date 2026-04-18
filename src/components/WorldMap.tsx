@@ -272,7 +272,7 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
               const buildingImgSrc = BUILDING_IMAGES[state!.buildings] || '/buildings/building1.png';
             if (hasBuilding) {
               // 건물이 있으면 공간을 나누어 배치 (캐릭터는 약간 왼쪽, 건물은 약간 오른쪽)
-              const offset = imgSize * 0.5;
+              const offset = imgSize * 0.1;
 
               // 1. 왼쪽으로 비켜난 캐릭터 이미지
               countryG.append('image')
