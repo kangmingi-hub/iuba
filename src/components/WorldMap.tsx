@@ -48,8 +48,9 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
     if (!topology || !svgRef.current) return;
 
     const svg = d3.select(svgRef.current);
-    const width = svgRef.current.clientWidth;
-    const height = svgRef.current.clientHeight;
+    const rect = svgRef.current.getBoundingClientRect();
+    const width = rect.width || window.innerWidth;
+    const height = rect.height || window.innerHeight * 0.6;
 
     svg.selectAll('*').remove();
 
@@ -397,6 +398,14 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
       .call(zoomRef.current.transform, transform);
 
   }, [selectedContinent, topology, viewMode]);
+
+  useEffect(() => {
+    const observer = new ResizeObserver(() => {
+      setZoomLevel(prev => prev); 
+    });
+    if (svgRef.current) observer.observe(svgRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <div className="w-full h-full bg-[#f8fafc] overflow-hidden relative rounded-[2rem] border border-[#E2E8F0] shadow-sm">
