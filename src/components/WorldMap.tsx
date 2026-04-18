@@ -206,14 +206,7 @@ const isOwned = !!(state?.ownerId && players.some(p => p.id === state.ownerId));
          if (isOwned) {
             const baseColor = players.find(p => p.id === state.ownerId)?.color || '#cbd5e1';
           
-            // 그림자
-            countryG.append('path')
-              .datum(feature)
-              .attr('d', path as any)
-              .attr('fill', 'rgba(0,0,0,0.1)')
-              .attr('filter', 'blur(4px)')
-              .attr('transform', `translate(2, ${targetDepth + 2})`);
-          
+
             // 옆면 - 0부터 targetDepth까지 꽉 채워서 솟아오른 느낌
             const wallSteps = 8;
             for (let i = 0; i <= wallSteps; i++) {
