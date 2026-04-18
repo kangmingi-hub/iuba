@@ -75,13 +75,13 @@ export function useGameState() {
         setClubPoints(data);
         setGameState(prev => {
           const playersMap = new Map<string, Player>(prev.players.map(p => [p.name, p]));
-          const updatedPlayers = (data as any[]).map((club, idx) => {
+        const updatedPlayers = (data as any[]).filter((club) => club && club.club_name).map((club, idx) => {
             const existing = playersMap.get(club.club_name);
             if (existing) {
               return { ...existing, gold: club.remaining_evangelism_points, buildingPower: club.remaining_speech_points } as Player;
             }
             return {
-              id: `club-${club.club_name.replace(/\s+/g, '-').toLowerCase()}`,  // ← 이것으로 교체
+              id: `club-${club.club_name.replace(/\s+/g, '-').toLowerCase()}`, // ← 이것으로 교체
               name: club.club_name,
               color: TEAM_COLORS[(prev.players.length + idx) % TEAM_COLORS.length],
               characterUrl: `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${club.club_name}`,
