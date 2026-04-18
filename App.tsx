@@ -1085,6 +1085,7 @@ const handleLogin = async (e: React.FormEvent) => {
                           <div className="grid grid-cols-3 gap-3">
                             {gameState.players.map(player => (
                               <button
+                                type="submit"
                                 key={player.id}
                                 onClick={() => buyCountry(selectedCountry.id, player.id)}
                                 disabled={player.gold < (COUNTRY_PRICES[selectedCountry.name] || DEFAULT_COUNTRY_PRICE)}
