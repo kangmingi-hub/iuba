@@ -270,8 +270,8 @@ if (isOwned) {
 
     countryG.append('image')
       .attr('href', imgSrc)
-      .attr('x', centroid[0] - imgSize / 2)
-      .attr('y', centroid[1] - imgSize / 2)
+      .attr('x', centroid[0] - imgSize / 2 + 5)
+      .attr('y', centroid[1] - imgSize / 2 - targetDepth / 1)
       .attr('width', imgSize)
       .attr('height', imgSize)
       .attr('class', 'pointer-events-none')
