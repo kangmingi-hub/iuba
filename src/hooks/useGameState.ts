@@ -100,10 +100,26 @@ export function useGameState() {
     }
   };
 
-  useEffect(() => {
-    fetchClubPoints();
-    fetchOccupations();
-  }, []);
+      useEffect(() => {
+        fetchClubPoints();
+        fetchOccupations();
+      
+        // ✅ Realtime 구독
+        const channel = supabase
+          .channel('country_occupations_changes')
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'country_occupations' },
+            () => {
+              fetchOccupations();
+            }
+          )
+          .subscribe();
+      
+        return () => {
+          supabase.removeChannel(channel);
+        };
+      }, []);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...gameState, countries: {} }));
