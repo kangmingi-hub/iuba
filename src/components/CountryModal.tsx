@@ -73,8 +73,51 @@ export default function CountryModal({ selectedCountry, countries, players, onCl
                 </div>
               </div>
 
+              {/* ===== 여기서부터 변경된 부분입니다 (소유자가 있을 때의 화면) ===== */}
               {ownedCountry?.ownerId ? (
                 <div className="space-y-6">
+                  
+                  {/* 추가된 부분: 캐릭터가 비켜나고 건물이 생기는 애니메이션 구역 */}
+                  <div className="flex items-center justify-center h-28 bg-[#FAFBFF] rounded-2xl border border-[#E2E8F0] shadow-inner mb-4">
+                    <div className="flex items-center gap-4">
+                      {/* 캐릭터 (건물이 생기면 layout 속성에 의해 자연스럽게 왼쪽으로 밀려남) */}
+                      <motion.div layout transition={{ type: "spring", bounce: 0.2, duration: 0.6 }} className="relative z-10">
+                        <img 
+                          src={players.find(p => p.id === ownedCountry.ownerId)?.characterUrl || "https://cdn-icons-png.flaticon.com/512/149/149071.png"} 
+                          alt="캐릭터" 
+                          className="w-16 h-16 rounded-full border-4 shadow-md bg-white object-cover"
+                          style={{ borderColor: players.find(p => p.id === ownedCountry.ownerId)?.color || '#3B82F6' }}
+                          onError={(e) => { (e.target as HTMLImageElement).src = "https://cdn-icons-png.flaticon.com/512/149/149071.png" }}
+                        />
+                      </motion.div>
+
+                      {/* 건물 (건물이 있을 때만 오른쪽에서 팝업되며 등장) */}
+                      <AnimatePresence>
+                        {ownedCountry.buildings > 0 && (
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0, x: -20 }}
+                            animate={{ opacity: 1, scale: 1, x: 0 }}
+                            exit={{ opacity: 0, scale: 0, x: -20 }}
+                            transition={{ type: "spring", bounce: 0.4, duration: 0.6 }}
+                            className="relative z-20"
+                          >
+                            {/* 💡여기의 src 주소를 나중에 진짜 건물 이미지로 바꿔주세요! */}
+                            <img 
+                              src="https://cdn-icons-png.flaticon.com/512/2555/2555572.png" 
+                              alt="건물" 
+                              className="w-16 h-16 drop-shadow-xl object-contain"
+                            />
+                            {/* 건물 레벨 뱃지 */}
+                            <span className="absolute -top-2 -right-2 bg-blue-600 text-white text-[10px] font-black w-6 h-6 flex items-center justify-center rounded-full border-2 border-white shadow-sm">
+                              Lv.{ownedCountry.buildings}
+                            </span>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  </div>
+                  {/* 애니메이션 구역 끝 */}
+
                   <div className="p-6 bg-[#FAFBFF] rounded-2xl border border-[#E2E8F0] flex items-center justify-between shadow-sm">
                     <div>
                       <p className="text-[10px] text-[#64748B] uppercase font-bold tracking-widest mb-2">Occupying Force</p>
@@ -99,6 +142,7 @@ export default function CountryModal({ selectedCountry, countries, players, onCl
                   </button>
                 </div>
               ) : (
+              /* ===== 미점유 상태 ===== */
                 <div className="space-y-6">
                   <div className="p-4 bg-blue-50/50 rounded-xl border border-blue-100 italic text-[11px] text-blue-600 font-medium text-center">
                     본 영토는 현재 미점유 상태입니다. 대원의 점수를 사용하여 선교 지경을 넓히십시오.
