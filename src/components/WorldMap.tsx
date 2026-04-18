@@ -194,11 +194,11 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
           return !!(state?.ownerId && players.some(p => p.id === state.ownerId));
         });
 
-[...unownedFeatures, ...ownedFeatures].forEach((feature: any) => {
+      [...unownedFeatures, ...ownedFeatures].forEach((feature: any) => {
         const countryName = feature.properties.name;
-       const state = countries[countryName] || countries[feature.id] || 
-  Object.values(countries).find(c => c.name === countryName || c.id === countryName);
-const isOwned = !!(state?.ownerId && players.some(p => p.id === state.ownerId));
+        const state = countries[countryName] || countries[feature.id] || 
+        Object.values(countries).find(c => c.name === countryName || c.id === countryName);
+        const isOwned = !!(state?.ownerId && players.some(p => p.id === state.ownerId));
         const targetDepth = isOwned ? (2 + state.buildings * 2) : 0;
 
         const countryG = gCountries.append('g').attr('class', 'country-stack');
@@ -206,7 +206,6 @@ const isOwned = !!(state?.ownerId && players.some(p => p.id === state.ownerId));
          if (isOwned) {
             const baseColor = players.find(p => p.id === state.ownerId)?.color || '#cbd5e1';
           
-
             // 옆면 - 0부터 targetDepth까지 꽉 채워서 솟아오른 느낌
             const wallSteps = 8;
             for (let i = 0; i <= wallSteps; i++) {
@@ -220,7 +219,6 @@ const isOwned = !!(state?.ownerId && players.some(p => p.id === state.ownerId));
           }
 
         // Top Surface
-       // 수정
         countryG.append('path')
           .datum(feature)
           .attr('d', path as any)
@@ -248,30 +246,66 @@ const isOwned = !!(state?.ownerId && players.some(p => p.id === state.ownerId));
                 .attr('vector-effect', 'non-scaling-stroke');
             });
 
-// 나라 중심에 동아리 이미지 표시
-if (isOwned) {
-  const centroid = path.centroid(feature);
-  const bounds = path.bounds(feature);
-  if (centroid && !isNaN(centroid[0]) && !isNaN(centroid[1])) {
- const boundsWidth = bounds[1][0] - bounds[0][0];
-  const boundsHeight = bounds[1][1] - bounds[0][1];
-  const area = boundsWidth * boundsHeight;
-  const imgSize = Math.max(6, Math.min(Math.sqrt(area) * 0.5, 50)); // 최소 2, 최대 60
+        // ===== 여기서부터 변경된 부분 (캐릭터 & 건물 지도 위 표시) =====
+        // 나라 중심에 이미지 표시 로직
+        if (isOwned) {
+          const centroid = path.centroid(feature);
+          const bounds = path.bounds(feature);
+          
+          if (centroid && !isNaN(centroid[0]) && !isNaN(centroid[1])) {
+            const boundsWidth = bounds[1][0] - bounds[0][0];
+            const boundsHeight = bounds[1][1] - bounds[0][1];
+            const area = boundsWidth * boundsHeight;
+            const imgSize = Math.max(6, Math.min(Math.sqrt(area) * 0.5, 50)); // 최소 6, 최대 50
 
-    const owner = players.find(p => p.id === state!.ownerId);
-    const imgSrc = CLUB_IMAGES[owner?.name || ''] || owner?.characterUrl || '';
+            const owner = players.find(p => p.id === state!.ownerId);
+            const imgSrc = CLUB_IMAGES[owner?.name || ''] || owner?.characterUrl || '';
+            
+            // 💡 건물 존재 여부 확인
+            const hasBuilding = state!.buildings > 0;
+            // 💡 건물 이미지 주소 (나중에 실제 가지고 계신 파일 경로로 수정하세요!)
+            const buildingImgSrc = "https://cdn-icons-png.flaticon.com/512/2555/2555572.png"; 
 
-    countryG.append('image')
-      .attr('href', imgSrc)
-      .attr('x', centroid[0] - imgSize / 2 + 1)
-      .attr('y', centroid[1] - imgSize / 2)
-      .attr('width', imgSize)
-      .attr('height', imgSize)
-      .attr('class', 'pointer-events-none')
-      .style('filter', 'drop-shadow(0px 2px 4px rgba(0,0,0,0.4))')
-      .raise();
-  }
-}
+            if (hasBuilding) {
+              // 건물이 있으면 공간을 나누어 배치 (캐릭터는 약간 왼쪽, 건물은 약간 오른쪽)
+              const offset = imgSize * 0.5;
+
+              // 1. 왼쪽으로 비켜난 캐릭터 이미지
+              countryG.append('image')
+                .attr('href', imgSrc)
+                .attr('x', centroid[0] - offset - imgSize / 2)
+                .attr('y', centroid[1] - imgSize / 2)
+                .attr('width', imgSize)
+                .attr('height', imgSize)
+                .attr('class', 'pointer-events-none')
+                .style('filter', 'drop-shadow(0px 2px 4px rgba(0,0,0,0.4))')
+                .raise();
+
+              // 2. 오른쪽에 생긴 건물 이미지
+              countryG.append('image')
+                .attr('href', buildingImgSrc)
+                .attr('x', centroid[0] + offset - imgSize / 2)
+                .attr('y', centroid[1] - imgSize / 2)
+                .attr('width', imgSize)
+                .attr('height', imgSize)
+                .attr('class', 'pointer-events-none')
+                .style('filter', 'drop-shadow(0px 2px 4px rgba(0,0,0,0.6))')
+                .raise();
+            } else {
+              // 건물이 없으면 기존처럼 한가운데 캐릭터 하나만 표시
+              countryG.append('image')
+                .attr('href', imgSrc)
+                .attr('x', centroid[0] - imgSize / 2 + 1)
+                .attr('y', centroid[1] - imgSize / 2)
+                .attr('width', imgSize)
+                .attr('height', imgSize)
+                .attr('class', 'pointer-events-none')
+                .style('filter', 'drop-shadow(0px 2px 4px rgba(0,0,0,0.4))')
+                .raise();
+            }
+          }
+        }
+        // ===== 변경 부분 끝 =====
   
         // Entrance Animation - 소유 나라만 튀어오르게
         if (isOwned) {
