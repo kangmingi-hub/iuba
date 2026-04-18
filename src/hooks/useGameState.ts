@@ -234,6 +234,26 @@ useEffect(() => {
     });
   };
 
+  const cancelBuilding = async (countryId: string) => {
+    const country = gameState.countries[countryId];
+    if (!country || country.buildings <= 0) return;
+  
+    const newBuildings = country.buildings - 1;
+    const tier = BUILDING_TIERS[country.buildings - 1];
+    const player = gameState.players.find(p => p.id === country.ownerId);
+  
+    await supabase.from('country_occupations')
+      .update({ buildings: newBuildings })
+      .eq('country_id', countryId);
+  
+    setGameState(prev => ({
+      ...prev,
+      countries: { ...prev.countries, [countryId]: { ...country, buildings: newBuildings } },
+    }));
+  
+    addLog(`관리자가 ${player?.name || '대원'}의 ${country.name} 건물 '${tier.name}'을 취소했습니다.`, 'construction');
+  };
+    
   const healGhostData = async () => {
     const validPlayerIds = new Set(gameState.players.map(p => p.id));
     const ghostIds = Object.entries(gameState.countries)
