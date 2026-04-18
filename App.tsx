@@ -167,6 +167,7 @@ export default function App() {
 
 const handleLogin = async (e: React.FormEvent) => {
   e.preventDefault();
+  alert('로그인 함수 실행됨!'); 
   if (!loginUsername.trim()) return;
 
   // 1. admin 확인
