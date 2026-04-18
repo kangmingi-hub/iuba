@@ -79,10 +79,10 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
       .scaleExtent([1, 15])
       .on('zoom', (event) => {
       })
-      .filter((event) => {
-        if (event.type === 'touchstart' || event.type === 'touchmove') return false; // 터치는 직접 처리
-        return viewMode === '2d' || event.type !== 'mousedown';
-      });
+    .filter((event) => {
+      if (viewMode === '3d' && (event.type === 'touchstart' || event.type === 'touchmove')) return false; // 3D일 때만 터치 막기
+      return viewMode === '2d' || event.type !== 'mousedown';
+    });
         
     // @ts-ignore
     zoomRef.current = zoom;
@@ -92,11 +92,11 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
    const drag = d3.drag<SVGSVGElement, unknown>()
       .filter((event) => event.type !== 'touchstart') // 터치는 직접 처리
       .on('drag', (event) => {
-        if (viewMode === '3d') {
-          const sensitivity = 0.4 / zoomLevel;
+       if (viewMode === '3d') {
+          const sensitivity = 0.15 / zoomLevel;  // 0.4 → 0.15 으로 낮춤
           setRotation(prev => [
-            prev[0] + event.dx * sensitivity, 
-            prev[1] - event.dy * sensitivity, 
+            prev[0] + dx * sensitivity,
+            prev[1] - dy * sensitivity,
             prev[2]
           ]);
         } else {
