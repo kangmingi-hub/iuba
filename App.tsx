@@ -26,7 +26,7 @@ import {
   RefreshCcw,
   Flag,
   AlertCircle
-} from 'lucide-react';
+  } from 'lucide-react';
 import WorldMap from './components/WorldMap';
 import { Player, CountryState, GameState, GameLog, User, TEAM_COLORS } from './types';
 import { INITIAL_TEAMS, COUNTRY_PRICES, DEFAULT_COUNTRY_PRICE, BUILDING_TIERS, CHARACTER_SEEDS } from './constants';
