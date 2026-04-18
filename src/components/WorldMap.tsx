@@ -277,6 +277,7 @@ if (isOwned) {
       .attr('height', imgSize)
       .attr('class', 'pointer-events-none')
       .style('filter', 'drop-shadow(0px 2px 4px rgba(0,0,0,0.4))');
+      .raise();
   }
 }
   
@@ -310,7 +311,6 @@ if (isOwned) {
                 .attr('stroke', '#3b82f6')
                 .attr('stroke-width', '1.5')
                 .attr('vector-effect', 'non-scaling-stroke')
-                .raise();
             })
           .on('mousemove', handleMouseMove)
           .on('mouseout', function() {
