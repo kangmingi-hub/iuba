@@ -407,6 +407,48 @@ const drag = d3.drag<SVGSVGElement, unknown>()
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    const svgEl = svgRef.current;
+    if (!svgEl) return;
+  
+    let lastX = 0;
+    let lastY = 0;
+  
+    const onTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 1) {
+        lastX = e.touches[0].clientX;
+        lastY = e.touches[0].clientY;
+      }
+    };
+  
+    const onTouchMove = (e: TouchEvent) => {
+      e.preventDefault();
+      if (e.touches.length !== 1) return;
+  
+      const dx = e.touches[0].clientX - lastX;
+      const dy = e.touches[0].clientY - lastY;
+      lastX = e.touches[0].clientX;
+      lastY = e.touches[0].clientY;
+  
+      if (viewMode === '3d') {
+        const sensitivity = 0.15 / zoomLevel;
+        setRotation(prev => [
+          prev[0] + dx * sensitivity,
+          prev[1] - dy * sensitivity,
+          prev[2]
+        ]);
+      }
+    };
+  
+    svgEl.addEventListener('touchstart', onTouchStart, { passive: true });
+    svgEl.addEventListener('touchmove', onTouchMove, { passive: false });
+  
+    return () => {
+      svgEl.removeEventListener('touchstart', onTouchStart);
+      svgEl.removeEventListener('touchmove', onTouchMove);
+    };
+  }, [viewMode, zoomLevel]);
+  
   return (
     <div className="w-full h-full bg-[#f8fafc] overflow-hidden relative rounded-[2rem] border border-[#E2E8F0] shadow-sm">
       <svg ref={svgRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
