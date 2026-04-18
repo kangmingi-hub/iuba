@@ -167,28 +167,42 @@ export default function App() {
 
 const handleLogin = async (e: React.FormEvent) => {
   e.preventDefault();
+  if (!loginUsername.trim()) return;
 
-  console.log('=== 로그인 시도 ===');
-  console.log('입력값:', loginUsername);
-  console.log('현재 gameState.users:', gameState.users);
-  console.log('현재 gameState.players:', gameState.players);
-  console.log('현재 clubPoints:', clubPoints);
+  // 1. admin 확인
+  const adminUser = gameState.users.find(
+    u => u.username === loginUsername && u.role === 'admin'
+  );
+  if (adminUser) {
+    setCurrentUser(adminUser);
+    setLoginUsername('');
+    return;
+  }
 
-  // Supabase 직접 조회
-  const { data, error } = await supabase
-    .from('team_wallet_view')
-    .select('*');
+  // 2. Supabase에서 직접 조회
+  try {
+    const { data, error } = await supabase
+      .from('team_wallet_view')
+      .select('*')
+      .eq('club_name', loginUsername)
+      .single();
 
-  console.log('Supabase 직접 조회 결과:', data);
-  console.log('Supabase 오류:', error);
+    if (error || !data) {
+      alert('등록되지 않은 이름입니다. 관리자에게 문의하세요.');
+      return;
+    }
 
-  alert(`
-    입력값: ${loginUsername}
-    players 수: ${gameState.players.length}
-    clubPoints 수: ${clubPoints.length}
-    Supabase 조회 수: ${data?.length ?? '오류'}
-    Supabase 첫번째 club_name: ${data?.[0]?.club_name ?? '없음'}
-  `);
+    const player = gameState.players.find(p => p.name === loginUsername);
+    setCurrentUser({
+      id: player?.id || `club-${loginUsername}`,
+      username: loginUsername,
+      role: 'member'
+    });
+    setLoginUsername('');
+
+  } catch (err) {
+    alert('등록되지 않은 이름입니다. 관리자에게 문의하세요.');
+  }
 };
   
   const handleLogout = () => {
