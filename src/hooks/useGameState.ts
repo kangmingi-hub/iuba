@@ -80,6 +80,27 @@ export function useGameState() {
 
   useEffect(() => { fetchClubPoints(); }, []);
 
+  // 🟢 [추가된 부분] 1. 수파베이스 실시간 알림 구독 코드
+  useEffect(() => {
+    const channel = supabase
+      .channel('realtime:countries')
+      .on(
+        'postgres_changes',
+        // 주의: 수파베이스에 만들어둔 나라 정보 테이블 이름이 'countries'가 맞는지 확인해 주세요!
+        { event: '*', schema: 'public', table: 'countries' }, 
+        (payload) => {
+          console.log('데이터베이스 변경 감지!', payload);
+          // DB가 바뀌면 점수를 다시 불러와서 화면을 최신화합니다.
+          fetchClubPoints();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(gameState));
   }, [gameState]);
@@ -223,17 +244,41 @@ export function useGameState() {
     });
   };
 
-  const buyCountry = (countryId: string, playerId: string, countryName: string) => {
+  // 🟢 [수정된 부분] 2. 수파베이스(DB)에 저장하는 기능 추가
+  const buyCountry = async (countryId: string, playerId: string, countryName: string) => {
     const player = gameState.players.find(p => p.id === playerId);
     const price = COUNTRY_PRICES[countryName] || DEFAULT_COUNTRY_PRICE;
-    if (!player || player.gold < price) { alert('금화가 부족합니다!'); return; }
+    
+    if (!player || player.gold < price) { 
+      alert('금화가 부족합니다!'); 
+      return; 
+    }
 
+    // 1. 내 화면 즉시 업데이트
     setGameState(prev => ({
       ...prev,
       players: prev.players.map(p => p.id === playerId ? { ...p, gold: p.gold - price } : p),
       countries: { ...prev.countries, [countryId]: { id: countryId, name: countryName, ownerId: playerId, buildings: 0 } }
     }));
     addLog(`${player.name}님이 ${countryName}를 ${price}G에 점령했습니다!`, 'purchase');
+
+    // 2. 수파베이스(DB)에 데이터 전송 (테이블 이름 확인 필요!)
+    try {
+      const { error } = await supabase
+        .from('country_purchases')
+        .upsert({ 
+          id: countryId, 
+          name: countryName, 
+          owner_id: playerId, 
+          buildings: 0 
+        });
+
+      if (error) {
+        console.error('나라 구매 DB 저장 실패:', error);
+      }
+    } catch (err) {
+      console.error('에러 발생:', err);
+    }
   };
 
   const buildInCountry = (countryId: string) => {
