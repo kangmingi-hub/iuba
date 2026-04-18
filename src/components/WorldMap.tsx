@@ -455,7 +455,7 @@ const drag = d3.drag<SVGSVGElement, unknown>()
     svgEl.removeEventListener('touchstart', onTouchStart);
     svgEl.removeEventListener('touchmove', onTouchMove);
   };
-}, []); // ← 여기만 다름!
+}, []);
   
   return (
     <div className="w-full h-full bg-[#f8fafc] overflow-hidden relative rounded-[2rem] border border-[#E2E8F0] shadow-sm">
