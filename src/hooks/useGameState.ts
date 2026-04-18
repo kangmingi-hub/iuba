@@ -82,7 +82,7 @@ export function useGameState() {
               return { ...existing, gold: club.remaining_evangelism_points, buildingPower: club.remaining_speech_points } as Player;
             }
             return {
-              id: `club-${Math.random().toString(36).substr(2, 5)}`,
+              id: `club-${club.club_name.replace(/\s+/g, '-').toLowerCase()}`,  // ← 이것으로 교체
               name: club.club_name,
               color: TEAM_COLORS[(prev.players.length + idx) % TEAM_COLORS.length],
               characterUrl: `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${club.club_name}`,
