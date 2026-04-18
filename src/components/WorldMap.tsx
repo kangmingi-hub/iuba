@@ -212,19 +212,16 @@ const isOwned = !!(state?.ownerId && players.some(p => p.id === state.ownerId));
             .attr('filter', 'blur(4px)')
             .attr('transform', `translate(0, ${targetDepth + 4})`);
 
-          // Side Walls
-          const wallSteps = 4;
-          for (let i = 1; i <= wallSteps; i++) {
-            countryG.append('path')
-              .datum(feature)
-              .attr('d', path as any)
-              .attr('transform', `translate(0, ${(i/wallSteps) * targetDepth})`)
-              .attr('fill', () => {
-                const baseColor = players.find(p => p.id === state.ownerId)?.color || '#cbd5e1';
-                return d3.color(baseColor)?.darker(0.6 * (i/wallSteps))?.toString() || baseColor;
-              })
-              .attr('class', 'pointer-events-none');
-          }
+        // Side Walls - 1단계만 살짝 어둡게, 나머지 제거
+          countryG.append('path')
+            .datum(feature)
+            .attr('d', path as any)
+            .attr('transform', `translate(0, ${targetDepth * 0.3})`)
+            .attr('fill', () => {
+              const baseColor = players.find(p => p.id === state.ownerId)?.color || '#cbd5e1';
+              return d3.color(baseColor)?.darker(0.8)?.toString() || baseColor;
+            })
+            .attr('class', 'pointer-events-none');
         }
 
         // Top Surface
