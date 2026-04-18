@@ -256,6 +256,25 @@ const isOwned = !!(state?.ownerId && players.some(p => p.id === state.ownerId));
                 .attr('vector-effect', 'non-scaling-stroke');
             });
 
+// 나라 중심에 동아리 이미지 표시
+if (isOwned) {
+  const centroid = path.centroid(feature);
+  if (centroid && !isNaN(centroid[0]) && !isNaN(centroid[1])) {
+    const imgSize = 24;
+    const owner = players.find(p => p.id === state!.ownerId);
+    const imgSrc = CLUB_IMAGES[owner?.name || ''] || owner?.characterUrl || '';
+
+    countryG.append('image')
+      .attr('href', imgSrc)
+      .attr('x', centroid[0] - imgSize / 2)
+      .attr('y', centroid[1] - imgSize / 2 - targetDepth)
+      .attr('width', imgSize)
+      .attr('height', imgSize)
+      .attr('class', 'pointer-events-none')
+      .style('filter', 'drop-shadow(0px 2px 4px rgba(0,0,0,0.4))');
+  }
+}
+  
         // Entrance Animation - 소유 나라만 튀어오르게
         if (isOwned) {
           countryG.attr('opacity', 0)
