@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { Users, Building2, RefreshCcw } from 'lucide-react';
 import { Player, CountryState } from '../types';
+import { CLUB_IMAGES } from '../constants';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
