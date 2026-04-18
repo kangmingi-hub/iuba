@@ -75,12 +75,16 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
     const gMain = svg.append('g').attr('class', 'main-group');
 
     // Drag & Zoom Interactions
-   const zoom = d3.zoom<SVGSVGElement, unknown>()
-      .scaleExtent([1, 15])
-      .on('zoom', (event) => {
-      })
+  const zoom = d3.zoom<SVGSVGElement, unknown>()
+    .scaleExtent([1, 15])
+    .on('zoom', (event) => {
+      if (viewMode === '2d') {
+        gMain.attr('transform', event.transform);
+      } else {
+        setZoomLevel(event.transform.k);
+      }
+    })
     .filter((event) => {
-      if (viewMode === '3d' && (event.type === 'touchstart' || event.type === 'touchmove')) return false; // 3D일 때만 터치 막기
       return viewMode === '2d' || event.type !== 'mousedown';
     });
         
@@ -89,52 +93,24 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
     svg.call(zoom);
 
     // Unified Drag Handler
-   const drag = d3.drag<SVGSVGElement, unknown>()
-      .filter((event) => event.type !== 'touchstart') // 터치는 직접 처리
-      .on('drag', (event) => {
-       if (viewMode === '3d') {
-          const sensitivity = 0.15 / zoomLevel;  // 0.4 → 0.15 으로 낮춤
-          setRotation(prev => [
-            prev[0] + dx * sensitivity,
-            prev[1] - dy * sensitivity,
-            prev[2]
-          ]);
-        } else {
-          const transform = d3.zoomTransform(svg.node() as any);
-          svg.call(zoom.transform, transform.translate(event.dx / transform.k, event.dy / transform.k));
-        }
-      });
+const drag = d3.drag<SVGSVGElement, unknown>()
+  .on('drag', (event) => {
+    if (viewMode === '3d') {
+      const sensitivity = 0.4 / zoomLevel;
+      setRotation(prev => [
+        prev[0] + event.dx * sensitivity, 
+        prev[1] - event.dy * sensitivity, 
+        prev[2]
+      ]);
+    } else {
+      const transform = d3.zoomTransform(svg.node() as any);
+      svg.call(zoom.transform, transform.translate(event.dx / transform.k, event.dy / transform.k));
+    }
+  });
     
     svg.call(drag as any);
 
-    let lastTouch = { x: 0, y: 0 };
-
-    svg.on('touchstart', (event) => {
-      event.preventDefault();
-      const touch = event.touches[0];
-      lastTouch = { x: touch.clientX, y: touch.clientY };
-    })
-    .on('touchmove', (event) => {
-      event.preventDefault();
-      const touch = event.touches[0];
-      const dx = touch.clientX - lastTouch.x;
-      const dy = touch.clientY - lastTouch.y;
-    
-      if (viewMode === '3d') {
-        const sensitivity = 0.4 / zoomLevel;
-        setRotation(prev => [
-          prev[0] + dx * sensitivity,
-          prev[1] - dy * sensitivity,
-          prev[2]
-        ]);
-      } else {
-        const transform = d3.zoomTransform(svg.node() as any);
-        svg.call(zoom.transform, transform.translate(dx / transform.k, dy / transform.k));
-      }
-    
-      lastTouch = { x: touch.clientX, y: touch.clientY };
-    });
-
+  
     // Perspective Transformation
     let gPerspective = gMain;
     if (viewMode === '2d') {
