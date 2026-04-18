@@ -111,6 +111,34 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
     
     svg.call(drag as any);
 
+    let lastTouch = { x: 0, y: 0 };
+
+    svg.on('touchstart', (event) => {
+      event.preventDefault();
+      const touch = event.touches[0];
+      lastTouch = { x: touch.clientX, y: touch.clientY };
+    })
+    .on('touchmove', (event) => {
+      event.preventDefault();
+      const touch = event.touches[0];
+      const dx = touch.clientX - lastTouch.x;
+      const dy = touch.clientY - lastTouch.y;
+    
+      if (viewMode === '3d') {
+        const sensitivity = 0.4 / zoomLevel;
+        setRotation(prev => [
+          prev[0] + dx * sensitivity,
+          prev[1] - dy * sensitivity,
+          prev[2]
+        ]);
+      } else {
+        const transform = d3.zoomTransform(svg.node() as any);
+        svg.call(zoom.transform, transform.translate(dx / transform.k, dy / transform.k));
+      }
+    
+      lastTouch = { x: touch.clientX, y: touch.clientY };
+    });
+
     // Perspective Transformation
     let gPerspective = gMain;
     if (viewMode === '2d') {
