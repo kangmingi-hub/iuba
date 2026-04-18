@@ -54,3 +54,15 @@ export const BUILDING_TIERS = [
   { level: 2, name: '지교회', cost: 300, icon: '🕍' },
   { level: 3, name: '정교회', cost: 600, icon: '🕌' },
 ];
+
+export const CLUB_IMAGES: Record<string, string> = {
+  'A to Z': '/clubs/AtoZ.jpg',
+  'TOY': '/clubs/TOY.jpg',
+  'Evergreen': '/clubs/Evergreen.png',
+  'Blossom': '/clubs/Blossom.jpg',
+  'The First': '/clubs/TheFirst.jpg',
+  'Pearlfect': '/clubs/Pearlfect.jpg',
+  'YITC': '/clubs/YITC.jpeg',
+  'BPM': '/clubs/BPM.jpg',
+  'EBS': '/clubs/EBS.jpg',
+};
