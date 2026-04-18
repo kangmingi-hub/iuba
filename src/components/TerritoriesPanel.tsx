@@ -26,6 +26,10 @@ export default function TerritoriesPanel({ players, countries, onCancel, onHealG
     setCancelConfirmId(null);
   };
 
+  const handleCancelBuilding = (countryId: string) => {
+  onCancelBuilding(countryId);
+};
+  
   return (
     <motion.div
       key="territories"
