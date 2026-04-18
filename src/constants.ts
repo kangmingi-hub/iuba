@@ -56,13 +56,13 @@ export const BUILDING_TIERS = [
 ];
 
 export const CLUB_IMAGES: Record<string, string> = {
-  'A to Z': '/clubs/AtoZ.jpg',
-  'TOY': '/clubs/TOY.jpg',
+  'A to Z': '/clubs/AtoZ.png',
+  'TOY': '/clubs/TOY.png',
   'Evergreen': '/clubs/Evergreen.png',
-  'Blossom': '/clubs/Blossom.jpg',
-  'The First': '/clubs/TheFirst.jpg',
-  'Pearlfect': '/clubs/Pearlfect.jpg',
-  'YITC': '/clubs/YITC.jpeg',
-  'BPM': '/clubs/BPM.jpg',
-  'EBS': '/clubs/EBS.jpg',
+  'Blossom': '/clubs/Blossom.png',
+  'The First': '/clubs/TheFirst.png',
+  'Pearlfect': '/clubs/Pearlfect.png',
+  'YITC': '/clubs/YITC.png',
+  'BPM': '/clubs/BPM.png',
+  'EBS': '/clubs/EBS.png',
 };
