@@ -136,6 +136,7 @@ export default function App() {
                 players={gameState.players}
                 countries={gameState.countries}
                 onCancel={handleCancelOccupation}
+                onCancelBuilding={cancelBuilding}
                 onHealGhosts={healGhostData}
               />
             )}
