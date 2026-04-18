@@ -26,7 +26,8 @@ interface Props {
     setCancelConfirmId(null);
   };
 
-  const handleCancelBuilding = (countryId: string) => {
+const handleCancelBuilding = (countryId: string) => {
+  console.log('countryId:', countryId);
   onCancelBuilding(countryId);
 };
   
