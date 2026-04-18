@@ -289,7 +289,7 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
               countryG.append('image')
                 .attr('href', imgSrc)
                 .attr('x', centroid[0] - offset - charSize / 2)
-                .attr('y', centroid[1] + imgSize * 0.1)
+                .attr('y', centroid[1] - imgSize * 0.1)
                 .attr('width', charSize)
                 .attr('height', charSize)
                 .attr('class', 'pointer-events-none')
