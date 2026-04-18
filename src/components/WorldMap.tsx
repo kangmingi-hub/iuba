@@ -265,9 +265,9 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
             const hasBuilding = state!.buildings > 0;
             // 💡 건물 이미지 주소 (나중에 실제 가지고 계신 파일 경로로 수정하세요!)
            const BUILDING_IMAGES: Record<number, string> = {
-                1: '/buildings/예배소.png',
-                2: '/buildings/지교회.png',
-                3: '/buildings/정교회.png',
+                1: '/buildings/housechurch.png',
+                2: '/buildings/branch.png',
+                3: '/buildings/church.png',
               };
               const buildingImgSrc = BUILDING_IMAGES[state!.buildings] || '/buildings/building1.png';
             if (hasBuilding) {
