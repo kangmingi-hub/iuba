@@ -165,43 +165,18 @@ export default function App() {
     }
   }, [currentUser]);
 
-  const handleLogin = async (e: React.FormEvent) => {
+const handleLogin = async (e: React.FormEvent) => {
   e.preventDefault();
-  alert('실행됨');
-
   if (!loginUsername.trim()) return;
 
-  const adminUser = gameState.users.find(
-    u => u.username === loginUsername && u.role === 'admin'
-  );
-  if (adminUser) {
-    setCurrentUser(adminUser);
+  // users 목록에서 찾기 (admin + 등록된 회원 모두)
+  const user = gameState.users.find(u => u.username === loginUsername);
+
+  if (user) {
+    setCurrentUser(user);
     setLoginUsername('');
-    return;
-  }
-
-  try {
-    const { data, error } = await supabase
-      .from('team_wallet_view')
-      .select('*')
-      .eq('club_name', loginUsername)
-      .single();
-
-    if (error || !data) {
-      alert('등록되지 않은 이름입니다.');
-      return;
-    }
-
-    const player = gameState.players.find(p => p.name === loginUsername);
-    setCurrentUser({
-      id: player?.id || `club-${loginUsername}`,
-      username: loginUsername,
-      role: 'member'
-    });
-    setLoginUsername('');
-
-  } catch (err) {
-    alert('오류 발생: ' + err);
+  } else {
+    alert('등록되지 않은 이름입니다. 관리자에게 문의하세요.');
   }
 };
   
