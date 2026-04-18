@@ -203,34 +203,27 @@ const isOwned = !!(state?.ownerId && players.some(p => p.id === state.ownerId));
 
         const countryG = gCountries.append('g').attr('class', 'country-stack');
 
-          if (isOwned) {
+         if (isOwned) {
             const baseColor = players.find(p => p.id === state.ownerId)?.color || '#cbd5e1';
-            const darkColor = d3.color(baseColor)?.darker(1.2)?.toString() || baseColor;
           
-            // ① 바닥면 - 원래 위치에 어두운 색으로 고정
+            // 그림자
             countryG.append('path')
               .datum(feature)
               .attr('d', path as any)
-              .attr('fill', darkColor)
-              .attr('stroke', '#94a3b8')
-              .attr('stroke-width', '0.5')
-              .attr('class', 'pointer-events-none');
-          
-            // ② 옆면 - 바닥~윗면 사이를 채움
-            countryG.append('path')
-              .datum(feature)
-              .attr('d', path as any)
-              .attr('transform', `translate(0, ${targetDepth * 0.3})`)
-              .attr('fill', d3.color(baseColor)?.darker(0.8)?.toString() || baseColor)
-              .attr('class', 'pointer-events-none');
-          
-            // ③ 그림자
-            countryG.append('path')
-              .datum(feature)
-              .attr('d', path as any)
-              .attr('fill', 'rgba(0,0,0,0.08)')
-              .attr('filter', 'blur(3px)')
+              .attr('fill', 'rgba(0,0,0,0.1)')
+              .attr('filter', 'blur(4px)')
               .attr('transform', `translate(2, ${targetDepth + 2})`);
+          
+            // 옆면 - 0부터 targetDepth까지 꽉 채워서 솟아오른 느낌
+            const wallSteps = 8;
+            for (let i = 0; i <= wallSteps; i++) {
+              countryG.append('path')
+                .datum(feature)
+                .attr('d', path as any)
+                .attr('transform', `translate(0, ${(i / wallSteps) * targetDepth})`)
+                .attr('fill', d3.color(baseColor)?.darker(0.05 + 0.8 * (i / wallSteps))?.toString() || baseColor)
+                .attr('class', 'pointer-events-none');
+            }
           }
 
         // Top Surface
