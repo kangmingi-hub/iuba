@@ -336,6 +336,7 @@ useEffect(() => {
     gameState, currentUser, clubPoints, isSyncing,
     fetchClubPoints, handleLogin, handleLogout,
     handleAddMember, handleDeleteMember, handleAdminSubmit,
-    handleCancelOccupation, healGhostData, buyCountry, buildInCountry, resetGame
+    handleCancelOccupation, healGhostData, buyCountry, buildInCountry, resetGame, 
+    cancelBuilding
   };
 }
