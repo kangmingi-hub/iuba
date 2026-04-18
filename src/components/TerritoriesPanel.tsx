@@ -88,10 +88,18 @@ export default function TerritoriesPanel({ players, countries, onCancel, onHealG
                               <button onClick={() => setCancelConfirmId(null)} className="px-3 py-1.5 bg-slate-100 text-slate-600 text-[11px] font-black rounded-lg">아니오</button>
                             </div>
                           ) : (
-                            <button onClick={() => setCancelConfirmId(country.id)}
-                              className="flex items-center gap-1.5 px-3 py-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 border border-red-100 rounded-lg text-[11px] font-black transition-all">
-                              <X className="w-3 h-3" /> 점령 취소
-                            </button>
+                            <div className="flex items-center gap-2">
+                              {country.buildings > 0 && (
+                                <button onClick={() => handleCancelBuilding(country.id)}
+                                  className="flex items-center gap-1.5 px-3 py-1.5 text-amber-500 hover:text-amber-600 hover:bg-amber-50 border border-amber-100 rounded-lg text-[11px] font-black transition-all">
+                                  🏚️ 건물 -1
+                                </button>
+                              )}
+                              <button onClick={() => setCancelConfirmId(country.id)}
+                                className="flex items-center gap-1.5 px-3 py-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 border border-red-100 rounded-lg text-[11px] font-black transition-all">
+                                <X className="w-3 h-3" /> 점령 취소
+                              </button>
+                            </div>
                           )}
                         </div>
                       );
