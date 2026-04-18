@@ -264,7 +264,7 @@ useEffect(() => {
     await supabase.from('country_occupations').upsert({
       country_id: countryId,
       country_name: countryName,
-      owner_id: playerId,
+      owner_id: `club-${player.name.replace(/\s+/g, '-').toLowerCase()}`,
       owner_name: player.name,
       buildings: 0
     });
