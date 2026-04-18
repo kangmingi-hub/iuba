@@ -437,15 +437,16 @@ const drag = d3.drag<SVGSVGElement, unknown>()
     lastX = e.touches[0].clientX;
     lastY = e.touches[0].clientY;
 
-    if (viewModeRef.current === '3d') {
+   if (viewModeRef.current === '3d') {
       const sensitivity = 0.5 / zoomLevelRef.current;
-      setRotation(prev => [
-        prev[0] + dx * sensitivity,
-        prev[1] - dy * sensitivity,
-        prev[2]
-      ]);
+      const newRotation: [number, number, number] = [
+        rotationRef.current[0] + dx * sensitivity,
+        rotationRef.current[1] - dy * sensitivity,
+        rotationRef.current[2]
+      ];
+      rotationRef.current = newRotation; // ref 즉시 업데이트
+      setRotation(newRotation);          // React 상태도 업데이트
     }
-  };
 
   svgEl.addEventListener('touchstart', onTouchStart, { passive: true });
   svgEl.addEventListener('touchmove', onTouchMove, { passive: false });
