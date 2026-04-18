@@ -259,8 +259,13 @@ const isOwned = !!(state?.ownerId && players.some(p => p.id === state.ownerId));
 // 나라 중심에 동아리 이미지 표시
 if (isOwned) {
   const centroid = path.centroid(feature);
+  const bounds = path.bounds(feature);
   if (centroid && !isNaN(centroid[0]) && !isNaN(centroid[1])) {
-    const imgSize = 24;
+    const boundsWidth = bounds[1][0] - bounds[0][0];
+    const boundsHeight = bounds[1][1] - bounds[0][1];
+    const minSide = Math.min(boundsWidth, boundsHeight);
+    const imgSize = Math.max(12, Math.min(minSide * 0.5, 60)); // 최소 12, 최대 60
+
     const owner = players.find(p => p.id === state!.ownerId);
     const imgSrc = CLUB_IMAGES[owner?.name || ''] || owner?.characterUrl || '';
 
