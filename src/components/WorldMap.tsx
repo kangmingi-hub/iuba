@@ -285,7 +285,7 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
                 .raise();
             
               // 2. 캐릭터 나중에 (앞에 배치) + 크기 작게
-              const charSize = imgSize * 0.55;
+              const charSize = imgSize * 0.65;
               countryG.append('image')
                 .attr('href', imgSrc)
                 .attr('x', centroid[0] - offset - charSize / 2)
