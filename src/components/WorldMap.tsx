@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
 import * as topojson from 'topojson-client';
 import { CountryState, Player } from '../types';
-import { COUNTRY_PRICES, DEFAULT_COUNTRY_PRICE, BUILDING_TIERS } from '../constants';
+import { COUNTRY_PRICES, DEFAULT_COUNTRY_PRICE, BUILDING_TIERS, CLUB_IMAGES } from '../constants';
 import { Globe as GlobeIcon, ZoomIn, ZoomOut, ArrowLeft, RefreshCcw } from 'lucide-react';
 
 interface WorldMapProps {
