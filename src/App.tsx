@@ -162,13 +162,32 @@ export default function App() {
     }
   }, [currentUser]);
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    const user = gameState.users.find(u => u.username === loginUsername);
-    if (user) {
-      setCurrentUser(user);
-    }
-  };
+const handleLogin = (e: React.FormEvent) => {
+  e.preventDefault();
+  if (!loginUsername.trim()) return;
+
+  // users에서 먼저 찾기 (admin 포함)
+  const user = gameState.users.find(u => u.username === loginUsername);
+  if (user) {
+    setCurrentUser(user);
+    setLoginUsername('');
+    return;
+  }
+
+  // players에서도 찾기 (Supabase에서 동기화된 동아리)
+  const player = gameState.players.find(p => p.name === loginUsername);
+  if (player) {
+    setCurrentUser({
+      id: player.id,
+      username: player.name,
+      role: 'member'
+    });
+    setLoginUsername('');
+    return;
+  }
+
+  alert('등록되지 않은 이름입니다. 관리자에게 문의하세요.');
+};
 
   const handleLogout = () => {
     setCurrentUser(null);
