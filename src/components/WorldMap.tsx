@@ -276,7 +276,7 @@ if (isOwned) {
       .attr('width', imgSize)
       .attr('height', imgSize)
       .attr('class', 'pointer-events-none')
-      .style('filter', 'drop-shadow(0px 2px 4px rgba(0,0,0,0.4))');
+      .style('filter', 'drop-shadow(0px 2px 4px rgba(0,0,0,0.4))')
       .raise();
   }
 }
