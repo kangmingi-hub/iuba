@@ -31,6 +31,23 @@ const BUILDING_IMAGES: Record<number, string> = {
   3: '/buildings/church.png',
 };
 
+function findCountryState(
+  countries: Record<string, CountryState>,
+  feature: any
+): CountryState | undefined {
+  const name = feature.properties?.name;
+  const id = String(feature.id);
+  
+  // 1. 이름으로 찾기
+  if (countries[name]) return countries[name];
+  // 2. id로 찾기
+  if (countries[id]) return countries[id];
+  // 3. CountryState 안의 name/id 값으로 순회해서 찾기
+  return Object.values(countries).find(
+    c => c.name === name || c.id === id
+  );
+}
+
 export default function WorldMap({ countries, players, onCountryClick }: WorldMapProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [topology, setTopology] = useState<any>(null);
@@ -122,12 +139,15 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
         .attr('stroke', '#94a3b8').attr('stroke-width', 0.5)
         .attr('vector-effect', 'non-scaling-stroke')
         .attr('fill', (d: any) => {
-          const state = countries[d.properties.name];
-          return state?.ownerId
-            ? players.find(p => p.id === state.ownerId)?.color || '#CBD5E1'
-            : '#CBD5E1';
-        })
-        .on('click', (_e: any, d: any) => onCountryClick(d.properties.name, d.properties.name));
+  const state = findCountryState(countries, d);
+  return state?.ownerId
+    ? players.find(p => p.id === state.ownerId)?.color || '#CBD5E1'
+    : '#CBD5E1';
+})
+        .on('click', (_e: any, d: any) => {
+  const state = findCountryState(countries, d);
+  onCountryClick(state?.id || d.properties.name, d.properties.name);
+})
 
       startRenderLoop(svgEl, projection as d3.GeoOrthographicProjection, path);
 
@@ -258,7 +278,7 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
 
     [...unowned, ...owned].forEach((feature: any) => {
       const name = feature.properties.name;
-      const state = countries[name];
+      const state = findCountryState(countries, feature);
       const isOwned = !!(state?.ownerId && players.some(p => p.id === state.ownerId));
       const targetDepth = isOwned ? 2 + (state.buildings || 0) * 2 : 0;
       const countryG = gC.append('g').attr('class', 'country-stack');
@@ -279,7 +299,7 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
         .attr('stroke', '#94a3b8').attr('stroke-width', '0.5').attr('vector-effect', 'non-scaling-stroke')
         .on('click', (_e: any, d: any) => onCountryClick(d.properties.name, d.properties.name))
         .on('mouseover', function(event: any, d: any) {
-          const s = countries[d.properties.name];
+          const s = findCountryState(countries, d);
           const p = s?.ownerId ? players.find(pl => pl.id === s.ownerId) : null;
           tooltip.classed('hidden', false).html(`
             <div class="mb-2 border-b border-slate-100 pb-2 text-blue-600 uppercase tracking-widest text-[9px] font-black">${d.properties.name}</div>
