@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Coins, Building2, PlusCircle } from 'lucide-react';
-import { Player, CountryState } from '../types';
+import { X, Coins, Building2, PlusCircle, Lock } from 'lucide-react';
+import { Player, CountryState, User } from '../types';
 import { COUNTRY_PRICES, DEFAULT_COUNTRY_PRICE, BUILDING_TIERS, CLUB_IMAGES } from '../constants';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -12,15 +12,26 @@ interface Props {
   selectedCountry: { id: string; name: string } | null;
   countries: Record<string, CountryState>;
   players: Player[];
+  currentUser: User | null;
   onClose: () => void;
   onBuy: (countryId: string, playerId: string, countryName: string) => void;
   onBuild: (countryId: string) => void;
 }
 
-export default function CountryModal({ selectedCountry, countries, players, onClose, onBuy, onBuild }: Props) {
+export default function CountryModal({ selectedCountry, countries, players, currentUser, onClose, onBuy, onBuild }: Props) {
   if (!selectedCountry) return null;
 
   const ownedCountry = countries[selectedCountry.id] || countries[selectedCountry.name];
+  const isAdmin = currentUser?.role === 'admin';
+
+  // 현재 로그인한 유저의 player 정보
+  const myPlayer = players.find(p => p.name === currentUser?.username);
+
+  // 내 동아리가 소유한 나라인지
+  const isMyCountry = !!myPlayer && ownedCountry?.ownerId === myPlayer.id;
+
+  // 건설 가능 여부: admin이거나 내 나라일 때
+  const canBuild = isAdmin || isMyCountry;
 
   return (
     <AnimatePresence>
@@ -73,28 +84,24 @@ export default function CountryModal({ selectedCountry, countries, players, onCl
                 </div>
               </div>
 
-              {/* ===== 여기서부터 변경된 부분입니다 (소유자가 있을 때의 화면) ===== */}
               {ownedCountry?.ownerId ? (
                 <div className="space-y-6">
-                  
-                  {/* 추가된 부분: 캐릭터가 비켜나고 건물이 생기는 애니메이션 구역 */}
                   <div className="flex items-center justify-center h-28 bg-[#FAFBFF] rounded-2xl border border-[#E2E8F0] shadow-inner mb-4">
                     <div className="flex items-center gap-4">
-                      {/* 캐릭터 (건물이 생기면 layout 속성에 의해 자연스럽게 왼쪽으로 밀려남) */}
                       <motion.div layout transition={{ type: "spring", bounce: 0.2, duration: 0.6 }} className="relative z-10">
-                        <img 
-                      src={(() => {
-  const owner = players.find(p => p.id === ownedCountry.ownerId);
-  return owner ? (CLUB_IMAGES[owner.name] || owner.characterUrl || "https://cdn-icons-png.flaticon.com/512/149/149071.png") : "https://cdn-icons-png.flaticon.com/512/149/149071.png";
-})()}
-                          alt="캐릭터" 
+                        <img
+                          src={(() => {
+                            const owner = players.find(p => p.id === ownedCountry.ownerId);
+                            return owner
+                              ? (CLUB_IMAGES[owner.name] || owner.characterUrl || "https://cdn-icons-png.flaticon.com/512/149/149071.png")
+                              : "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+                          })()}
+                          alt="캐릭터"
                           className="w-16 h-16 rounded-full border-4 shadow-md bg-white object-cover"
                           style={{ borderColor: players.find(p => p.id === ownedCountry.ownerId)?.color || '#3B82F6' }}
-                          onError={(e) => { (e.target as HTMLImageElement).src = "https://cdn-icons-png.flaticon.com/512/149/149071.png" }}
+                          onError={(e) => { (e.target as HTMLImageElement).src = "https://cdn-icons-png.flaticon.com/512/149/149071.png"; }}
                         />
                       </motion.div>
-
-                      {/* 건물 (건물이 있을 때만 오른쪽에서 팝업되며 등장) */}
                       <AnimatePresence>
                         {ownedCountry.buildings > 0 && (
                           <motion.div
@@ -104,13 +111,11 @@ export default function CountryModal({ selectedCountry, countries, players, onCl
                             transition={{ type: "spring", bounce: 0.4, duration: 0.6 }}
                             className="relative z-20"
                           >
-                            {/* 💡여기의 src 주소를 나중에 진짜 건물 이미지로 바꿔주세요! */}
-                            <img 
-                              src="https://cdn-icons-png.flaticon.com/512/2555/2555572.png" 
-                              alt="건물" 
+                            <img
+                              src="https://cdn-icons-png.flaticon.com/512/2555/2555572.png"
+                              alt="건물"
                               className="w-16 h-16 drop-shadow-xl object-contain"
                             />
-                            {/* 건물 레벨 뱃지 */}
                             <span className="absolute -top-2 -right-2 bg-blue-600 text-white text-[10px] font-black w-6 h-6 flex items-center justify-center rounded-full border-2 border-white shadow-sm">
                               Lv.{ownedCountry.buildings}
                             </span>
@@ -119,7 +124,6 @@ export default function CountryModal({ selectedCountry, countries, players, onCl
                       </AnimatePresence>
                     </div>
                   </div>
-                  {/* 애니메이션 구역 끝 */}
 
                   <div className="p-6 bg-[#FAFBFF] rounded-2xl border border-[#E2E8F0] flex items-center justify-between shadow-sm">
                     <div>
@@ -130,39 +134,57 @@ export default function CountryModal({ selectedCountry, countries, players, onCl
                     </div>
                     <div className="text-right">
                       <p className="text-[10px] text-[#64748B] uppercase font-bold tracking-widest mb-2">Building Tier</p>
-                      <p className="text-xl font-black text-[#1E293B] flex items-center justify-end gap-2 font-mono">
+                      <p className="text-xl font-black text-[#1E293B] font-mono">
                         {ownedCountry.buildings === 0 ? '없음' : BUILDING_TIERS[ownedCountry.buildings - 1].name}
                       </p>
                     </div>
                   </div>
-                  <button
-                    onClick={() => onBuild(selectedCountry.id)}
-                    disabled={ownedCountry.buildings >= 3}
-                    className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-slate-300 disabled:cursor-not-allowed py-5 rounded-2xl font-black text-white shadow-xl shadow-blue-500/20 transition-all active:scale-[0.98] flex items-center justify-center gap-3 uppercase tracking-widest"
-                  >
-                    <PlusCircle className="w-6 h-6" />
-                    {ownedCountry.buildings >= 3 ? '모든 건설 완료' : `${BUILDING_TIERS[ownedCountry.buildings].name} 건설`}
-                  </button>
+
+                  {canBuild ? (
+                    <button
+                      onClick={() => onBuild(selectedCountry.id)}
+                      disabled={ownedCountry.buildings >= 3}
+                      className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-slate-300 disabled:cursor-not-allowed py-5 rounded-2xl font-black text-white shadow-xl shadow-blue-500/20 transition-all active:scale-[0.98] flex items-center justify-center gap-3 uppercase tracking-widest"
+                    >
+                      <PlusCircle className="w-6 h-6" />
+                      {ownedCountry.buildings >= 3 ? '모든 건설 완료' : `${BUILDING_TIERS[ownedCountry.buildings].name} 건설`}
+                    </button>
+                  ) : (
+                    <div className="w-full py-5 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center gap-3 text-slate-400">
+                      <Lock className="w-5 h-5" />
+                      <span className="text-[11px] font-black uppercase tracking-widest">본인 동아리 영토만 건설 가능합니다</span>
+                    </div>
+                  )}
                 </div>
               ) : (
-              /* ===== 미점유 상태 ===== */
                 <div className="space-y-6">
                   <div className="p-4 bg-blue-50/50 rounded-xl border border-blue-100 italic text-[11px] text-blue-600 font-medium text-center">
                     본 영토는 현재 미점유 상태입니다. 대원의 점수를 사용하여 선교 지경을 넓히십시오.
                   </div>
                   <div className="grid grid-cols-3 gap-3">
-                    {players.map(player => (
-                      <button
-                        key={player.id}
-                        onClick={() => onBuy(selectedCountry.id, player.id, selectedCountry.name)}
-                        disabled={player.gold < (COUNTRY_PRICES[selectedCountry.name] || DEFAULT_COUNTRY_PRICE)}
-                        className={cn("py-4 px-2 rounded-2xl border transition-all disabled:opacity-30 hover:shadow-md hover:scale-[1.05]")}
-                        style={{ borderColor: `${player.color}44`, backgroundColor: `${player.color}05`, color: player.color }}
-                      >
-                        <div className="text-[10px] font-black uppercase tracking-tight">{player.name}</div>
-                        <div className="text-[9px] font-bold opacity-60">SELECT</div>
-                      </button>
-                    ))}
+                    {players.map(player => {
+                      // admin이거나 본인 동아리 버튼만 클릭 가능
+                      const canBuyThis = isAdmin || player.id === myPlayer?.id;
+                      return (
+                        <button
+                          key={player.id}
+                          onClick={() => canBuyThis && onBuy(selectedCountry.id, player.id, selectedCountry.name)}
+                          disabled={!canBuyThis || player.gold < (COUNTRY_PRICES[selectedCountry.name] || DEFAULT_COUNTRY_PRICE)}
+                          className={cn(
+                            "py-4 px-2 rounded-2xl border transition-all",
+                            canBuyThis
+                              ? "hover:shadow-md hover:scale-[1.05] disabled:opacity-30"
+                              : "opacity-20 cursor-not-allowed"
+                          )}
+                          style={{ borderColor: `${player.color}44`, backgroundColor: `${player.color}05`, color: player.color }}
+                        >
+                          <div className="text-[10px] font-black uppercase tracking-tight">{player.name}</div>
+                          <div className="text-[9px] font-bold opacity-60">
+                            {canBuyThis ? 'SELECT' : 'LOCKED'}
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               )}
