@@ -1,4 +1,4 @@
-// WorldMap.tsx - 최적화 버전
+// WorldMap.tsx
 import { useEffect, useRef, useState, useCallback } from 'react';
 import * as d3 from 'd3';
 import * as topojson from 'topojson-client';
@@ -37,17 +37,12 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
   const [viewMode, setViewMode] = useState<ViewMode>('3d');
   const [selectedContinent, setSelectedContinent] = useState<Continent>('world');
 
-  // ✅ 핵심: rotation/zoom을 ref로 관리 → state 변경 없이 rAF 루프에서만 사용
   const rotationRef = useRef<[number, number, number]>([-10, -20, 0]);
   const zoomLevelRef = useRef(1);
   const viewModeRef = useRef<ViewMode>('3d');
   const rafRef = useRef<number>(0);
-  const isDirtyRef = useRef(false); // 회전값 바뀌었을 때만 재그림
-
-  // 2D 모드용
+  const isDirtyRef = useRef(false);
   const zoomBehaviorRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
-
-  // UI 표시용 (리셋 버튼 등에만 필요)
   const [, forceUpdate] = useState(0);
 
   useEffect(() => {
@@ -56,27 +51,20 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
       .then(setTopology);
   }, []);
 
-  // ✅ 3D 회전 애니메이션 루프 (SVG 재생성 없이 path d만 업데이트)
   const startRenderLoop = useCallback((
     svgEl: SVGSVGElement,
     projection: d3.GeoOrthographicProjection,
     path: d3.GeoPath,
-    features: any[]
   ) => {
     const svg = d3.select(svgEl);
-
     const loop = () => {
       if (isDirtyRef.current) {
-        projection.rotate(rotationRef.current).scale(
-          Math.min(svgEl.clientWidth, svgEl.clientHeight) / 2.2 * zoomLevelRef.current
-        );
-        // 기존 path 요소의 d 속성만 업데이트 (DOM 재생성 없음)
-        svg.selectAll<SVGPathElement, any>('path.country-top')
-          .attr('d', path as any);
-        svg.select<SVGPathElement>('path.sphere')
-          .attr('d', path({ type: 'Sphere' } as any) || '');
-        svg.select('circle.globe-bg')
-          .attr('r', Math.min(svgEl.clientWidth, svgEl.clientHeight) / 2.2 * zoomLevelRef.current);
+        projection
+          .rotate(rotationRef.current)
+          .scale(Math.min(svgEl.clientWidth, svgEl.clientHeight) / 2.2 * zoomLevelRef.current);
+        svg.selectAll<SVGPathElement, any>('path.country-top').attr('d', path as any);
+        svg.select<SVGPathElement>('path.sphere').attr('d', path({ type: 'Sphere' } as any) || '');
+        svg.select('circle.globe-bg').attr('r', Math.min(svgEl.clientWidth, svgEl.clientHeight) / 2.2 * zoomLevelRef.current);
         isDirtyRef.current = false;
       }
       rafRef.current = requestAnimationFrame(loop);
@@ -84,7 +72,6 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
     rafRef.current = requestAnimationFrame(loop);
   }, []);
 
-  // ✅ SVG는 topology/viewMode/countries/players 바뀔 때만 재생성
   useEffect(() => {
     if (!topology || !svgRef.current) return;
     cancelAnimationFrame(rafRef.current);
@@ -94,21 +81,21 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
     const width = rect.width || window.innerWidth;
     const height = rect.height || window.innerHeight * 0.6;
     const minSize = Math.min(width, height);
+    const svgEl = svgRef.current;
 
     svg.selectAll('*').remove();
 
     const features = (topojson.feature(topology, topology.objects.countries) as any).features
       .filter((f: any) => f.id !== '010' && f.properties?.name !== 'Antarctica');
 
+    // ─── 3D 모드 ───────────────────────────────────────────
     if (viewModeRef.current === '3d') {
-      // --- 3D 모드 ---
       const projection = d3.geoOrthographic()
         .scale(minSize / 2.2 * zoomLevelRef.current)
         .translate([width / 2, height / 2])
         .rotate(rotationRef.current);
       const path = d3.geoPath().projection(projection);
 
-      // defs
       const defs = svg.append('defs');
       const grad = defs.append('radialGradient').attr('id', 'globe-gradient');
       grad.append('stop').attr('offset', '70%').attr('stop-color', '#f1f5f9').attr('stop-opacity', 0);
@@ -136,174 +123,15 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
         .attr('vector-effect', 'non-scaling-stroke')
         .attr('fill', (d: any) => {
           const state = countries[d.properties.name];
-          return state?.ownerId ? players.find(p => p.id === state.ownerId)?.color || '#CBD5E1' : '#CBD5E1';
+          return state?.ownerId
+            ? players.find(p => p.id === state.ownerId)?.color || '#CBD5E1'
+            : '#CBD5E1';
         })
         .on('click', (_e: any, d: any) => onCountryClick(d.properties.name, d.properties.name));
 
-      // ✅ rAF 루프 시작 (드래그 중에도 SVG 재생성 없이 부드럽게)
-      startRenderLoop(svgRef.current, projection as d3.GeoOrthographicProjection, path, features);
+      startRenderLoop(svgEl, projection as d3.GeoOrthographicProjection, path);
 
-      // ✅ Pinch-to-zoom (2 fingers)
-      let lastDist = 0;
-      const onTouchStart = (e: TouchEvent) => {
-        if (e.touches.length === 2) {
-          lastDist = Math.hypot(
-            e.touches[0].clientX - e.touches[1].clientX,
-            e.touches[0].clientY - e.touches[1].clientY
-          );
-        }
-      };
-      const onTouchMove = (e: TouchEvent) => {
-        e.preventDefault();
-        if (e.touches.length === 2) {
-          const dist = Math.hypot(
-            e.touches[0].clientX - e.touches[1].clientX,
-            e.touches[0].clientY - e.touches[1].clientY
-          );
-          if (lastDist > 0) {
-            zoomLevelRef.current = Math.max(0.5, Math.min(8, zoomLevelRef.current * (dist / lastDist)));
-          }
-          lastDist = dist;
-          isDirtyRef.current = true;
-          return;
-        }
-        if (e.touches.length !== 1) return;
-        // 단일 터치 드래그는 아래 drag에서 처리
-      };
-      svgRef.current.addEventListener('touchstart', onTouchStart, { passive: true });
-      svgRef.current.addEventListener('touchmove', onTouchMove, { passive: false });
-
-    } else {
-      // --- 2D 모드 ---
-      const projection = d3.geoMercator()
-        .scale(width / 6.5)
-        .translate([width / 2, height / 1.8]);
-      const path = d3.geoPath().projection(projection);
-
-      const gMain = svg.append('g').attr('class', 'main-group');
-
-      // perspective 컨테이너
-      const gP = gMain.append('g')
-        .attr('transform', 'perspective(1200px) rotateX(45deg)');
-
-      // 그리드
-      const gridSize = 100, gBound = 4000;
-      const gridG = gP.append('g');
-      for (let x = -gBound; x < gBound; x += gridSize)
-        gridG.append('line').attr('x1', x).attr('y1', -gBound).attr('x2', x).attr('y2', gBound).attr('stroke', '#e2e8f0').attr('stroke-width', 0.5);
-      for (let y = -gBound; y < gBound; y += gridSize)
-        gridG.append('line').attr('x1', -gBound).attr('y1', y).attr('x2', gBound).attr('y2', y).attr('stroke', '#e2e8f0').attr('stroke-width', 0.5);
-
-      const unowned = features.filter((f: any) => {
-        const s = countries[f.properties.name];
-        return !(s?.ownerId && players.some(p => p.id === s.ownerId));
-      });
-      const owned = features.filter((f: any) => {
-        const s = countries[f.properties.name];
-        return !!(s?.ownerId && players.some(p => p.id === s.ownerId));
-      });
-
-      const gC = gP.append('g').attr('class', 'countries');
-      const tooltip = d3.select('body').append('div')
-        .attr('class', 'absolute hidden bg-white/95 backdrop-blur-sm text-[#1E293B] p-3 rounded-2xl shadow-xl text-[11px] pointer-events-none z-50 border border-slate-200 font-bold min-w-[120px]');
-
-      [...unowned, ...owned].forEach((feature: any) => {
-        const name = feature.properties.name;
-        const state = countries[name];
-        const isOwned = !!(state?.ownerId && players.some(p => p.id === state.ownerId));
-        const targetDepth = isOwned ? 2 + (state.buildings || 0) * 2 : 0;
-        const countryG = gC.append('g').attr('class', 'country-stack');
-        const owner = isOwned ? players.find(p => p.id === state!.ownerId) : null;
-
-        if (isOwned && owner) {
-          for (let i = 0; i <= 8; i++) {
-            countryG.append('path').datum(feature).attr('d', path as any)
-              .attr('transform', `translate(0, ${(i / 8) * targetDepth})`)
-              .attr('fill', d3.color(owner.color || '#cbd5e1')?.darker(0.05 + 0.8 * (i / 8))?.toString() || owner.color || '#cbd5e1')
-              .attr('class', 'pointer-events-none');
-          }
-        }
-
-        countryG.append('path').datum(feature).attr('d', path as any)
-          .attr('class', 'country-top cursor-pointer')
-          .attr('fill', isOwned ? owner?.color || '#e2e8f0' : '#e2e8f0')
-          .attr('stroke', '#94a3b8').attr('stroke-width', '0.5').attr('vector-effect', 'non-scaling-stroke')
-          .on('click', (_e: any, d: any) => onCountryClick(d.properties.name, d.properties.name))
-          .on('mouseover', function(event: any, d: any) {
-            const s = countries[d.properties.name];
-            const p = s?.ownerId ? players.find(pl => pl.id === s.ownerId) : null;
-            tooltip.classed('hidden', false).html(`
-              <div class="mb-2 border-b border-slate-100 pb-2 text-blue-600 uppercase tracking-widest text-[9px] font-black">${d.properties.name}</div>
-              <div class="space-y-1">
-                <div class="flex justify-between gap-4"><span>소유자:</span><span class="${p ? 'text-blue-600' : 'text-slate-400'}">${p?.name || '공석'}</span></div>
-                <div class="flex justify-between gap-4"><span>센터 수준:</span><span class="text-amber-600">${s?.buildings ? BUILDING_TIERS[(s.buildings) - 1]?.name : '없음'}</span></div>
-              </div>
-            `);
-            d3.select(this).attr('fill-opacity', 0.8).attr('stroke', '#3b82f6').attr('stroke-width', '1.5');
-          })
-          .on('mousemove', (event: any) => tooltip.style('left', (event.pageX + 15) + 'px').style('top', (event.pageY - 15) + 'px'))
-          .on('mouseout', function() {
-            tooltip.classed('hidden', true);
-            d3.select(this).attr('fill-opacity', 1).attr('stroke', '#94a3b8').attr('stroke-width', '0.5');
-          });
-
-        if (isOwned && owner) {
-          const centroid = path.centroid(feature);
-          if (centroid && !isNaN(centroid[0]) && !isNaN(centroid[1])) {
-            const bounds = path.bounds(feature);
-            const area = (bounds[1][0] - bounds[0][0]) * (bounds[1][1] - bounds[0][1]);
-            const imgSize = Math.max(6, Math.min(Math.sqrt(area) * 0.5, 50));
-            const imgSrc = CLUB_IMAGES[owner.name] || owner.characterUrl || '';
-            const hasBuilding = (state?.buildings || 0) > 0;
-            const buildingImgSrc = BUILDING_IMAGES[state!.buildings] || '/buildings/building1.png';
-
-            if (hasBuilding) {
-              const offset = imgSize * 0.25;
-              countryG.append('image').attr('href', buildingImgSrc)
-                .attr('x', centroid[0] - imgSize / 2).attr('y', centroid[1] - imgSize / 2)
-                .attr('width', imgSize).attr('height', imgSize)
-                .attr('class', 'pointer-events-none').raise();
-              const charSize = imgSize * 0.65;
-              countryG.append('image').attr('href', imgSrc)
-                .attr('x', centroid[0] - offset - charSize / 2).attr('y', centroid[1] - imgSize * 0.1)
-                .attr('width', charSize).attr('height', charSize)
-                .attr('class', 'pointer-events-none').raise();
-            } else {
-              countryG.append('image').attr('href', imgSrc)
-                .attr('x', centroid[0] - imgSize / 2 + 1).attr('y', centroid[1] - imgSize / 2)
-                .attr('width', imgSize).attr('height', imgSize)
-                .attr('class', 'pointer-events-none').raise();
-            }
-          }
-        }
-
-        if (isOwned) {
-          countryG.attr('opacity', 0).transition().duration(1000)
-            .delay(Math.random() * 300).ease(d3.easeElasticOut.amplitude(1).period(0.6))
-            .attr('opacity', 1).attr('transform', `translate(0, -${targetDepth})`);
-        }
-      });
-
-      // Zoom + drag (2D)
-      const zoom = d3.zoom<SVGSVGElement, unknown>().scaleExtent([1, 15])
-        .on('zoom', (event) => gMain.attr('transform', event.transform));
-      zoomBehaviorRef.current = zoom;
-      svg.call(zoom);
-
-      const drag = d3.drag<SVGSVGElement, unknown>().on('drag', (event) => {
-        const t = d3.zoomTransform(svg.node() as any);
-        svg.call(zoom.transform, t.translate(event.dx / t.k, event.dy / t.k));
-      });
-      svg.call(drag as any);
-
-      return () => { tooltip.remove(); };
-    }
-
-    // ✅ 공통 드래그 (3D 회전) - D3 drag 대신 pointer events로 통일
-    const svgEl = svgRef.current!;
-
-    // 마우스 드래그 (3D)
-    if (viewModeRef.current === '3d') {
+      // 마우스 드래그
       let dragging = false, lastMX = 0, lastMY = 0;
       const onMouseDown = (e: MouseEvent) => { dragging = true; lastMX = e.clientX; lastMY = e.clientY; };
       const onMouseMove = (e: MouseEvent) => {
@@ -319,114 +147,207 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
       };
       const onMouseUp = () => { dragging = false; };
 
-      // 터치 단일 드래그 (3D)
-      // ✅ 수정 - 하나의 핸들러로 통합, lastT를 touchstart에서 항상 갱신
-let lastTX = 0, lastTY = 0;
-let touchStarted = false;
-
-const onTouchStart = (e: TouchEvent) => {
-  // 핀치 줌
-  if (e.touches.length === 2) {
-    lastDist = Math.hypot(
-      e.touches[0].clientX - e.touches[1].clientX,
-      e.touches[0].clientY - e.touches[1].clientY
-    );
-    touchStarted = false; // 핀치 중엔 드래그 비활성화
-    return;
-  }
-  // 단일 터치 - 항상 여기서 초기화
-  if (e.touches.length === 1) {
-    lastTX = e.touches[0].clientX;
-    lastTY = e.touches[0].clientY;
-    touchStarted = true;
-  }
-};
-
-const onTouchMove = (e: TouchEvent) => {
-  e.preventDefault();
-
-  // 핀치 줌
-  if (e.touches.length === 2) {
-    const dist = Math.hypot(
-      e.touches[0].clientX - e.touches[1].clientX,
-      e.touches[0].clientY - e.touches[1].clientY
-    );
-    if (lastDist > 0) {
-      zoomLevelRef.current = Math.max(0.5, Math.min(8, zoomLevelRef.current * (dist / lastDist)));
-    }
-    lastDist = dist;
-    isDirtyRef.current = true;
-    return;
-  }
-
-  // 단일 터치 드래그
-  if (e.touches.length === 1 && touchStarted) {
-    const dx = e.touches[0].clientX - lastTX;
-    const dy = e.touches[0].clientY - lastTY;
-    
-    // ✅ 업데이트를 dx/dy 계산 직후 즉시
-    lastTX = e.touches[0].clientX;
-    lastTY = e.touches[0].clientY;
-
-    const sens = 0.3 / (zoomLevelRef.current * (window.devicePixelRatio || 1));
-    rotationRef.current = [
-      rotationRef.current[0] + dx * sens,
-      rotationRef.current[1] - dy * sens,
-      rotationRef.current[2],
-    ];
-    isDirtyRef.current = true;
-  }
-};
-
-const onTouchEnd = () => {
-  touchStarted = false;
-  lastDist = 0;
-};
-
-svgEl.addEventListener('touchstart', onTouchStart, { passive: true });
-svgEl.addEventListener('touchmove', onTouchMove, { passive: false });
-svgEl.addEventListener('touchend', onTouchEnd, { passive: true });
-
-// cleanup에도 추가
-return () => {
-  cancelAnimationFrame(rafRef.current);
-  svgEl.removeEventListener('mousedown', onMouseDown);
-  window.removeEventListener('mousemove', onMouseMove);
-  window.removeEventListener('mouseup', onMouseUp);
-  svgEl.removeEventListener('touchstart', onTouchStart);
-  svgEl.removeEventListener('touchmove', onTouchMove);
-  svgEl.removeEventListener('touchend', onTouchEnd);
-  svgEl.removeEventListener('wheel', onWheel);
-};
-
-      // 마우스 휠 줌 (3D)
+      // 마우스 휠 줌
       const onWheel = (e: WheelEvent) => {
         e.preventDefault();
-        zoomLevelRef.current = Math.max(0.5, Math.min(8, zoomLevelRef.current * (e.deltaY < 0 ? 1.1 : 0.9)));
+        zoomLevelRef.current = Math.max(0.5, Math.min(8,
+          zoomLevelRef.current * (e.deltaY < 0 ? 1.1 : 0.9)
+        ));
         isDirtyRef.current = true;
       };
+
+      // 터치 (단일 드래그 + 핀치 줌 통합)
+      let lastTX = 0, lastTY = 0, lastDist = 0, touchStarted = false;
+
+      const onTouchStart = (e: TouchEvent) => {
+        if (e.touches.length === 2) {
+          lastDist = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+          );
+          touchStarted = false;
+          return;
+        }
+        if (e.touches.length === 1) {
+          lastTX = e.touches[0].clientX;
+          lastTY = e.touches[0].clientY;
+          touchStarted = true;
+        }
+      };
+
+      const onTouchMove = (e: TouchEvent) => {
+        e.preventDefault();
+        if (e.touches.length === 2) {
+          const dist = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+          );
+          if (lastDist > 0) {
+            zoomLevelRef.current = Math.max(0.5, Math.min(8,
+              zoomLevelRef.current * (dist / lastDist)
+            ));
+          }
+          lastDist = dist;
+          isDirtyRef.current = true;
+          return;
+        }
+        if (e.touches.length === 1 && touchStarted) {
+          const dx = e.touches[0].clientX - lastTX;
+          const dy = e.touches[0].clientY - lastTY;
+          lastTX = e.touches[0].clientX;
+          lastTY = e.touches[0].clientY;
+          const sens = 0.3 / (zoomLevelRef.current * (window.devicePixelRatio || 1));
+          rotationRef.current = [
+            rotationRef.current[0] + dx * sens,
+            rotationRef.current[1] - dy * sens,
+            rotationRef.current[2],
+          ];
+          isDirtyRef.current = true;
+        }
+      };
+
+      const onTouchEnd = () => { touchStarted = false; lastDist = 0; };
 
       svgEl.addEventListener('mousedown', onMouseDown);
       window.addEventListener('mousemove', onMouseMove);
       window.addEventListener('mouseup', onMouseUp);
-      svgEl.addEventListener('touchstart', onTouchStartDrag, { passive: true });
-      svgEl.addEventListener('touchmove', onTouchMoveDrag, { passive: false });
       svgEl.addEventListener('wheel', onWheel, { passive: false });
+      svgEl.addEventListener('touchstart', onTouchStart, { passive: true });
+      svgEl.addEventListener('touchmove', onTouchMove, { passive: false });
+      svgEl.addEventListener('touchend', onTouchEnd, { passive: true });
 
       return () => {
         cancelAnimationFrame(rafRef.current);
         svgEl.removeEventListener('mousedown', onMouseDown);
         window.removeEventListener('mousemove', onMouseMove);
         window.removeEventListener('mouseup', onMouseUp);
-        svgEl.removeEventListener('touchstart', onTouchStartDrag);
-        svgEl.removeEventListener('touchmove', onTouchMoveDrag);
         svgEl.removeEventListener('wheel', onWheel);
+        svgEl.removeEventListener('touchstart', onTouchStart);
+        svgEl.removeEventListener('touchmove', onTouchMove);
+        svgEl.removeEventListener('touchend', onTouchEnd);
       };
     }
-  // countries/players 바뀌면 2D만 다시 그림, 3D는 rAF가 알아서 반영
+
+    // ─── 2D 모드 ───────────────────────────────────────────
+    const projection = d3.geoMercator()
+      .scale(width / 6.5)
+      .translate([width / 2, height / 1.8]);
+    const path = d3.geoPath().projection(projection);
+    const gMain = svg.append('g').attr('class', 'main-group');
+    const gP = gMain.append('g').attr('transform', 'perspective(1200px) rotateX(45deg)');
+
+    const gridSize = 100, gBound = 4000;
+    const gridG = gP.append('g');
+    for (let x = -gBound; x < gBound; x += gridSize)
+      gridG.append('line').attr('x1', x).attr('y1', -gBound).attr('x2', x).attr('y2', gBound).attr('stroke', '#e2e8f0').attr('stroke-width', 0.5);
+    for (let y = -gBound; y < gBound; y += gridSize)
+      gridG.append('line').attr('x1', -gBound).attr('y1', y).attr('x2', gBound).attr('y2', y).attr('stroke', '#e2e8f0').attr('stroke-width', 0.5);
+
+    const unowned = features.filter((f: any) => {
+      const s = countries[f.properties.name];
+      return !(s?.ownerId && players.some(p => p.id === s.ownerId));
+    });
+    const owned = features.filter((f: any) => {
+      const s = countries[f.properties.name];
+      return !!(s?.ownerId && players.some(p => p.id === s.ownerId));
+    });
+
+    const gC = gP.append('g').attr('class', 'countries');
+    const tooltip = d3.select('body').append('div')
+      .attr('class', 'absolute hidden bg-white/95 backdrop-blur-sm text-[#1E293B] p-3 rounded-2xl shadow-xl text-[11px] pointer-events-none z-50 border border-slate-200 font-bold min-w-[120px]');
+
+    [...unowned, ...owned].forEach((feature: any) => {
+      const name = feature.properties.name;
+      const state = countries[name];
+      const isOwned = !!(state?.ownerId && players.some(p => p.id === state.ownerId));
+      const targetDepth = isOwned ? 2 + (state.buildings || 0) * 2 : 0;
+      const countryG = gC.append('g').attr('class', 'country-stack');
+      const owner = isOwned ? players.find(p => p.id === state!.ownerId) : null;
+
+      if (isOwned && owner) {
+        for (let i = 0; i <= 8; i++) {
+          countryG.append('path').datum(feature).attr('d', path as any)
+            .attr('transform', `translate(0, ${(i / 8) * targetDepth})`)
+            .attr('fill', d3.color(owner.color || '#cbd5e1')?.darker(0.05 + 0.8 * (i / 8))?.toString() || '#cbd5e1')
+            .attr('class', 'pointer-events-none');
+        }
+      }
+
+      countryG.append('path').datum(feature).attr('d', path as any)
+        .attr('class', 'country-top cursor-pointer')
+        .attr('fill', isOwned ? owner?.color || '#e2e8f0' : '#e2e8f0')
+        .attr('stroke', '#94a3b8').attr('stroke-width', '0.5').attr('vector-effect', 'non-scaling-stroke')
+        .on('click', (_e: any, d: any) => onCountryClick(d.properties.name, d.properties.name))
+        .on('mouseover', function(event: any, d: any) {
+          const s = countries[d.properties.name];
+          const p = s?.ownerId ? players.find(pl => pl.id === s.ownerId) : null;
+          tooltip.classed('hidden', false).html(`
+            <div class="mb-2 border-b border-slate-100 pb-2 text-blue-600 uppercase tracking-widest text-[9px] font-black">${d.properties.name}</div>
+            <div class="space-y-1">
+              <div class="flex justify-between gap-4"><span>소유자:</span><span class="${p ? 'text-blue-600' : 'text-slate-400'}">${p?.name || '공석'}</span></div>
+              <div class="flex justify-between gap-4"><span>센터 수준:</span><span class="text-amber-600">${s?.buildings ? BUILDING_TIERS[(s.buildings) - 1]?.name : '없음'}</span></div>
+            </div>
+          `);
+          d3.select(this).attr('fill-opacity', 0.8).attr('stroke', '#3b82f6').attr('stroke-width', '1.5');
+        })
+        .on('mousemove', (event: any) => tooltip.style('left', (event.pageX + 15) + 'px').style('top', (event.pageY - 15) + 'px'))
+        .on('mouseout', function() {
+          tooltip.classed('hidden', true);
+          d3.select(this).attr('fill-opacity', 1).attr('stroke', '#94a3b8').attr('stroke-width', '0.5');
+        });
+
+      if (isOwned && owner) {
+        const centroid = path.centroid(feature);
+        if (centroid && !isNaN(centroid[0]) && !isNaN(centroid[1])) {
+          const bounds = path.bounds(feature);
+          const area = (bounds[1][0] - bounds[0][0]) * (bounds[1][1] - bounds[0][1]);
+          const imgSize = Math.max(6, Math.min(Math.sqrt(area) * 0.5, 50));
+          const imgSrc = CLUB_IMAGES[owner.name] || owner.characterUrl || '';
+          const hasBuilding = (state?.buildings || 0) > 0;
+          const buildingImgSrc = BUILDING_IMAGES[state!.buildings] || '/buildings/building1.png';
+
+          if (hasBuilding) {
+            const offset = imgSize * 0.25;
+            countryG.append('image').attr('href', buildingImgSrc)
+              .attr('x', centroid[0] - imgSize / 2).attr('y', centroid[1] - imgSize / 2)
+              .attr('width', imgSize).attr('height', imgSize)
+              .attr('class', 'pointer-events-none').raise();
+            const charSize = imgSize * 0.65;
+            countryG.append('image').attr('href', imgSrc)
+              .attr('x', centroid[0] - offset - charSize / 2).attr('y', centroid[1] - imgSize * 0.1)
+              .attr('width', charSize).attr('height', charSize)
+              .attr('class', 'pointer-events-none').raise();
+          } else {
+            countryG.append('image').attr('href', imgSrc)
+              .attr('x', centroid[0] - imgSize / 2 + 1).attr('y', centroid[1] - imgSize / 2)
+              .attr('width', imgSize).attr('height', imgSize)
+              .attr('class', 'pointer-events-none').raise();
+          }
+        }
+      }
+
+      if (isOwned) {
+        countryG.attr('opacity', 0).transition().duration(1000)
+          .delay(Math.random() * 300).ease(d3.easeElasticOut.amplitude(1).period(0.6))
+          .attr('opacity', 1).attr('transform', `translate(0, -${targetDepth})`);
+      }
+    });
+
+    const zoom = d3.zoom<SVGSVGElement, unknown>().scaleExtent([1, 15])
+      .on('zoom', (event) => gMain.attr('transform', event.transform));
+    zoomBehaviorRef.current = zoom;
+    svg.call(zoom);
+
+    const drag = d3.drag<SVGSVGElement, unknown>().on('drag', (event) => {
+      const t = d3.zoomTransform(svg.node() as any);
+      svg.call(zoom.transform, t.translate(event.dx / t.k, event.dy / t.k));
+    });
+    svg.call(drag as any);
+
+    return () => { tooltip.remove(); };
+
   }, [topology, viewMode, countries, players, onCountryClick, startRenderLoop]);
 
-  // 2D 대륙 이동
   useEffect(() => {
     if (!topology || !svgRef.current || !zoomBehaviorRef.current || viewMode !== '2d') return;
     const svg = d3.select(svgRef.current);
@@ -451,7 +372,7 @@ return () => {
       <svg
         ref={svgRef}
         className="w-full h-full cursor-grab active:cursor-grabbing"
-        style={{ touchAction: 'none' }} // ✅ 브라우저 기본 터치 스크롤 비활성화
+        style={{ touchAction: 'none' }}
       />
 
       <div className="absolute top-6 left-6 flex flex-col gap-3 pointer-events-auto">
