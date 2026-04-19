@@ -300,7 +300,9 @@ useEffect(() => {
   const buildInCountry = async (countryId: string) => {
     const country = gameState.countries[countryId];
     if (!country?.ownerId || country.buildings >= 3) return;
-    const nextTier = BUILDING_TIERS[country.buildings];
+    import { getBuildingTiers } from '../constants';
+const tiers = getBuildingTiers(country.name);
+const nextTier = tiers[country.buildings];
     const player = gameState.players.find(p => p.id === country.ownerId);
     if (!player || player.buildingPower < nextTier.cost) return;
 
