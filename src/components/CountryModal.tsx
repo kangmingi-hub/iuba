@@ -2,7 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Coins, Building2, PlusCircle } from 'lucide-react';
 import { Player, CountryState } from '../types';
-import { COUNTRY_PRICES, DEFAULT_COUNTRY_PRICE, BUILDING_TIERS } from '../constants';
+import { COUNTRY_PRICES, DEFAULT_COUNTRY_PRICE, BUILDING_TIERS, CLUB_IMAGES } from '../constants';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
