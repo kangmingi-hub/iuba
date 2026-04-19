@@ -439,7 +439,7 @@ useEffect(() => {
     lastY = e.touches[0].clientY;
 
     if (viewModeRef.current === '3d') {
-      const sensitivity = 0.5 / zoomLevelRef.current;
+      const sensitivity = 0.2 / zoomLevelRef.current;
       const newRotation: [number, number, number] = [
         rotationRef.current[0] + dx * sensitivity,
         rotationRef.current[1] - dy * sensitivity,
@@ -454,7 +454,6 @@ useEffect(() => {
   return () => {
     svgEl.removeEventListener('touchstart', onTouchStart);
     svgEl.removeEventListener('touchmove', onTouchMove);
-    if (rafId) cancelAnimationFrame(rafId);
   };
 }, []);
   
