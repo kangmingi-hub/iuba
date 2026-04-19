@@ -113,6 +113,7 @@ export default function App() {
             isSyncing={isSyncing}
             onRefresh={fetchClubPoints}
             onReset={resetGame}
+            onResetManual={resetManualPoints} 
           />
         </section>
 
