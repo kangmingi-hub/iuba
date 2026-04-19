@@ -38,10 +38,14 @@ export default function Leaderboard({ clubPoints, players, countries, isSyncing,
 
         {clubPoints.map((club, idx) => {
           const player = players.find(p => p.name === club.club_name);
-          const ownedCount = player ? (Object.values(countries) as CountryState[]).filter(c => c.ownerId === player.id).length : 0;
-          const totalBuildings = player ? (Object.values(countries) as CountryState[])
-            .filter(c => c.ownerId === player.id)
-            .reduce((sum, c) => sum + c.buildings, 0) : 0;
+          const ownedCount = player
+            ? (Object.values(countries) as CountryState[]).filter(c => c.ownerId === player.id).length
+            : 0;
+          const totalBuildings = player
+            ? (Object.values(countries) as CountryState[])
+                .filter(c => c.ownerId === player.id)
+                .reduce((sum, c) => sum + c.buildings, 0)
+            : 0;
 
           return (
             <motion.div
@@ -63,8 +67,10 @@ export default function Leaderboard({ clubPoints, players, countries, isSyncing,
                       className="w-9 h-9 rounded-full border-2 p-0.5 bg-white shadow-sm"
                       style={{ borderColor: player?.color || '#CBD5E1' }}
                     />
-                    <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white shadow-sm"
-                      style={{ backgroundColor: player?.color || '#CBD5E1' }} />
+                    <div
+                      className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white shadow-sm"
+                      style={{ backgroundColor: player?.color || '#CBD5E1' }}
+                    />
                   </div>
                   <div>
                     <h3 className="font-black text-[#1E293B] text-sm uppercase tracking-tight">{club.club_name}</h3>
@@ -100,17 +106,20 @@ export default function Leaderboard({ clubPoints, players, countries, isSyncing,
         })}
       </div>
 
-<div className="mt-auto p-4 border-t border-[#E2E8F0] bg-slate-50/50 space-y-2">
-  <button onClick={onResetManual}
-    className="w-full py-2.5 text-[9px] font-black text-[#64748B] hover:text-amber-500 transition-colors uppercase tracking-[0.2em] bg-white border border-[#E2E8F0] rounded-xl shadow-sm">
-    수동 추가 점수 초기화
-  </button>
-  <button onClick={onReset}
-    className="w-full py-2.5 text-[9px] font-black text-[#64748B] hover:text-red-500 transition-colors uppercase tracking-[0.2em] bg-white border border-[#E2E8F0] rounded-xl shadow-sm">
-    게임 지표 초기화
-  </button>
-</button>
+      <div className="mt-auto p-4 border-t border-[#E2E8F0] bg-slate-50/50 space-y-2">
+        <button
+          onClick={onResetManual}
+          className="w-full py-2.5 text-[9px] font-black text-[#64748B] hover:text-amber-500 transition-colors uppercase tracking-[0.2em] bg-white border border-[#E2E8F0] rounded-xl shadow-sm"
+        >
+          수동 추가 점수 초기화
+        </button>
+        <button
+          onClick={onReset}
+          className="w-full py-2.5 text-[9px] font-black text-[#64748B] hover:text-red-500 transition-colors uppercase tracking-[0.2em] bg-white border border-[#E2E8F0] rounded-xl shadow-sm"
+        >
+          게임 지표 초기화
+        </button>
       </div>
-    </div>  {/* sleek-card 닫기 */}
+    </div>
   );
 }
