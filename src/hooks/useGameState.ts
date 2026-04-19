@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Player, CountryState, GameState, GameLog, User, TEAM_COLORS } from '../types';
-import { INITIAL_TEAMS, COUNTRY_PRICES, DEFAULT_COUNTRY_PRICE, BUILDING_TIERS, CHARACTER_SEEDS } from '../constants';
+import { INITIAL_TEAMS, COUNTRY_PRICES, DEFAULT_COUNTRY_PRICE, BUILDING_TIERS, CHARACTER_SEEDS, getBuildingTiers } from '../constants';
 import { supabase } from '../lib/supabase';
 
 const STORAGE_KEY = 'kingdom_conquerors_save';
@@ -11,12 +11,12 @@ export function useGameState() {
     const saved = localStorage.getItem(STORAGE_KEY);
     const parsed = saved ? JSON.parse(saved) : null;
     return {
-   players: (parsed?.players || INITIAL_TEAMS).filter((p: any) =>
-      p && p.name && p.id &&
-      !['A to Z', 'TOY', 'Blossom', 'Evergreen', 'The First', 'Perlfect', 'EBS', 'YITC', 'BPM'].includes(p.name) &&
-      !/^team-\d+$/.test(p.id) &&
-      !/^\d+팀$/.test(p.name)
-    ),
+      players: (parsed?.players || INITIAL_TEAMS).filter((p: any) =>
+        p && p.name && p.id &&
+        !['A to Z', 'TOY', 'Blossom', 'Evergreen', 'The First', 'Perlfect', 'EBS', 'YITC', 'BPM'].includes(p.name) &&
+        !/^team-\d+$/.test(p.id) &&
+        !/^\d+팀$/.test(p.name)
+      ),
       countries: {},
       logs: parsed?.logs || [{
         id: 'start',
@@ -24,7 +24,7 @@ export function useGameState() {
         message: '새로운 선교 원정이 시작되었습니다!',
         type: 'purchase' as any
       }],
-    users: (parsed?.users || [{ id: 'admin-1', username: 'admin', role: 'admin' }]).filter((u: any) => u && u.id && u.username)
+      users: (parsed?.users || [{ id: 'admin-1', username: 'admin', role: 'admin' }]).filter((u: any) => u && u.id && u.username)
     };
   });
 
@@ -40,7 +40,6 @@ export function useGameState() {
   }[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);
 
-  // ✅ Supabase에서 점령 현황 불러오기
   const fetchOccupations = async () => {
     try {
       const { data, error } = await supabase.from('country_occupations').select('*');
@@ -75,13 +74,13 @@ export function useGameState() {
         setClubPoints(data);
         setGameState(prev => {
           const playersMap = new Map<string, Player>(prev.players.map(p => [p.name, p]));
-        const updatedPlayers = (data as any[]).filter((club) => club && club.club_name).map((club, idx) => {
+          const updatedPlayers = (data as any[]).filter((club) => club && club.club_name).map((club, idx) => {
             const existing = playersMap.get(club.club_name);
             if (existing) {
               return { ...existing, gold: club.remaining_evangelism_points, buildingPower: club.remaining_speech_points } as Player;
             }
             return {
-              id: `club-${club.club_name.replace(/\s+/g, '-').toLowerCase()}`, // ← 이것으로 교체
+              id: `club-${club.club_name.replace(/\s+/g, '-').toLowerCase()}`,
               name: club.club_name,
               color: TEAM_COLORS[(prev.players.length + idx) % TEAM_COLORS.length],
               characterUrl: `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${club.club_name}`,
@@ -99,31 +98,26 @@ export function useGameState() {
     }
   };
 
-      useEffect(() => {
-        fetchClubPoints();
-        fetchOccupations();
-      
-        // ✅ Realtime 구독
-        const channel = supabase
-          .channel('country_occupations_changes')
-          .on(
-            'postgres_changes',
-            { event: '*', schema: 'public', table: 'country_occupations' },
-            () => {
-              fetchOccupations();
-            }
-          )
-          .subscribe();
-      
-        return () => {
-          supabase.removeChannel(channel);
-        };
-      }, []);
+  useEffect(() => {
+    fetchClubPoints();
+    fetchOccupations();
 
-useEffect(() => {
-  const { countries, ...rest } = gameState;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(rest));
-}, [gameState]);
+    const channel = supabase
+      .channel('country_occupations_changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'country_occupations' },
+        () => { fetchOccupations(); }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, []);
+
+  useEffect(() => {
+    const { countries, ...rest } = gameState;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(rest));
+  }, [gameState]);
 
   useEffect(() => {
     if (currentUser) {
@@ -207,7 +201,6 @@ useEffect(() => {
     addLog(`${player?.name}님이 ${type === 'evangelism' ? '전도' : '발표'} 점수 ${value}점을 획득했습니다.`, type);
   };
 
-  // ✅ 점령 취소 - Supabase에서도 삭제
   const handleCancelOccupation = async (countryId: string) => {
     const country = gameState.countries[countryId];
     if (!country) return;
@@ -236,23 +229,24 @@ useEffect(() => {
   const cancelBuilding = async (countryId: string) => {
     const country = gameState.countries[countryId];
     if (!country || country.buildings <= 0) return;
-  
+
     const newBuildings = country.buildings - 1;
-    const tier = BUILDING_TIERS[country.buildings - 1];
+    const tiers = getBuildingTiers(country.name);
+    const tier = tiers[country.buildings - 1];
     const player = gameState.players.find(p => p.id === country.ownerId);
-  
+
     await supabase.from('country_occupations')
       .update({ buildings: newBuildings })
       .eq('country_id', countryId);
-  
+
     setGameState(prev => ({
       ...prev,
       countries: { ...prev.countries, [countryId]: { ...country, buildings: newBuildings } },
     }));
-  
+
     addLog(`관리자가 ${player?.name || '대원'}의 ${country.name} 건물 '${tier.name}'을 취소했습니다.`, 'construction');
   };
-    
+
   const healGhostData = async () => {
     const validPlayerIds = new Set(gameState.players.map(p => p.id));
     const ghostIds = Object.entries(gameState.countries)
@@ -274,7 +268,6 @@ useEffect(() => {
     }
   };
 
-  // ✅ 나라 점령 - Supabase에 저장
   const buyCountry = async (countryId: string, playerId: string, countryName: string) => {
     const player = gameState.players.find(p => p.id === playerId);
     const price = COUNTRY_PRICES[countryName] || DEFAULT_COUNTRY_PRICE;
@@ -291,18 +284,16 @@ useEffect(() => {
     setGameState(prev => ({
       ...prev,
       players: prev.players.map(p => p.id === playerId ? { ...p, gold: p.gold - price } : p),
-     countries: { ...prev.countries, [countryId]: { id: countryId, name: countryName, ownerId: player.id, buildings: 0 } }
+      countries: { ...prev.countries, [countryId]: { id: countryId, name: countryName, ownerId: player.id, buildings: 0 } }
     }));
     addLog(`${player.name}님이 ${countryName}를 ${price}G에 점령했습니다!`, 'purchase');
   };
 
-  // ✅ 건물 건설 - Supabase 업데이트
   const buildInCountry = async (countryId: string) => {
     const country = gameState.countries[countryId];
     if (!country?.ownerId || country.buildings >= 3) return;
-    import { getBuildingTiers } from '../constants';
-const tiers = getBuildingTiers(country.name);
-const nextTier = tiers[country.buildings];
+    const tiers = getBuildingTiers(country.name);
+    const nextTier = tiers[country.buildings];
     const player = gameState.players.find(p => p.id === country.ownerId);
     if (!player || player.buildingPower < nextTier.cost) return;
 
@@ -317,10 +308,9 @@ const nextTier = tiers[country.buildings];
       players: prev.players.map(p => p.id === player.id ? { ...p, buildingPower: p.buildingPower - nextTier.cost } : p),
       countries: { ...prev.countries, [countryId]: { ...country, buildings: newBuildings } }
     }));
-    addLog(`${player.name}님이 ${countryId}에 '${nextTier.name}'(을)를 건축했습니다!`, 'construction');
+    addLog(`${player.name}님이 ${country.name}에 '${nextTier.name}'(을)를 건축했습니다!`, 'construction');
   };
 
-  // ✅ 게임 초기화 - Supabase도 초기화
   const resetGame = async () => {
     if (window.confirm('정말 모든 데이터를 초기화하시겠습니까? (멤버는 유지됩니다)')) {
       await supabase.from('country_occupations').delete().neq('country_id', '');
@@ -333,18 +323,18 @@ const nextTier = tiers[country.buildings];
     }
   };
 
+  const resetManualPoints = async () => {
+    if (window.confirm('관리자가 수동으로 추가한 점수를 초기화하고 원본 점수로 되돌리시겠습니까?')) {
+      await fetchClubPoints();
+      addLog('관리자 수동 추가 점수가 초기화되었습니다.', 'purchase' as any);
+    }
+  };
+
   return {
     gameState, currentUser, clubPoints, isSyncing,
     fetchClubPoints, handleLogin, handleLogout,
     handleAddMember, handleDeleteMember, handleAdminSubmit,
-    handleCancelOccupation, healGhostData, buyCountry, buildInCountry, resetGame, 
-    cancelBuilding, resetManualPoints, 
+    handleCancelOccupation, healGhostData, buyCountry, buildInCountry, resetGame,
+    cancelBuilding, resetManualPoints,
   };
 }
-
-const resetManualPoints = async () => {
-  if (window.confirm('관리자가 수동으로 추가한 점수를 초기화하고 원본 점수로 되돌리시겠습니까?')) {
-    await fetchClubPoints();
-    addLog('관리자 수동 추가 점수가 초기화되었습니다.', 'purchase' as any);
-  }
-};
