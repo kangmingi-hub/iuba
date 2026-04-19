@@ -16,6 +16,7 @@ interface Props {
   onRefresh: () => void;
   onReset: () => void;
   onResetManual: () => void;
+  currentUser: User | null;
 }
 
 export default function Leaderboard({ clubPoints, players, countries, isSyncing, onRefresh, onReset, onResetManual }: Props) {
