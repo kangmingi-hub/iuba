@@ -2,7 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Coins, Building2, PlusCircle, Lock } from 'lucide-react';
 import { Player, CountryState, User } from '../types';
-import { COUNTRY_PRICES, DEFAULT_COUNTRY_PRICE, BUILDING_TIERS, CLUB_IMAGES } from '../constants';
+import { COUNTRY_PRICES, DEFAULT_COUNTRY_PRICE, BUILDING_TIERS_BY_SIZE, CLUB_IMAGES, getBuildingTiers } from '../constants';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -75,9 +75,10 @@ export default function CountryModal({ selectedCountry, countries, players, curr
                     <Building2 className="w-5 h-5 text-blue-500" />
                     <span className="text-xl font-black text-blue-600 font-mono">
                       {(() => {
-                        const buildings = ownedCountry?.buildings || 0;
-                        if (buildings >= 3) return 'MAX';
-                        return BUILDING_TIERS[buildings].cost;
+                        const tiers = getBuildingTiers(selectedCountry.name);
+const buildings = ownedCountry?.buildings || 0;
+if (buildings >= 3) return 'MAX';
+return tiers[buildings].cost;;
                       })()}P
                     </span>
                   </div>
