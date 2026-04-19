@@ -83,7 +83,10 @@ export default function CountryModal({ selectedCountry, countries, players, onCl
                       {/* 캐릭터 (건물이 생기면 layout 속성에 의해 자연스럽게 왼쪽으로 밀려남) */}
                       <motion.div layout transition={{ type: "spring", bounce: 0.2, duration: 0.6 }} className="relative z-10">
                         <img 
-                          src={players.find(p => p.id === ownedCountry.ownerId)?.characterUrl || "https://cdn-icons-png.flaticon.com/512/149/149071.png"} 
+                      src={(() => {
+  const owner = players.find(p => p.id === ownedCountry.ownerId);
+  return owner ? (CLUB_IMAGES[owner.name] || owner.characterUrl || "https://cdn-icons-png.flaticon.com/512/149/149071.png") : "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+})()}
                           alt="캐릭터" 
                           className="w-16 h-16 rounded-full border-4 shadow-md bg-white object-cover"
                           style={{ borderColor: players.find(p => p.id === ownedCountry.ownerId)?.color || '#3B82F6' }}
