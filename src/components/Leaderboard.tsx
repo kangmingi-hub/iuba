@@ -109,4 +109,8 @@ export default function Leaderboard({ clubPoints, players, countries, isSyncing,
     className="w-full py-2.5 text-[9px] font-black text-[#64748B] hover:text-red-500 transition-colors uppercase tracking-[0.2em] bg-white border border-[#E2E8F0] rounded-xl shadow-sm">
     게임 지표 초기화
   </button>
-</div>
+</button>
+      </div>
+    </div>  {/* sleek-card 닫기 */}
+  );
+}
