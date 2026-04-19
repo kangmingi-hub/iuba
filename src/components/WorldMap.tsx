@@ -320,24 +320,81 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
       const onMouseUp = () => { dragging = false; };
 
       // 터치 단일 드래그 (3D)
-      let lastTX = 0, lastTY = 0;
-      const onTouchStartDrag = (e: TouchEvent) => {
-        if (e.touches.length === 1) { lastTX = e.touches[0].clientX; lastTY = e.touches[0].clientY; }
-      };
-      const onTouchMoveDrag = (e: TouchEvent) => {
-        if (e.touches.length !== 1) return;
-        e.preventDefault();
-        const dx = e.touches[0].clientX - lastTX;
-        const dy = e.touches[0].clientY - lastTY;
-        lastTX = e.touches[0].clientX; lastTY = e.touches[0].clientY;
-        const sens = 0.3 / (zoomLevelRef.current * (window.devicePixelRatio || 1));
-        rotationRef.current = [
-          rotationRef.current[0] + dx * sens,
-          rotationRef.current[1] - dy * sens,
-          rotationRef.current[2],
-        ];
-        isDirtyRef.current = true;
-      };
+      // ✅ 수정 - 하나의 핸들러로 통합, lastT를 touchstart에서 항상 갱신
+let lastTX = 0, lastTY = 0;
+let touchStarted = false;
+
+const onTouchStart = (e: TouchEvent) => {
+  // 핀치 줌
+  if (e.touches.length === 2) {
+    lastDist = Math.hypot(
+      e.touches[0].clientX - e.touches[1].clientX,
+      e.touches[0].clientY - e.touches[1].clientY
+    );
+    touchStarted = false; // 핀치 중엔 드래그 비활성화
+    return;
+  }
+  // 단일 터치 - 항상 여기서 초기화
+  if (e.touches.length === 1) {
+    lastTX = e.touches[0].clientX;
+    lastTY = e.touches[0].clientY;
+    touchStarted = true;
+  }
+};
+
+const onTouchMove = (e: TouchEvent) => {
+  e.preventDefault();
+
+  // 핀치 줌
+  if (e.touches.length === 2) {
+    const dist = Math.hypot(
+      e.touches[0].clientX - e.touches[1].clientX,
+      e.touches[0].clientY - e.touches[1].clientY
+    );
+    if (lastDist > 0) {
+      zoomLevelRef.current = Math.max(0.5, Math.min(8, zoomLevelRef.current * (dist / lastDist)));
+    }
+    lastDist = dist;
+    isDirtyRef.current = true;
+    return;
+  }
+
+  // 단일 터치 드래그
+  if (e.touches.length === 1 && touchStarted) {
+    const dx = e.touches[0].clientX - lastTX;
+    const dy = e.touches[0].clientY - lastTY;
+    
+    // ✅ 업데이트를 dx/dy 계산 직후 즉시
+    lastTX = e.touches[0].clientX;
+    lastTY = e.touches[0].clientY;
+
+    const sens = 0.3 / (zoomLevelRef.current * (window.devicePixelRatio || 1));
+    rotationRef.current = [
+      rotationRef.current[0] + dx * sens,
+      rotationRef.current[1] - dy * sens,
+      rotationRef.current[2],
+    ];
+    isDirtyRef.current = true;
+  }
+};
+
+const onTouchEnd = () => {
+  touchStarted = false;
+  lastDist = 0;
+};
+
+svgEl.addEventListener('touchstart', onTouchStart, { passive: true });
+svgEl.addEventListener('touchmove', onTouchMove, { passive: false });
+svgEl.addEventListener('touchend', onTouchEnd, { passive: true });
+
+// cleanup에도 추가
+return () => {
+  ...
+  svgEl.removeEventListener('touchstart', onTouchStart);
+  svgEl.removeEventListener('touchmove', onTouchMove);
+  svgEl.removeEventListener('touchend', onTouchEnd);
+  ...
+};
 
       // 마우스 휠 줌 (3D)
       const onWheel = (e: WheelEvent) => {
