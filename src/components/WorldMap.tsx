@@ -389,11 +389,14 @@ svgEl.addEventListener('touchend', onTouchEnd, { passive: true });
 
 // cleanup에도 추가
 return () => {
-  ...
+  cancelAnimationFrame(rafRef.current);
+  svgEl.removeEventListener('mousedown', onMouseDown);
+  window.removeEventListener('mousemove', onMouseMove);
+  window.removeEventListener('mouseup', onMouseUp);
   svgEl.removeEventListener('touchstart', onTouchStart);
   svgEl.removeEventListener('touchmove', onTouchMove);
   svgEl.removeEventListener('touchend', onTouchEnd);
-  ...
+  svgEl.removeEventListener('wheel', onWheel);
 };
 
       // 마우스 휠 줌 (3D)
