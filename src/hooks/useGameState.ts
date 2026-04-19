@@ -336,6 +336,13 @@ useEffect(() => {
     fetchClubPoints, handleLogin, handleLogout,
     handleAddMember, handleDeleteMember, handleAdminSubmit,
     handleCancelOccupation, healGhostData, buyCountry, buildInCountry, resetGame, 
-    cancelBuilding
+    cancelBuilding, resetManualPoints, 
   };
 }
+
+const resetManualPoints = async () => {
+  if (window.confirm('관리자가 수동으로 추가한 점수를 초기화하고 원본 점수로 되돌리시겠습니까?')) {
+    await fetchClubPoints();
+    addLog('관리자 수동 추가 점수가 초기화되었습니다.', 'purchase' as any);
+  }
+};
