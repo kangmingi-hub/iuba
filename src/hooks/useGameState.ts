@@ -283,7 +283,7 @@ useEffect(() => {
     await supabase.from('country_occupations').upsert({
       country_id: countryId,
       country_name: countryName,
-      owner_id: `club-${player.name.replace(/\s+/g, '-').toLowerCase()}`,
+      owner_id: player.id,
       owner_name: player.name,
       buildings: 0
     });
@@ -291,7 +291,7 @@ useEffect(() => {
     setGameState(prev => ({
       ...prev,
       players: prev.players.map(p => p.id === playerId ? { ...p, gold: p.gold - price } : p),
-     countries: { ...prev.countries, [countryId]: { id: countryId, name: countryName, ownerId: `club-${player.name.replace(/\s+/g, '-').toLowerCase()}`, buildings: 0 } }
+     countries: { ...prev.countries, [countryId]: { id: countryId, name: countryName, ownerId: player.id, buildings: 0 } }
     }));
     addLog(`${player.name}님이 ${countryName}를 ${price}G에 점령했습니다!`, 'purchase');
   };
