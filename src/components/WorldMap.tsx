@@ -390,10 +390,10 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
   return (
     <div className="w-full h-full bg-[#f8fafc] overflow-hidden relative rounded-[2rem] border border-[#E2E8F0] shadow-sm">
       <svg
-        ref={svgRef}
-        className="w-full h-full cursor-grab active:cursor-grabbing"
-        style={{ touchAction: 'none' }}
-      />
+  ref={svgRef}
+  className="w-full h-full cursor-grab active:cursor-grabbing"
+  style={{ touchAction: viewMode === '3d' ? 'none' : 'pan-x pan-y' }}
+/>
 
       <div className="absolute top-6 left-6 flex flex-col gap-3 pointer-events-auto">
         <div className="flex bg-white/90 backdrop-blur-md p-1 rounded-2xl border border-slate-200 shadow-lg">
