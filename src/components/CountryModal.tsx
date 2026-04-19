@@ -2,7 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Coins, Building2, PlusCircle, Lock } from 'lucide-react';
 import { Player, CountryState, User } from '../types';
-import { COUNTRY_PRICES, DEFAULT_COUNTRY_PRICE, BUILDING_TIERS_BY_SIZE, CLUB_IMAGES, getBuildingTiers } from '../constants';
+import { COUNTRY_PRICES, DEFAULT_COUNTRY_PRICE, CLUB_IMAGES, getBuildingTiers } from '../
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -136,7 +136,7 @@ return tiers[buildings].cost;;
                     <div className="text-right">
                       <p className="text-[10px] text-[#64748B] uppercase font-bold tracking-widest mb-2">Building Tier</p>
                       <p className="text-xl font-black text-[#1E293B] font-mono">
-                        {ownedCountry.buildings === 0 ? '없음' : BUILDING_TIERS[ownedCountry.buildings - 1].name}
+                        {ownedCountry.buildings === 0 ? '없음' : getBuildingTiers(selectedCountry.name)[ownedCountry.buildings - 1].name}
                       </p>
                     </div>
                   </div>
@@ -148,7 +148,7 @@ return tiers[buildings].cost;;
                       className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-slate-300 disabled:cursor-not-allowed py-5 rounded-2xl font-black text-white shadow-xl shadow-blue-500/20 transition-all active:scale-[0.98] flex items-center justify-center gap-3 uppercase tracking-widest"
                     >
                       <PlusCircle className="w-6 h-6" />
-                      {ownedCountry.buildings >= 3 ? '모든 건설 완료' : `${BUILDING_TIERS[ownedCountry.buildings].name} 건설`}
+                      {ownedCountry.buildings >= 3 ? '모든 건설 완료' : `${getBuildingTiers(selectedCountry.name)[ownedCountry.buildings].name} 건설`}
                     </button>
                   ) : (
                     <div className="w-full py-5 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center gap-3 text-slate-400">
