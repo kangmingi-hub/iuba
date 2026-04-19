@@ -114,6 +114,7 @@ export default function App() {
             onRefresh={fetchClubPoints}
             onReset={resetGame}
             onResetManual={resetManualPoints} 
+            currentUser={currentUser} 
           />
         </section>
 
