@@ -15,9 +15,10 @@ interface Props {
   isSyncing: boolean;
   onRefresh: () => void;
   onReset: () => void;
+  onResetManual: () => void;
 }
 
-export default function Leaderboard({ clubPoints, players, countries, isSyncing, onRefresh, onReset }: Props) {
+export default function Leaderboard({ clubPoints, players, countries, isSyncing, onRefresh, onReset, onResetManual }: Props) {
   return (
     <div className="sleek-card flex flex-col h-full overflow-hidden">
       <div className="sleek-panel-header flex justify-between items-center">
@@ -99,12 +100,13 @@ export default function Leaderboard({ clubPoints, players, countries, isSyncing,
         })}
       </div>
 
-      <div className="mt-auto p-4 border-t border-[#E2E8F0] bg-slate-50/50">
-        <button onClick={onReset}
-          className="w-full py-2.5 text-[9px] font-black text-[#64748B] hover:text-red-500 transition-colors uppercase tracking-[0.2em] bg-white border border-[#E2E8F0] rounded-xl shadow-sm">
-          게임 지표 초기화
-        </button>
-      </div>
-    </div>
-  );
-}
+<div className="mt-auto p-4 border-t border-[#E2E8F0] bg-slate-50/50 space-y-2">
+  <button onClick={onResetManual}
+    className="w-full py-2.5 text-[9px] font-black text-[#64748B] hover:text-amber-500 transition-colors uppercase tracking-[0.2em] bg-white border border-[#E2E8F0] rounded-xl shadow-sm">
+    수동 추가 점수 초기화
+  </button>
+  <button onClick={onReset}
+    className="w-full py-2.5 text-[9px] font-black text-[#64748B] hover:text-red-500 transition-colors uppercase tracking-[0.2em] bg-white border border-[#E2E8F0] rounded-xl shadow-sm">
+    게임 지표 초기화
+  </button>
+</div>
