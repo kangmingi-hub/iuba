@@ -420,7 +420,6 @@ useEffect(() => {
 
   let lastX = 0;
   let lastY = 0;
-  let rafId: number | null = null;  // requestAnimationFrame ID
 
   const onTouchStart = (e: TouchEvent) => {
     if (e.touches.length === 1) {
@@ -445,8 +444,10 @@ useEffect(() => {
         rotationRef.current[1] - dy * sensitivity,
         rotationRef.current[2]
       ];
-    rotationRef.current = newRotation;
-    setRotation(newRotation);
+      rotationRef.current = newRotation;
+      setRotation(newRotation);
+    }
+  };
 
   svgEl.addEventListener('touchstart', onTouchStart, { passive: true });
   svgEl.addEventListener('touchmove', onTouchMove, { passive: false });
