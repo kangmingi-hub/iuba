@@ -28,7 +28,7 @@ export default function App() {
     fetchClubPoints, handleLogin, handleLogout,
     handleAddMember, handleDeleteMember, handleAdminSubmit,
     handleCancelOccupation, healGhostData, buyCountry, buildInCountry, resetGame,
-    cancelBuilding
+    cancelBuilding, resetManualPoints
   } = useGameState();
 
   const [selectedCountry, setSelectedCountry] = useState<{ id: string; name: string } | null>(null);
