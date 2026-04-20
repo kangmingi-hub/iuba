@@ -7,18 +7,25 @@
 }
 
 body {
-  @apply bg-[#F8FAFC] text-[#1E293B] antialiased selection:bg-blue-500/10 transition-colors duration-200;
+  @apply bg-[#020818] text-[#7DD3FC] antialiased selection:bg-cyan-500/20 transition-colors duration-200;
+  background-image: radial-gradient(ellipse at top, #0a1628 0%, #020818 70%);
 }
 
 .sleek-card {
-  @apply bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)];
+  @apply border rounded-2xl;
+  background: rgba(6, 20, 48, 0.8);
+  border-color: rgba(56, 189, 248, 0.3);
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.1), inset 0 1px 0 rgba(56, 189, 248, 0.1);
+  backdrop-filter: blur(12px);
 }
 
 .sleek-panel-header {
-  @apply px-4 py-3 border-b border-[#E2E8F0] bg-[#FAFBFF] rounded-t-2xl;
+  @apply px-4 py-3 rounded-t-2xl;
+  background: rgba(56, 189, 248, 0.05);
+  border-bottom: 1px solid rgba(56, 189, 248, 0.2);
 }
 
 .sleek-panel-title {
-  @apply text-[10px] font-bold uppercase tracking-widest text-[#64748B];
-}
-
+  @apply text-[10px] font-bold uppercase tracking-widest;
+  color: rgba(125, 211, 252, 0.7);
+    }
