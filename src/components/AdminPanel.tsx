@@ -96,8 +96,9 @@ export default function AdminPanel({ players, onSubmit, startDate, onStartDateCh
       onChange={(e) => {
         onStartDateChange(e.target.value);
         if (typeof window !== 'undefined') {
-  localStorage.setItem('start_date', e.target.value);
+          localStorage.setItem('start_date', e.target.value);
         }
+      }}
       className="flex-1 bg-[#FAFBFF] border border-[#E2E8F0] rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none"
     />
     <button
