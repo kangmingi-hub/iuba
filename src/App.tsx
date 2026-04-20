@@ -186,26 +186,26 @@ export default function App() {
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
 
         :root {
-          --bg: #0a0f1e;
-          --bg2: #0f1629;
-          --bg3: #151d35;
-          --surface: #1a2340;
-          --surface2: #1e2a4a;
-          --border: rgba(99, 130, 255, 0.12);
-          --border2: rgba(99, 130, 255, 0.2);
-          --accent: #4f7dff;
-          --accent2: #7c9fff;
-          --accent-glow: rgba(79, 125, 255, 0.3);
-          --gold: #f5a623;
-          --gold2: #ffd166;
-          --text: #e8eeff;
-          --text2: #8899cc;
-          --text3: #4a5a8a;
-          --success: #22d3a0;
-          --danger: #ff5a6e;
-          --radius: 16px;
-          --radius-lg: 24px;
-        }
+  --bg: #020b18;
+  --bg2: #041020;
+  --bg3: #061528;
+  --surface: #071830;
+  --surface2: #0a1f3a;
+  --border: rgba(0, 212, 255, 0.12);
+  --border2: rgba(0, 212, 255, 0.28);
+  --accent: #00d4ff;
+  --accent2: #40e8ff;
+  --accent-glow: rgba(0, 212, 255, 0.35);
+  --gold: #ffa500;
+  --gold2: #ffcc44;
+  --text: #c8f0ff;
+  --text2: #6ab8d4;
+  --text3: #2e6a82;
+  --success: #00ffcc;
+  --danger: #ff4466;
+  --radius: 16px;
+  --radius-lg: 24px;
+}
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -424,12 +424,13 @@ export default function App() {
         }
 
         /* ── Panel (공통 카드) ── */
-        .panel {
-          background: var(--surface);
-          border: 1px solid var(--border);
-          border-radius: var(--radius-lg);
-          overflow: hidden;
-        }
+       .panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 0 30px rgba(0, 212, 255, 0.06), inset 0 1px 0 rgba(0, 212, 255, 0.08);
+}
 
         .panel-header {
           padding: 20px 24px;
@@ -447,16 +448,25 @@ export default function App() {
         }
 
         /* ── Leaderboard 카드 ── */
-        .club-card {
-          background: var(--surface2);
-          border: 1px solid var(--border);
-          border-radius: 16px;
-          padding: 14px;
-          transition: border-color 0.2s, transform 0.2s;
-          cursor: default;
-        }
-        .club-card:hover { border-color: var(--border2); transform: translateY(-1px); }
-        .club-card-owned { border-color: rgba(79, 125, 255, 0.3); background: rgba(79, 125, 255, 0.05); }
+       .club-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px;
+  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+  cursor: default;
+  box-shadow: 0 0 0 transparent;
+}
+.club-card:hover {
+  border-color: var(--border2);
+  transform: translateY(-1px);
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.1);
+}
+.club-card-owned {
+  border-color: rgba(0, 212, 255, 0.35);
+  background: rgba(0, 212, 255, 0.04);
+  box-shadow: 0 0 15px rgba(0, 212, 255, 0.08);
+}
 
         .stat-pill {
           flex: 1;
