@@ -39,7 +39,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-[#1E293B] font-sans p-4 md:p-8">
-      {/* Header */}
       <header className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-center gap-4 bg-white border border-[#E2E8F0] p-6 rounded-2xl shadow-sm">
         <div className="flex items-center gap-3">
           <div className="bg-blue-600 p-3 rounded-2xl shadow-md">
@@ -105,7 +104,6 @@ export default function App() {
       </header>
 
       <main className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left: Leaderboard */}
         <section className="lg:col-span-4 space-y-6">
           <Leaderboard
             clubPoints={clubPoints}
@@ -119,7 +117,6 @@ export default function App() {
           />
         </section>
 
-        {/* Right: Main View */}
         <section className="lg:col-span-8 min-h-[600px] flex flex-col">
           <AnimatePresence mode="wait">
             {activeTab === 'map' && (
@@ -150,7 +147,11 @@ export default function App() {
               />
             )}
             {activeTab === 'members' && currentUser?.role === 'admin' && (
-              <MembersPanel players={gameState.players} onAdd={handleAddMember} onDelete={handleDeleteMember} />
+              <MembersPanel
+                players={gameState.players}
+                onAdd={handleAddMember}
+                onDelete={handleDeleteMember}
+              />
             )}
             {activeTab === 'logs' && (
               <LogsPanel logs={gameState.logs} />
@@ -159,10 +160,8 @@ export default function App() {
         </section>
       </main>
 
-      {/* Login Overlay */}
       <LoginOverlay isVisible={!currentUser} onLogin={handleLogin} />
 
-      {/* Country Modal */}
       <CountryModal
         selectedCountry={selectedCountry}
         countries={gameState.countries}
