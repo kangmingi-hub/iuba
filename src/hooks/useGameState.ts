@@ -335,7 +335,7 @@ export function useGameState() {
 return {
   gameState, currentUser, clubPoints, isSyncing,
   startDate, setStartDate,
-  fetchClubPoints, handleLogin, handleLogout,,
+  fetchClubPoints, handleLogin, handleLogout,
     handleAddMember, handleDeleteMember, handleAdminSubmit,
     handleCancelOccupation, healGhostData, buyCountry, buildInCountry, resetGame,
     cancelBuilding, resetManualPoints,
