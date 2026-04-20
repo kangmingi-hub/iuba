@@ -138,7 +138,8 @@ export default function App() {
   startDate={startDate}
   onStartDateChange={setStartDate}
   onRefresh={fetchClubPoints}
-/>
+/>  
+      )}
             {activeTab === 'territories' && currentUser?.role === 'admin' && (
               <TerritoriesPanel
                 players={gameState.players}
