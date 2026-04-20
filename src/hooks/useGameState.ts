@@ -39,6 +39,9 @@ export function useGameState() {
     remaining_speech_points: number;
   }[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [startDate, setStartDate] = useState<string>(() => {
+  return localStorage.getItem('start_date') || '2026-01-01';
+});
 
   const fetchOccupations = async () => {
     try {
@@ -61,13 +64,12 @@ export function useGameState() {
     }
   };
 
-  const fetchClubPoints = async () => {
-    setIsSyncing(true);
-    try {
-      const { data, error } = await supabase
-        .from('team_wallet_view')
-        .select('*')
-        .order('club_name', { ascending: true });
+  const fetchClubPoints = async (date?: string) => {
+  setIsSyncing(true);
+  const targetDate = date || startDate;
+  try {
+    const { data, error } = await supabase
+      .rpc('get_team_points_from_date', { start_date: targetDate });
 
       if (error) throw error;
       if (data) {
@@ -330,9 +332,10 @@ export function useGameState() {
     }
   };
 
-  return {
-    gameState, currentUser, clubPoints, isSyncing,
-    fetchClubPoints, handleLogin, handleLogout,
+return {
+  gameState, currentUser, clubPoints, isSyncing,
+  startDate, setStartDate,
+  fetchClubPoints, handleLogin, handleLogout,,
     handleAddMember, handleDeleteMember, handleAdminSubmit,
     handleCancelOccupation, healGhostData, buyCountry, buildInCountry, resetGame,
     cancelBuilding, resetManualPoints,
