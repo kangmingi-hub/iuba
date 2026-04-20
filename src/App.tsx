@@ -24,8 +24,9 @@ function cn(...inputs: ClassValue[]) { return twMerge(clsx(inputs)); }
 
 export default function App() {
   const {
-    gameState, currentUser, clubPoints, isSyncing,
-    fetchClubPoints, handleLogin, handleLogout,
+  gameState, currentUser, clubPoints, isSyncing,
+  startDate, setStartDate,
+  fetchClubPoints, handleLogin, handleLogout,
     handleAddMember, handleDeleteMember, handleAdminSubmit,
     handleCancelOccupation, healGhostData, buyCountry, buildInCountry, resetGame,
     cancelBuilding, resetManualPoints
@@ -131,8 +132,13 @@ export default function App() {
               </div>
             )}
             {activeTab === 'admin' && currentUser?.role === 'admin' && (
-              <AdminPanel players={gameState.players} onSubmit={handleAdminSubmit} />
-            )}
+              <AdminPanel 
+  players={gameState.players} 
+  onSubmit={handleAdminSubmit}
+  startDate={startDate}
+  onStartDateChange={setStartDate}
+  onRefresh={fetchClubPoints}
+/>
             {activeTab === 'territories' && currentUser?.role === 'admin' && (
               <TerritoriesPanel
                 players={gameState.players}
