@@ -10,9 +10,12 @@ function cn(...inputs: ClassValue[]) { return twMerge(clsx(inputs)); }
 interface Props {
   players: Player[];
   onSubmit: (playerId: string, value: number, type: 'evangelism' | 'speech') => void;
+  startDate: string;
+  onStartDateChange: (date: string) => void;
+  onRefresh: () => void;
 }
 
-export default function AdminPanel({ players, onSubmit }: Props) {
+export default function AdminPanel({ players, onSubmit, startDate, onStartDateChange, onRefresh }: Props) {
   const [adminPlayerId, setAdminPlayerId] = useState(players[0]?.id || '');
   const [adminValue, setAdminValue] = useState<number>(0);
   const [adminType, setAdminType] = useState<'evangelism' | 'speech'>('evangelism');
@@ -82,6 +85,33 @@ export default function AdminPanel({ players, onSubmit }: Props) {
             className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 py-4 rounded-xl font-bold text-white shadow-lg shadow-blue-500/20 transition-all active:scale-[0.98]">
             실적 등록하기
           </button>
+          
+          <div style={{ borderTop: '1px solid var(--border)', paddingTop: 24 }}>
+  <label className="input-label">점수 집계 시작 날짜</label>
+  <div style={{ display: 'flex', gap: 10 }}>
+    <input
+      type="date"
+      value={startDate}
+      onChange={(e) => {
+        onStartDateChange(e.target.value);
+        localStorage.setItem('start_date', e.target.value);
+      }}
+      className="input"
+      style={{ flex: 1 }}
+    />
+    <button
+      type="button"
+      onClick={() => onRefresh()}
+      className="btn-primary"
+      style={{ width: 'auto', padding: '12px 20px', borderRadius: 12, flexShrink: 0 }}
+    >
+      적용
+    </button>
+  </div>
+  <p style={{ marginTop: 8, fontSize: 11, color: 'var(--text3)' }}>
+    이 날짜 이후 활동만 점수에 반영됩니다.
+  </p>
+</div>
         </form>
       </div>
     </motion.div>
