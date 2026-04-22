@@ -37,7 +37,7 @@ export default function AdminPanel({ players, onSubmit, startDate, onStartDateCh
       <div className="sleek-panel-header">
         <h2 className="sleek-panel-title">선교 실적 입력 센터</h2>
       </div>
-      <div className="p-8 max-w-md mx-auto w-full">
+     <div className="p-8 max-w-md mx-auto w-full overflow-y-auto">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="block text-[10px] font-extrabold text-[#64748B] mb-2 uppercase tracking-widest">대원 선택</label>
