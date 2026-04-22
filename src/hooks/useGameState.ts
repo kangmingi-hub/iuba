@@ -39,9 +39,14 @@ export function useGameState() {
     remaining_speech_points: number;
   }[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);
-  const [startDate, setStartDate] = useState<string>(() => {
-  return localStorage.getItem('start_date') || '2026-01-01';
-});
+   const [startDate, setStartDate] = useState<string>(() => {
+    return localStorage.getItem('start_date') || '2026-01-01';
+  });
+
+const handleStartDateChange = (date: string) => {
+  setStartDate(date);
+  localStorage.setItem('start_date', date); // 새로고침 후에도 유지
+};
 
   const fetchOccupations = async () => {
     try {
@@ -101,7 +106,7 @@ export function useGameState() {
   };
 
   useEffect(() => {
-    fetchClubPoints();
+    fetchClubPoints(startDate); // 날짜 명시적으로 전달
     fetchOccupations();
 
     const channel = supabase
@@ -114,7 +119,7 @@ export function useGameState() {
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, []);
+  }, [startDate]); 
 
   useEffect(() => {
     const { countries, ...rest } = gameState;
