@@ -93,17 +93,12 @@ export default function AdminPanel({ players, onSubmit, startDate, onStartDateCh
     <input
       type="date"
       value={startDate}
-      onChange={(e) => {
-        onStartDateChange(e.target.value);
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('start_date', e.target.value);
-        }
-      }}
+      onChange={(e) => onStartDateChange(e.target.value)}
       className="flex-1 bg-[#FAFBFF] border border-[#E2E8F0] rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none"
     />
     <button
       type="button"
-      onClick={() => onRefresh()}
+      onClick={() => onRefresh(startDate)}
       className="px-5 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-sm transition-all"
     >
       적용
