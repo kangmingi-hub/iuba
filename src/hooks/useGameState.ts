@@ -43,6 +43,11 @@ export function useGameState() {
     return localStorage.getItem('start_date') || '2026-01-01';
   });
 
+  const handleStartDateChange = (date: string) => {
+  setStartDate(date);
+  localStorage.setItem('start_date', date);
+};
+
 const handleStartDateChange = (date: string) => {
   setStartDate(date);
   localStorage.setItem('start_date', date); // 새로고침 후에도 유지
