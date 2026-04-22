@@ -12,7 +12,7 @@ interface Props {
   onSubmit: (playerId: string, value: number, type: 'evangelism' | 'speech') => void;
   startDate: string;
   onStartDateChange: (date: string) => void;
-  onRefresh: () => void;
+  onRefresh: (date?: string) => void;
 }
 
 export default function AdminPanel({ players, onSubmit, startDate, onStartDateChange, onRefresh }: Props) {
