@@ -117,46 +117,66 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
       gPerspective = gMain.append('g')
         .attr('transform', 'perspective(1200px) rotateX(45deg)');
       
-      // Grid
+      // Holographic Grid
       const gridSize = 100;
       const gridG = gPerspective.append('g').attr('class', 'grid');
       const gBound = 4000;
       for (let x = -gBound; x < gBound; x += gridSize) {
-        gridG.append('line').attr('x1', x).attr('y1', -gBound).attr('x2', x).attr('y2', gBound).attr('stroke', '#e2e8f0').attr('stroke-width', 0.5);
+        gridG.append('line').attr('x1', x).attr('y1', -gBound).attr('x2', x).attr('y2', gBound).attr('stroke', '#00ffff').attr('stroke-width', 0.3).attr('stroke-opacity', 0.15);
       }
       for (let y = -gBound; y < gBound; y += gridSize) {
-        gridG.append('line').attr('x1', -gBound).attr('y1', y).attr('x2', gBound).attr('y2', y).attr('stroke', '#e2e8f0').attr('stroke-width', 0.5);
+        gridG.append('line').attr('x1', -gBound).attr('y1', y).attr('x2', gBound).attr('y2', y).attr('stroke', '#00ffff').attr('stroke-width', 0.3).attr('stroke-opacity', 0.15);
       }
     }
 
     if (viewMode === '3d') {
-      // Glow/Aura for Globe
+      // Holographic Glow/Aura for Globe
+      gMain.append('circle')
+        .attr('cx', width / 2)
+        .attr('cy', height / 2)
+        .attr('r', (minSize / 2.2 * zoomLevel) + 20)
+        .attr('fill', 'url(#globe-gradient)')
+        .attr('opacity', 0.6);
+
+      const defs = svg.append('defs');
+      
+      // Holographic gradient
+      const grad = defs.append('radialGradient').attr('id', 'globe-gradient');
+      grad.append('stop').attr('offset', '60%').attr('stop-color', '#00ffff').attr('stop-opacity', 0);
+      grad.append('stop').attr('offset', '85%').attr('stop-color', '#00ffff').attr('stop-opacity', 0.15);
+      grad.append('stop').attr('offset', '100%').attr('stop-color', '#00ffff').attr('stop-opacity', 0.4);
+
+      // Inner glow
       gMain.append('circle')
         .attr('cx', width / 2)
         .attr('cy', height / 2)
         .attr('r', (minSize / 2.2 * zoomLevel))
-        .attr('fill', 'url(#globe-gradient)')
-        .attr('opacity', 0.4);
+        .attr('fill', 'none')
+        .attr('stroke', 'url(#sphere-stroke)')
+        .attr('stroke-width', 2);
 
-      const defs = svg.append('defs');
-      const grad = defs.append('radialGradient').attr('id', 'globe-gradient');
-      grad.append('stop').attr('offset', '70%').attr('stop-color', '#f1f5f9').attr('stop-opacity', 0);
-      grad.append('stop').attr('offset', '100%').attr('stop-color', '#3b82f6').attr('stop-opacity', 0.2);
+      const sphereStroke = defs.append('linearGradient').attr('id', 'sphere-stroke').attr('gradientUnits', 'userSpaceOnUse')
+        .attr('x1', '0%').attr('y1', '0%').attr('x2', '100%').attr('y2', '100%');
+      sphereStroke.append('stop').attr('offset', '0%').attr('stop-color', '#00ffff').attr('stop-opacity', 0.8);
+      sphereStroke.append('stop').attr('offset', '50%').attr('stop-color', '#0088ff').attr('stop-opacity', 0.4);
+      sphereStroke.append('stop').attr('offset', '100%').attr('stop-color', '#00ffff').attr('stop-opacity', 0.8);
 
       gMain.append('path')
         .datum({ type: 'Sphere' })
         .attr('class', 'sphere')
         .attr('d', path as any)
-        .attr('fill', '#f8fafc')
-        .attr('stroke', '#e2e8f0')
-        .attr('stroke-width', 1);
+        .attr('fill', 'rgba(5, 15, 30, 0.9)')
+        .attr('stroke', '#00ffff')
+        .attr('stroke-width', 1)
+        .attr('stroke-opacity', 0.3);
     }
 
     const gCountries = gPerspective.append('g').attr('class', 'countries');
     
-    // Tooltip Helper
+    // Tooltip Helper - Holographic style
     const tooltip = d3.select('body').append('div')
-      .attr('class', 'absolute hidden bg-white/95 backdrop-blur-sm text-[#1E293B] p-3 rounded-2xl shadow-xl text-[11px] pointer-events-none z-50 border border-slate-200 font-bold min-w-[120px]');
+      .attr('class', 'absolute hidden p-4 rounded-xl text-[11px] pointer-events-none z-50 font-bold min-w-[140px]')
+      .attr('style', 'background: rgba(10, 25, 50, 0.95); border: 1px solid rgba(0, 255, 255, 0.4); box-shadow: 0 0 30px rgba(0, 255, 255, 0.3), inset 0 0 20px rgba(0, 255, 255, 0.05); backdrop-filter: blur(10px);');
 
     const handleMouseOver = (event: any, d: any) => {
       const countryName = d.properties.name;
@@ -166,10 +186,10 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
       const bName = bCount > 0 ? BUILDING_TIERS[bCount - 1].name : '없음';
 
       tooltip.classed('hidden', false).html(`
-        <div class="mb-2 border-b border-slate-100 pb-2 text-blue-600 uppercase tracking-widest text-[9px] font-black">${countryName}</div>
-        <div class="space-y-1">
-          <div class="flex justify-between gap-4"><span>소유자:</span> <span class="${player ? 'text-blue-600' : 'text-slate-400'}">${player?.name || '공석'}</span></div>
-          <div class="flex justify-between gap-4"><span>센터 수준:</span> <span class="text-amber-600">${bName}</span></div>
+        <div style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 255, 0.2); color: #00ffff; text-transform: uppercase; letter-spacing: 0.15em; font-size: 9px; font-weight: 900; text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);">${countryName}</div>
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <div style="display: flex; justify-content: space-between; gap: 16px;"><span style="color: rgba(0, 255, 255, 0.6);">소유자:</span> <span style="color: ${player ? '#00ff88' : 'rgba(255, 255, 255, 0.3)'};">${player?.name || '공석'}</span></div>
+          <div style="display: flex; justify-content: space-between; gap: 16px;"><span style="color: rgba(0, 255, 255, 0.6);">센터:</span> <span style="color: #ffc832;">${bName}</span></div>
         </div>
       `);
     };
@@ -217,22 +237,24 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
           }
         }
 
-        // Top Surface
+        // Top Surface - Holographic style
         countryG.append('path')
           .datum(feature)
           .attr('d', path as any)
           .attr('class', 'country-top cursor-pointer')
-          .attr('fill', isOwned ? players.find(p => p.id === state!.ownerId)?.color || '#e2e8f0' : '#e2e8f0')
-          .attr('stroke', '#94a3b8')        
-          .attr('stroke-width', '0.5') 
+          .attr('fill', isOwned ? players.find(p => p.id === state!.ownerId)?.color || '#1a3a5c' : '#1a3a5c')
+          .attr('stroke', '#00ffff')        
+          .attr('stroke-width', '0.3')
+          .attr('stroke-opacity', '0.4') 
           .attr('vector-effect', 'non-scaling-stroke')
           .on('click', (event, d: any) => onCountryClick(d.properties.name, d.properties.name))
           .on('mouseover', function(event, d: any) {
             handleMouseOver(event, d);
             d3.select(this)
-              .attr('fill-opacity', 0.8)
-              .attr('stroke', '#3b82f6')
-              .attr('stroke-width', '1.5')
+              .attr('fill-opacity', 0.9)
+              .attr('stroke', '#00ffff')
+              .attr('stroke-width', '2')
+              .attr('stroke-opacity', '1')
               .attr('vector-effect', 'non-scaling-stroke')
               .raise();
           })
@@ -241,8 +263,9 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
             handleMouseOut();
             d3.select(this)
               .attr('fill-opacity', 1)
-              .attr('stroke', '#94a3b8')
-              .attr('stroke-width', '0.5')
+              .attr('stroke', '#00ffff')
+              .attr('stroke-width', '0.3')
+              .attr('stroke-opacity', '0.4')
               .attr('vector-effect', 'non-scaling-stroke');
           });
 
@@ -262,19 +285,22 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
         }
       });
     } else {
+      // 3D Globe view - Holographic style
       gCountries.selectAll('path').data(filteredFeatures).enter().append('path').attr('d', path as any)
         .attr('class', 'country-top cursor-pointer')
-        .attr('stroke', '#94a3b8')
-        .attr('stroke-width', 0.5)
+        .attr('stroke', '#00ffff')
+        .attr('stroke-width', 0.3)
+        .attr('stroke-opacity', 0.5)
         .attr('vector-effect', 'non-scaling-stroke')
-        .attr('fill', (d: any) => countries[d.properties.name]?.ownerId ? players.find(p => p.id === countries[d.properties.name].ownerId)?.color || '#CBD5E1' : '#CBD5E1')
+        .attr('fill', (d: any) => countries[d.properties.name]?.ownerId ? players.find(p => p.id === countries[d.properties.name].ownerId)?.color || '#1a3a5c' : '#1a3a5c')
         .on('click', (event, d: any) => onCountryClick(d.properties.name, d.properties.name))
         .on('mouseover', function(event, d: any) {
           handleMouseOver(event, d);
           d3.select(this)
-            .attr('fill-opacity', 0.8)
-            .attr('stroke', '#3b82f6')
-            .attr('stroke-width', '1.5')
+            .attr('fill-opacity', 0.9)
+            .attr('stroke', '#00ffff')
+            .attr('stroke-width', '2')
+            .attr('stroke-opacity', '1')
             .attr('vector-effect', 'non-scaling-stroke')
             .raise();
         })
@@ -283,8 +309,9 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
           handleMouseOut();
           d3.select(this)
             .attr('fill-opacity', 1)
-            .attr('stroke', '#94a3b8')
-            .attr('stroke-width', '0.5')
+            .attr('stroke', '#00ffff')
+            .attr('stroke-width', '0.3')
+            .attr('stroke-opacity', '0.5')
             .attr('vector-effect', 'non-scaling-stroke');
         });
     }
@@ -329,20 +356,58 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
   }, [selectedContinent, topology, viewMode]);
 
   return (
-    <div className="w-full h-full bg-[#f8fafc] overflow-hidden relative rounded-[2rem] border border-[#E2E8F0] shadow-sm">
+    <div className="w-full h-full overflow-hidden relative rounded-[2rem]"
+      style={{
+        background: 'linear-gradient(135deg, rgba(5, 15, 30, 0.95) 0%, rgba(10, 20, 40, 0.9) 100%)',
+        border: '1px solid rgba(0, 255, 255, 0.3)',
+        boxShadow: '0 0 60px rgba(0, 255, 255, 0.15), inset 0 0 40px rgba(0, 255, 255, 0.03)'
+      }}>
+      {/* Holographic grid overlay */}
+      <div className="absolute inset-0 pointer-events-none" style={{
+        backgroundImage: 'linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px)',
+        backgroundSize: '40px 40px'
+      }} />
+      
+      {/* Corner accents */}
+      <div className="absolute top-0 left-0 w-24 h-24 border-t-2 border-l-2 border-cyan-400/40 rounded-tl-[2rem] pointer-events-none" />
+      <div className="absolute top-0 right-0 w-24 h-24 border-t-2 border-r-2 border-cyan-400/40 rounded-tr-[2rem] pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-24 h-24 border-b-2 border-l-2 border-cyan-400/40 rounded-bl-[2rem] pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-24 h-24 border-b-2 border-r-2 border-cyan-400/40 rounded-br-[2rem] pointer-events-none" />
+      
       <svg ref={svgRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
       
       <div className="absolute top-6 left-6 flex flex-col gap-3 pointer-events-auto">
-        <div className="flex bg-white/90 backdrop-blur-md p-1 rounded-2xl border border-slate-200 shadow-lg">
+        <div className="flex p-1 rounded-xl"
+          style={{
+            background: 'rgba(10, 20, 40, 0.9)',
+            border: '1px solid rgba(0, 255, 255, 0.3)',
+            boxShadow: '0 0 20px rgba(0, 255, 255, 0.1)'
+          }}>
           <button
             onClick={() => { setViewMode('3d'); setZoomLevel(1); }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${viewMode === '3d' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'}`}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all"
+            style={viewMode === '3d' ? {
+              background: 'linear-gradient(135deg, rgba(0, 255, 255, 0.2), rgba(0, 168, 255, 0.3))',
+              color: '#00ffff',
+              boxShadow: '0 0 15px rgba(0, 255, 255, 0.3)',
+              textShadow: '0 0 10px rgba(0, 255, 255, 0.5)'
+            } : {
+              color: 'rgba(0, 255, 255, 0.5)'
+            }}
           >
             <GlobeIcon className="w-3.5 h-3.5" /> 3D Globe
           </button>
           <button
             onClick={() => { setViewMode('2d'); setZoomLevel(1); setSelectedContinent('world'); }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${viewMode === '2d' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'}`}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all"
+            style={viewMode === '2d' ? {
+              background: 'linear-gradient(135deg, rgba(0, 255, 255, 0.2), rgba(0, 168, 255, 0.3))',
+              color: '#00ffff',
+              boxShadow: '0 0 15px rgba(0, 255, 255, 0.3)',
+              textShadow: '0 0 10px rgba(0, 255, 255, 0.5)'
+            } : {
+              color: 'rgba(0, 255, 255, 0.5)'
+            }}
           >
             <ArrowLeft className="w-3.5 h-3.5" /> 3D Map
           </button>
@@ -354,7 +419,17 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
               <button
                 key={key}
                 onClick={() => setSelectedContinent(key)}
-                className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all border shadow-sm ${selectedContinent === key ? 'bg-blue-600 text-white border-blue-600' : 'bg-white/90 text-slate-600 border-slate-200 hover:bg-white'}`}
+                className="px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all"
+                style={selectedContinent === key ? {
+                  background: 'linear-gradient(135deg, rgba(0, 255, 255, 0.2), rgba(0, 168, 255, 0.3))',
+                  border: '1px solid rgba(0, 255, 255, 0.5)',
+                  color: '#00ffff',
+                  boxShadow: '0 0 15px rgba(0, 255, 255, 0.3)'
+                } : {
+                  background: 'rgba(10, 20, 40, 0.8)',
+                  border: '1px solid rgba(0, 255, 255, 0.2)',
+                  color: 'rgba(0, 255, 255, 0.6)'
+                }}
               >
                 {CONTINENTS[key].name}
               </button>
@@ -365,25 +440,52 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
         {viewMode === '3d' && (
           <button
             onClick={() => { setRotation([-10, -20, 0]); setZoomLevel(1); }}
-            className="flex items-center justify-center w-12 h-12 bg-white/90 hover:bg-white text-slate-500 rounded-2xl border border-slate-200 shadow-md transition-all active:scale-95"
+            className="flex items-center justify-center w-12 h-12 rounded-xl transition-all active:scale-95"
+            style={{
+              background: 'rgba(10, 20, 40, 0.9)',
+              border: '1px solid rgba(0, 255, 255, 0.3)',
+              color: 'rgba(0, 255, 255, 0.6)'
+            }}
           >
             <RefreshCcw className="w-5 h-5" />
           </button>
         )}
       </div>
 
-      <div className="absolute bottom-6 left-6 bg-white/90 backdrop-blur-md px-4 py-3 rounded-2xl border border-slate-200 text-[10px] text-slate-500 space-y-1.5 shadow-sm font-bold uppercase tracking-tight">
-        <p className="flex items-center gap-2 text-blue-600"><GlobeIcon className="w-3 h-3" /> {viewMode === '3d' ? 'DRAG TO ROTATE' : 'DRAG TO MOVE'}</p>
-        <p className="flex items-center gap-2"><ZoomIn className="w-3 h-3" /> MOUSE WHEEL TO ZOOM</p>
+      <div className="absolute bottom-6 left-6 px-4 py-3 rounded-xl text-[10px] space-y-1.5 font-bold uppercase tracking-tight font-mono"
+        style={{
+          background: 'rgba(10, 20, 40, 0.9)',
+          border: '1px solid rgba(0, 255, 255, 0.3)',
+          boxShadow: '0 0 20px rgba(0, 255, 255, 0.1)'
+        }}>
+        <p className="flex items-center gap-2" style={{ color: '#00ffff' }}>
+          <GlobeIcon className="w-3 h-3" /> {viewMode === '3d' ? 'DRAG TO ROTATE' : 'DRAG TO MOVE'}
+        </p>
+        <p className="flex items-center gap-2" style={{ color: 'rgba(0, 255, 255, 0.6)' }}>
+          <ZoomIn className="w-3 h-3" /> MOUSE WHEEL TO ZOOM
+        </p>
       </div>
 
-      <div className="absolute bottom-6 right-6 bg-white/90 backdrop-blur-md px-6 py-4 rounded-3xl border border-slate-200 shadow-xl max-w-[150px]">
-        <p className="text-[9px] font-black text-slate-400 mb-3 uppercase tracking-widest text-center">Center Tiers</p>
+      <div className="absolute bottom-6 right-6 px-6 py-4 rounded-xl max-w-[150px]"
+        style={{
+          background: 'rgba(10, 20, 40, 0.9)',
+          border: '1px solid rgba(0, 255, 255, 0.3)',
+          boxShadow: '0 0 20px rgba(0, 255, 255, 0.1)'
+        }}>
+        <p className="text-[9px] font-black mb-3 uppercase tracking-widest text-center"
+          style={{ color: 'rgba(0, 255, 255, 0.5)', fontFamily: 'Share Tech Mono' }}>
+          CENTER TIERS
+        </p>
         <div className="space-y-3">
           {BUILDING_TIERS.map(tier => (
             <div key={tier.level} className="flex items-center gap-3">
-              <div className="w-3 h-3 rounded-sm border border-slate-300 shadow-sm" style={{ height: `${tier.level * 4 + 4}px`, backgroundColor: '#475569' }} />
-              <span className="text-[10px] font-bold text-slate-600">{tier.name}</span>
+              <div className="w-3 rounded-sm" 
+                style={{ 
+                  height: `${tier.level * 4 + 4}px`, 
+                  background: 'linear-gradient(180deg, #00ffff, #0088aa)',
+                  boxShadow: '0 0 8px rgba(0, 255, 255, 0.5)'
+                }} />
+              <span className="text-[10px] font-bold" style={{ color: '#e0ffff' }}>{tier.name}</span>
             </div>
           ))}
         </div>

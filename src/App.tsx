@@ -38,21 +38,64 @@ export default function App() {
   const occupiedCountries = Object.values(gameState.countries as Record<string, CountryState>).filter(c => c.ownerId);
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-[#1E293B] font-sans p-4 md:p-8">
-      <header className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-center gap-4 bg-white border border-[#E2E8F0] p-6 rounded-2xl shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="bg-blue-600 p-3 rounded-2xl shadow-md">
-            <MapPin className="w-8 h-8 text-white" />
+    <div className="relative min-h-screen text-cyan-100 font-sans p-4 md:p-8 z-10">
+      {/* Floating particles background effect */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        {[...Array(20)].map((_, i) => (
+          <div 
+            key={i}
+            className="absolute w-1 h-1 bg-cyan-400 rounded-full opacity-30"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animation: `float ${5 + Math.random() * 10}s ease-in-out infinite`,
+              animationDelay: `${Math.random() * 5}s`
+            }}
+          />
+        ))}
+      </div>
+      
+      <style>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0) translateX(0); opacity: 0.3; }
+          50% { transform: translateY(-20px) translateX(10px); opacity: 0.6; }
+        }
+      `}</style>
+
+      <header className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-center gap-4 p-6 rounded-2xl relative overflow-hidden holo-flicker"
+        style={{
+          background: 'linear-gradient(135deg, rgba(10, 20, 40, 0.9) 0%, rgba(15, 25, 50, 0.85) 100%)',
+          border: '1px solid rgba(0, 255, 255, 0.3)',
+          boxShadow: '0 0 40px rgba(0, 255, 255, 0.15), inset 0 0 30px rgba(0, 255, 255, 0.03)'
+        }}>
+        {/* Holographic corner accents */}
+        <div className="absolute top-0 left-0 w-20 h-20 border-t-2 border-l-2 border-cyan-400/50 rounded-tl-2xl" />
+        <div className="absolute top-0 right-0 w-20 h-20 border-t-2 border-r-2 border-cyan-400/50 rounded-tr-2xl" />
+        <div className="absolute bottom-0 left-0 w-20 h-20 border-b-2 border-l-2 border-cyan-400/50 rounded-bl-2xl" />
+        <div className="absolute bottom-0 right-0 w-20 h-20 border-b-2 border-r-2 border-cyan-400/50 rounded-br-2xl" />
+        
+        <div className="flex items-center gap-4 relative z-10">
+          <div className="relative">
+            <div className="absolute inset-0 bg-cyan-400 rounded-2xl blur-xl opacity-30 animate-pulse" />
+            <div className="relative bg-gradient-to-br from-cyan-500 to-blue-600 p-3 rounded-2xl border border-cyan-400/50"
+              style={{ boxShadow: '0 0 30px rgba(0, 255, 255, 0.4), inset 0 0 20px rgba(255, 255, 255, 0.1)' }}>
+              <MapPin className="w-8 h-8 text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]" />
+            </div>
           </div>
           <div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-[#1E293B]">
-              📍 IUBA경상대 <span className="text-blue-600 font-normal">센터 땅따먹기</span>
+            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight" style={{ fontFamily: 'Orbitron, sans-serif' }}>
+              <span className="text-cyan-400 glow-text">IUBA</span>
+              <span className="text-white">경상대</span>
+              <span className="text-cyan-300 font-normal ml-2 text-xl">센터 땅따먹기</span>
             </h1>
-            <p className="text-[#64748B] text-[10px] font-bold uppercase tracking-widest">하나님 나라의 확장과 선교 미션</p>
+            <p className="text-cyan-500/70 text-[10px] font-bold uppercase tracking-[0.3em]" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
+              // MISSION: EXPAND THE KINGDOM //
+            </p>
           </div>
         </div>
 
-        <div className="flex bg-[#F8FAFC] border border-[#E2E8F0] p-1 rounded-xl flex-wrap gap-1">
+        <div className="flex p-1 rounded-xl flex-wrap gap-1 relative z-10"
+          style={{ background: 'rgba(0, 20, 40, 0.5)', border: '1px solid rgba(0, 255, 255, 0.2)' }}>
           {[
             { key: 'map', icon: <MapIcon className="w-4 h-4" />, label: '지도' },
             ...(currentUser?.role === 'admin' ? [
@@ -66,15 +109,22 @@ export default function App() {
               key={tab.key}
               onClick={() => setActiveTab(tab.key as any)}
               className={cn(
-                "flex items-center gap-2 px-4 py-2 rounded-lg transition-all text-sm font-semibold",
+                "flex items-center gap-2 px-4 py-2 rounded-lg transition-all text-sm font-bold uppercase tracking-wider",
                 activeTab === tab.key
-                  ? "bg-white shadow-sm border border-[#E2E8F0] " + (tab.key === 'territories' ? 'text-red-500' : 'text-blue-600')
-                  : "text-[#64748B] hover:text-[#1E293B]"
+                  ? "text-cyan-300 border"
+                  : "text-cyan-600 hover:text-cyan-400"
               )}
+              style={activeTab === tab.key ? {
+                background: 'rgba(0, 255, 255, 0.1)',
+                borderColor: tab.key === 'territories' ? 'rgba(255, 100, 100, 0.5)' : 'rgba(0, 255, 255, 0.4)',
+                boxShadow: tab.key === 'territories' ? '0 0 15px rgba(255, 100, 100, 0.3)' : '0 0 15px rgba(0, 255, 255, 0.3)',
+                color: tab.key === 'territories' ? '#ff6b6b' : undefined
+              } : {}}
             >
               {tab.icon} {tab.label}
               {'badge' in tab && tab.badge > 0 && (
-                <span className="ml-1 bg-red-500 text-white text-[9px] font-black rounded-full px-1.5 py-0.5 leading-none">
+                <span className="ml-1 text-[9px] font-black rounded-full px-1.5 py-0.5 leading-none"
+                  style={{ background: 'rgba(255, 100, 100, 0.8)', color: 'white', boxShadow: '0 0 10px rgba(255, 100, 100, 0.5)' }}>
                   {tab.badge}
                 </span>
               )}
@@ -82,28 +132,43 @@ export default function App() {
           ))}
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 relative z-10">
           {currentUser ? (
-            <div className="flex items-center gap-3 pl-4 border-l border-[#E2E8F0]">
+            <div className="flex items-center gap-3 pl-4 border-l border-cyan-500/30">
               <div className="text-right hidden md:block">
-                <p className="text-[10px] font-extrabold text-[#64748B] uppercase tracking-widest leading-none mb-1">Authenticated</p>
-                <p className="text-sm font-black text-[#1E293B]">{currentUser.username}</p>
+                <p className="text-[10px] font-bold text-cyan-500 uppercase tracking-widest leading-none mb-1" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
+                  &lt;AUTHENTICATED/&gt;
+                </p>
+                <p className="text-sm font-black text-cyan-300 glow-text">{currentUser.username}</p>
               </div>
               <button onClick={handleLogout}
-                className="p-3 bg-red-50 text-red-600 border border-red-100 rounded-xl hover:bg-red-100 transition-colors" title="로그아웃">
-                <LogOut className="w-5 h-5" />
+                className="p-3 rounded-xl transition-all hover:scale-105" 
+                style={{ 
+                  background: 'rgba(255, 100, 100, 0.1)', 
+                  border: '1px solid rgba(255, 100, 100, 0.4)',
+                  boxShadow: '0 0 15px rgba(255, 100, 100, 0.2)'
+                }}
+                title="로그아웃">
+                <LogOut className="w-5 h-5 text-red-400" />
               </button>
             </div>
           ) : (
             <button onClick={() => setActiveTab('map')}
-              className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-500/20 hover:bg-blue-500 transition-all active:scale-[0.98]">
+              className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all active:scale-[0.98] uppercase tracking-wider"
+              style={{
+                background: 'linear-gradient(135deg, rgba(0, 255, 255, 0.2) 0%, rgba(0, 168, 255, 0.3) 100%)',
+                border: '1px solid rgba(0, 255, 255, 0.5)',
+                color: '#00ffff',
+                boxShadow: '0 0 30px rgba(0, 255, 255, 0.3), inset 0 0 20px rgba(0, 255, 255, 0.1)',
+                textShadow: '0 0 10px rgba(0, 255, 255, 0.5)'
+              }}>
               <LogIn className="w-4 h-4" /> 로그인하여 참여
             </button>
           )}
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <main className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-10">
         <section className="lg:col-span-4 space-y-6">
           <Leaderboard
             clubPoints={clubPoints}
@@ -174,8 +239,9 @@ export default function App() {
 
       <style>{`
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.05); }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0, 255, 255, 0.05); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0, 255, 255, 0.2); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(0, 255, 255, 0.4); }
       `}</style>
     </div>
   );
