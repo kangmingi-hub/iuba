@@ -46,6 +46,7 @@ export function useGameState() {
   const fetchOccupations = async () => {
     try {
       const { data, error } = await supabase.from('country_occupations').select('*');
+      console.log('[v0] fetchOccupations data:', data, 'error:', error);
       if (error) throw error;
       if (data) {
         const countries: Record<string, CountryState> = {};
@@ -57,10 +58,11 @@ export function useGameState() {
             buildings: row.buildings || 0
           };
         });
+        console.log('[v0] countries loaded:', countries);
         setGameState(prev => ({ ...prev, countries }));
       }
     } catch (err) {
-      console.error('점령 현황 불러오기 오류:', err);
+      console.error('[v0] 점령 현황 불러오기 오류:', err);
     }
   };
 
@@ -71,8 +73,10 @@ export function useGameState() {
     const { data, error } = await supabase
       .rpc('get_team_points_from_date', { start_date: targetDate });
 
+      console.log('[v0] fetchClubPoints data:', data, 'error:', error);
       if (error) throw error;
       if (data) {
+        console.log('[v0] clubPoints received:', data);
         setClubPoints(data);
         setGameState(prev => {
           const playersMap = new Map<string, Player>(prev.players.map(p => [p.name, p]));
