@@ -339,7 +339,7 @@ const handleStartDateChange = (date: string) => {
 
 return {
   gameState, currentUser, clubPoints, isSyncing,
-  startDate, setStartDate,
+  startDate, setStartDate: handleStartDateChange,
   fetchClubPoints, handleLogin, handleLogout,
     handleAddMember, handleDeleteMember, handleAdminSubmit,
     handleCancelOccupation, healGhostData, buyCountry, buildInCountry, resetGame,
