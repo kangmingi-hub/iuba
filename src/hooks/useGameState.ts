@@ -48,11 +48,6 @@ export function useGameState() {
   localStorage.setItem('start_date', date);
 };
 
-const handleStartDateChange = (date: string) => {
-  setStartDate(date);
-  localStorage.setItem('start_date', date); // 새로고침 후에도 유지
-};
-
   const fetchOccupations = async () => {
     try {
       const { data, error } = await supabase.from('country_occupations').select('*');
