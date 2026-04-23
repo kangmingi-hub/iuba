@@ -116,8 +116,9 @@ useEffect(() => {
     // Perspective Transformation
     let gPerspective = gMain;
     if (viewMode === '2d') {
-      gPerspective = gMain.append('g')
-        .attr('transform', 'perspective(1200px) rotateX(45deg)');
+     gPerspective = gMain.append('g')
+        .style('transform', 'perspective(1200px) rotateX(45deg)')
+        .style('transform-origin', 'center');
       
       // Grid
       const gridSize = 100;
