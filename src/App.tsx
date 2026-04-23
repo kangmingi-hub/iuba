@@ -38,7 +38,7 @@ export default function App() {
   const occupiedCountries = Object.values(gameState.countries as Record<string, CountryState>).filter(c => c.ownerId);
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-[#1E293B] font-sans p-4 md:p-8">
+    <div className="relative min-h-screen bg-[#F8FAFC]/80 text-[#1E293B] font-sans p-4 md:p-8">
      <HologramBackground />
       <header className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-center gap-4 bg-white border border-[#E2E8F0] p-6 rounded-2xl shadow-sm">
         <div className="flex items-center gap-3">
