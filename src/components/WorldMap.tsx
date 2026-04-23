@@ -299,19 +299,26 @@ useEffect(() => {
     }
 
 
-  // 2D 모드에서만 캐릭터 + 건물 표시
+// 캐릭터 + 건물 표시 (2D 모드만)
 if (viewMode === '2d') {
-   console.log('🌍 countries:', JSON.stringify(countries));
-  console.log('🗺️ sample feature name:', filteredFeatures[0]?.properties?.name);
   Object.values(countries).forEach((state) => {
     if (!state?.ownerId) return;
     const player = players.find(p => p.id === state.ownerId);
     if (!player) return;
 
-    const feature = filteredFeatures.find((f: any) =>
-      f.properties.name === state.name || f.id === state.id || f.properties.name === state.id
-    );
-    if (!feature) return;
+    const feature = filteredFeatures.find((f: any) => {
+      const fname = f.properties.name?.toLowerCase().replace(/\./g, '').replace(/\s+/g, ' ').trim();
+      const sname = state.name?.toLowerCase().replace(/\./g, '').replace(/\s+/g, ' ').trim();
+      const sid = state.id?.toLowerCase().replace(/\./g, '').replace(/\s+/g, ' ').trim();
+      return fname === sname || fname === sid ||
+        f.properties.name === state.name || f.properties.name === state.id ||
+        fname.includes(sname) || sname.includes(fname);
+    });
+
+    if (!feature) {
+      console.log('❌ feature 못찾음:', state.name);
+      return;
+    }
 
     const centroid = path.centroid(feature);
     if (!centroid || isNaN(centroid[0]) || isNaN(centroid[1])) return;
@@ -322,23 +329,17 @@ if (viewMode === '2d') {
     const countryArea = Math.sqrt(boundWidth * boundHeight);
     const imageSize = Math.min(Math.max(countryArea * 0.35, 10), 36);
 
-    // 나라가 올라간 높이만큼 캐릭터도 올라감
-    const targetDepth = 3 + state.buildings * 2;
-    const liftY = state.ownerId ? -targetDepth : 0;
-
     const hasBuilding = state.buildings > 0;
     const finalCharSize = hasBuilding ? imageSize * 0.65 : imageSize;
-
-    // 간격 좁히기: 0.4 → 0.25
+    const targetDepth = 3 + state.buildings * 2;
+    const liftY = -targetDepth;
     const charX = hasBuilding ? centroid[0] - imageSize * 0.25 : centroid[0];
     const charY = (hasBuilding ? centroid[1] + imageSize * 0.1 : centroid[1]) + liftY;
 
-       // 건물 이미지
+    // 건물 이미지 먼저 (뒤에)
     if (hasBuilding) {
       const buildingImg = BUILDING_IMAGES[state.buildings];
       const buildingSize = imageSize * 1.0;
-
-      // 간격 좁히기: 0.25 → 0.15
       const buildingX = centroid[0] + imageSize * 0.15;
       const buildingY = centroid[1] - imageSize * 0.1 + liftY;
 
@@ -349,8 +350,9 @@ if (viewMode === '2d') {
         .attr('width', buildingSize)
         .attr('height', buildingSize)
         .attr('class', 'pointer-events-none');
-      
-    // 캐릭터 이미지
+    }
+
+    // 캐릭터 이미지 나중에 (앞에)
     gPerspective.append('image')
       .attr('href', CLUB_IMAGES[player.name] || player.characterUrl || 'https://cdn-icons-png.flaticon.com/512/149/149071.png')
       .attr('x', charX - finalCharSize / 2)
@@ -358,7 +360,6 @@ if (viewMode === '2d') {
       .attr('width', finalCharSize)
       .attr('height', finalCharSize)
       .attr('class', 'pointer-events-none');
-    }
   });
 }
         
