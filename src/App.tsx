@@ -53,7 +53,7 @@ export default function App() {
           </div>
         </div>
 
-        <div className="flex bg-white/10 border border-white/20 p-1 rounded-xl flex-wrap gap-1">
+        <div className="flex bg-white/80 backdrop-blur-md border border-white/40 p-1 rounded-xl flex-wrap gap-1">
           {[
             { key: 'map', icon: <MapIcon className="w-4 h-4" />, label: '지도' },
             ...(currentUser?.role === 'admin' ? [
