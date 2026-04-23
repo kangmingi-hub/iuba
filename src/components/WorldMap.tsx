@@ -322,7 +322,7 @@ if (viewMode === '2d') {
     const hasBuilding = state.buildings > 0;
     const finalCharSize = hasBuilding ? imageSize * 0.65 : imageSize;
     const charX = hasBuilding ? centroid[0] - imageSize * 0.25 : centroid[0];
-    const charY = hasBuilding ? centroid[1] + imageSize * 0.2 : centroid[1];
+    const charY = hasBuilding ? centroid[1] + imageSize * 0.3 : centroid[1];
 
     // 건물 이미지 먼저 (뒤에)
     if (hasBuilding) {
