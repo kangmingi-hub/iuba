@@ -296,7 +296,8 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
       });
     }
 
-// 2D 모드에서만 캐릭터 + 건물 표시
+
+  // 2D 모드에서만 캐릭터 + 건물 표시
 if (viewMode === '2d') {
   Object.values(countries).forEach((state) => {
     if (!state?.ownerId) return;
@@ -311,7 +312,6 @@ if (viewMode === '2d') {
     const centroid = path.centroid(feature);
     if (!centroid || isNaN(centroid[0]) || isNaN(centroid[1])) return;
 
-    // 나라 경계 크기로 이미지 크기 결정 (줌과 무관하게 나라 크기 기준)
     const bounds = path.bounds(feature);
     const boundWidth = bounds[1][0] - bounds[0][0];
     const boundHeight = bounds[1][1] - bounds[0][1];
@@ -323,17 +323,6 @@ if (viewMode === '2d') {
     const charX = hasBuilding ? centroid[0] - imageSize * 0.4 : centroid[0];
     const charY = hasBuilding ? centroid[1] + imageSize * 0.2 : centroid[1];
 
-    // 캐릭터 원형 배경
-    gPerspective.append('circle')
-      .attr('cx', charX)
-      .attr('cy', charY)
-      .attr('r', finalCharSize / 2 + 1.5)
-      .attr('fill', 'white')
-      .attr('stroke', player.color)
-      .attr('stroke-width', 1.5)
-      .attr('class', 'pointer-events-none')
-      .attr('opacity', 0.9);
-
     // 캐릭터 이미지
     gPerspective.append('image')
       .attr('href', CLUB_IMAGES[player.name] || player.characterUrl || 'https://cdn-icons-png.flaticon.com/512/149/149071.png')
@@ -341,7 +330,6 @@ if (viewMode === '2d') {
       .attr('y', charY - finalCharSize / 2)
       .attr('width', finalCharSize)
       .attr('height', finalCharSize)
-      .attr('clip-path', `circle(${finalCharSize / 2}px at ${finalCharSize / 2}px ${finalCharSize / 2}px)`)
       .attr('class', 'pointer-events-none');
 
     // 건물 이미지
@@ -351,18 +339,6 @@ if (viewMode === '2d') {
       const buildingX = centroid[0] + imageSize * 0.25;
       const buildingY = centroid[1] - imageSize * 0.1;
 
-      // 건물 배경 원
-      gPerspective.append('circle')
-        .attr('cx', buildingX)
-        .attr('cy', buildingY)
-        .attr('r', buildingSize / 2 + 1.5)
-        .attr('fill', 'white')
-        .attr('stroke', '#94a3b8')
-        .attr('stroke-width', 1)
-        .attr('class', 'pointer-events-none')
-        .attr('opacity', 0.9);
-
-      // 건물 이미지
       gPerspective.append('image')
         .attr('href', buildingImg)
         .attr('x', buildingX - buildingSize / 2)
@@ -370,29 +346,9 @@ if (viewMode === '2d') {
         .attr('width', buildingSize)
         .attr('height', buildingSize)
         .attr('class', 'pointer-events-none');
-
-      // 레벨 뱃지
-      gPerspective.append('circle')
-        .attr('cx', buildingX + buildingSize / 2 - 2)
-        .attr('cy', buildingY - buildingSize / 2 + 2)
-        .attr('r', finalCharSize * 0.25)
-        .attr('fill', '#3b82f6')
-        .attr('class', 'pointer-events-none');
-
-      gPerspective.append('text')
-        .attr('x', buildingX + buildingSize / 2 - 2)
-        .attr('y', buildingY - buildingSize / 2 + 2)
-        .attr('text-anchor', 'middle')
-        .attr('dominant-baseline', 'middle')
-        .attr('font-size', finalCharSize * 0.25)
-        .attr('fill', 'white')
-        .attr('font-weight', 'bold')
-        .attr('class', 'pointer-events-none')
-        .text(state.buildings);
     }
   });
 }
-  
         
     return () => tooltip.remove();
   }, [topology, countries, players, viewMode, rotation, zoomLevel]);
