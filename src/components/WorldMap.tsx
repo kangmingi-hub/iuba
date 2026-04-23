@@ -329,16 +329,7 @@ if (viewMode === '2d') {
     const charX = hasBuilding ? centroid[0] - imageSize * 0.25 : centroid[0];
     const charY = (hasBuilding ? centroid[1] + imageSize * 0.1 : centroid[1]) + liftY;
 
-    // 캐릭터 이미지
-    gPerspective.append('image')
-      .attr('href', CLUB_IMAGES[player.name] || player.characterUrl || 'https://cdn-icons-png.flaticon.com/512/149/149071.png')
-      .attr('x', charX - finalCharSize / 2)
-      .attr('y', charY - finalCharSize / 2)
-      .attr('width', finalCharSize)
-      .attr('height', finalCharSize)
-      .attr('class', 'pointer-events-none');
-
-    // 건물 이미지
+       // 건물 이미지
     if (hasBuilding) {
       const buildingImg = BUILDING_IMAGES[state.buildings];
       const buildingSize = imageSize * 1.0;
@@ -354,6 +345,15 @@ if (viewMode === '2d') {
         .attr('width', buildingSize)
         .attr('height', buildingSize)
         .attr('class', 'pointer-events-none');
+      
+    // 캐릭터 이미지
+    gPerspective.append('image')
+      .attr('href', CLUB_IMAGES[player.name] || player.characterUrl || 'https://cdn-icons-png.flaticon.com/512/149/149071.png')
+      .attr('x', charX - finalCharSize / 2)
+      .attr('y', charY - finalCharSize / 2)
+      .attr('width', finalCharSize)
+      .attr('height', finalCharSize)
+      .attr('class', 'pointer-events-none');
     }
   });
 }
