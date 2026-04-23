@@ -63,11 +63,11 @@ export default function Leaderboard({ clubPoints, players, countries, isSyncing,
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: idx * 0.03 }}
-              className={cn(
+             className={cn(
                 "flex flex-col gap-2.5 p-3.5 rounded-2xl border transition-all",
                 ownedCount > 0
-                  ? "border-blue-300/30 bg-blue-400/15 hover:bg-blue-400/20"
-                  : "border-white/15 bg-white/10 hover:bg-white/20"
+                  ? "border-blue-300/50 bg-blue-400/35 hover:bg-blue-400/45"
+                  : "border-white/30 bg-white/25 hover:bg-white/35"
               )}
             >
               {/* 클럽 정보 */}
