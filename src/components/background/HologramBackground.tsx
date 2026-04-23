@@ -26,7 +26,7 @@ export default function HologramBackground() {
       color: string;
     };
     const particles: Particle[] = [];
-    const colors = ['#4f7dff', '#7c9fff', '#a78bfa', '#60a5fa', '#34d399', '#818cf8'];
+    const colors = ['#7fa8ff', '#a8c4ff', '#c4b5fd', '#93c5fd', '#6ee7b7'];
 
     const spawnParticle = () => {
       particles.push({
@@ -47,7 +47,7 @@ export default function HologramBackground() {
     const scanLines = Array.from({ length: 5 }, () => ({
       y: Math.random() * window.innerHeight,
       speed: (Math.random() * 0.6 + 0.2) * (Math.random() > 0.5 ? 1 : -1),
-      opacity: Math.random() * 0.12 + 0.04,
+      opacity: Math.random() * 0.35 + 0.15,
       width: Math.random() * 2.5 + 0.5,
     }));
 
@@ -134,7 +134,7 @@ export default function HologramBackground() {
         if (r <= 0) continue;
         ctx.beginPath();
         ctx.ellipse(cx, y, r, r * 0.13, 0, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(79, 125, 255, ${lat === 0 ? 0.3 : 0.1})`;
+        ctx.strokeStyle = `rgba(100, 160, 255, ${lat === 0 ? 0.6 : 0.3})`;
         ctx.lineWidth = lat === 0 ? 0.9 : 0.4;
         ctx.stroke();
       }
@@ -151,7 +151,7 @@ export default function HologramBackground() {
           const y = cy + radius * Math.sin(latRad);
           lat === -90 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
         }
-        const opacity = ((cosA + 1) / 2) * 0.18 + 0.03;
+        const opacity = (cosA + 1) / 2 * 0.5 + 0.15;
         ctx.strokeStyle = `rgba(79, 125, 255, ${opacity})`;
         ctx.lineWidth = 0.35;
         ctx.stroke();
