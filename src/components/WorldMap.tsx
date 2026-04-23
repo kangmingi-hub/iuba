@@ -298,7 +298,6 @@ useEffect(() => {
       });
     }
 
-
 // 캐릭터 + 건물 표시 (2D 모드만)
 if (viewMode === '2d') {
   Object.values(countries).forEach((state) => {
@@ -315,10 +314,7 @@ if (viewMode === '2d') {
         fname.includes(sname) || sname.includes(fname);
     });
 
-    if (!feature) {
-      console.log('❌ feature 못찾음:', state.name);
-      return;
-    }
+    if (!feature) return;
 
     const centroid = path.centroid(feature);
     if (!centroid || isNaN(centroid[0]) || isNaN(centroid[1])) return;
@@ -331,17 +327,16 @@ if (viewMode === '2d') {
 
     const hasBuilding = state.buildings > 0;
     const finalCharSize = hasBuilding ? imageSize * 0.65 : imageSize;
-    const targetDepth = state.buildings > 0 ? (2 + state.buildings * 1) : 0;
-    const liftY = -(targetDepth * 0.5);
-   const charX = hasBuilding ? centroid[0] - imageSize * 0.25 : centroid[0];
-    const charY = centroid[1] + liftY;
+    const charX = hasBuilding ? centroid[0] - imageSize * 0.25 : centroid[0];
+    const charY = hasBuilding ? centroid[1] + imageSize * 0.1 : centroid[1];
 
     // 건물 이미지 먼저 (뒤에)
     if (hasBuilding) {
       const buildingImg = BUILDING_IMAGES[state.buildings];
       const buildingSize = imageSize * 1.0;
       const buildingX = centroid[0] + imageSize * 0.25;
-      const buildingY = centroid[1] + liftY;
+      const buildingY = centroid[1];
+
       gPerspective.append('image')
         .attr('href', buildingImg)
         .attr('x', buildingX - buildingSize / 2)
@@ -361,6 +356,7 @@ if (viewMode === '2d') {
       .attr('class', 'pointer-events-none');
   });
 }
+
         
     return () => tooltip.remove();
   }, [topology, countries, players, viewMode, rotation, zoomLevel]);
