@@ -219,8 +219,9 @@ export default function HologramBackground() {
     }
 
     const draw = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      time += 0.008;
+      try {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        time += 0.008;
 
       // 왼쪽 상단 — 매우 어둡게
       const dark1 = ctx.createRadialGradient(
@@ -345,7 +346,8 @@ export default function HologramBackground() {
 
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fillStyle = p.color + Math.floor(finalOpacity * 255).toString(16).padStart(2, '0');
+       const hexAlpha = Math.max(0, Math.min(255, Math.floor(finalOpacity * 255))).toString(16).padStart(2, '0');
+       ctx.fillStyle = p.color + hexAlpha;
         ctx.fill();
 
         if (p.life >= p.maxLife) {
@@ -392,9 +394,11 @@ export default function HologramBackground() {
         ctx.fill();
       });
 
-      animationId = requestAnimationFrame(draw);
-    };
-
+    } catch (e) {
+    // 에러가 나도 애니메이션 계속 유지
+    }
+    animationId = requestAnimationFrame(draw);
+  };
     draw();
 
     return () => {
