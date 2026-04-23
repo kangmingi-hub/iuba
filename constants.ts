@@ -92,3 +92,12 @@ export const BUILDING_IMAGES: Record<number, string> = {
   2: '/buildings/branch.png',
   3: '/buildings/church.png',
 };
+
+
+export const COUNTRY_NAME_MAP: Record<string, string> = {
+  'Eq. Guinea': 'Equatorial Guinea',
+  'Central African Rep.': 'Central African Republic',
+  'S. Sudan': 'South Sudan',
+  'W. Sahara': 'Western Sahara',
+  'Dem. Rep. Congo': 'Dem. Rep. Congo',
+};
