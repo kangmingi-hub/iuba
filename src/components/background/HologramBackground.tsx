@@ -314,34 +314,46 @@ export default function HologramBackground() {
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       time += 0.007;
-// 왼쪽 상단 밝은 빛
-const light1 = ctx.createRadialGradient(
-  canvas.width * 0.15, canvas.height * 0.2, 0,
-  canvas.width * 0.15, canvas.height * 0.2, canvas.width * 0.45
+
+// 왼쪽 상단 어둡게 — 빛을 거의 안 줌
+const dark1 = ctx.createRadialGradient(
+  canvas.width * 0.1, canvas.height * 0.1, 0,
+  canvas.width * 0.1, canvas.height * 0.1, canvas.width * 0.5
 );
-light1.addColorStop(0, 'rgba(100, 160, 255, 0.12)');
-light1.addColorStop(1, 'rgba(100, 160, 255, 0)');
+dark1.addColorStop(0, 'rgba(5, 10, 25, 0.45)');
+dark1.addColorStop(1, 'rgba(5, 10, 25, 0)');
+ctx.fillStyle = dark1;
+ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+// 중앙 강한 밝은 빛
+const light1 = ctx.createRadialGradient(
+  canvas.width * 0.55, canvas.height * 0.5, 0,
+  canvas.width * 0.55, canvas.height * 0.5, canvas.width * 0.4
+);
+light1.addColorStop(0, 'rgba(120, 170, 255, 0.28)');
+light1.addColorStop(0.5, 'rgba(80, 130, 220, 0.12)');
+light1.addColorStop(1, 'rgba(80, 130, 220, 0)');
 ctx.fillStyle = light1;
 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-// 오른쪽 하단 밝은 빛
+// 오른쪽 중앙 보조 빛
 const light2 = ctx.createRadialGradient(
-  canvas.width * 0.85, canvas.height * 0.75, 0,
-  canvas.width * 0.85, canvas.height * 0.75, canvas.width * 0.4
+  canvas.width * 0.8, canvas.height * 0.5, 0,
+  canvas.width * 0.8, canvas.height * 0.5, canvas.width * 0.35
 );
-light2.addColorStop(0, 'rgba(120, 80, 255, 0.1)');
-light2.addColorStop(1, 'rgba(120, 80, 255, 0)');
+light2.addColorStop(0, 'rgba(100, 150, 255, 0.18)');
+light2.addColorStop(1, 'rgba(100, 150, 255, 0)');
 ctx.fillStyle = light2;
 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-// 중앙 은은한 빛
-const light3 = ctx.createRadialGradient(
-  canvas.width * 0.5, canvas.height * 0.5, 0,
-  canvas.width * 0.5, canvas.height * 0.5, canvas.width * 0.5
+// 하단 어둡게
+const dark2 = ctx.createRadialGradient(
+  canvas.width * 0.3, canvas.height * 0.95, 0,
+  canvas.width * 0.3, canvas.height * 0.95, canvas.width * 0.4
 );
-light3.addColorStop(0, 'rgba(60, 120, 220, 0.06)');
-light3.addColorStop(1, 'rgba(60, 120, 220, 0)');
-ctx.fillStyle = light3;
+dark2.addColorStop(0, 'rgba(5, 10, 25, 0.35)');
+dark2.addColorStop(1, 'rgba(5, 10, 25, 0)');
+ctx.fillStyle = dark2;
 ctx.fillRect(0, 0, canvas.width, canvas.height);
       
       // 육각 그리드
