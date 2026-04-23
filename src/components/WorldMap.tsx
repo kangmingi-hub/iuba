@@ -333,16 +333,15 @@ if (viewMode === '2d') {
     const finalCharSize = hasBuilding ? imageSize * 0.65 : imageSize;
     const targetDepth = state.buildings > 0 ? (2 + state.buildings * 1) : 0;
     const liftY = -targetDepth;
-    const charX = hasBuilding ? centroid[0] - imageSize * 0.25 : centroid[0];
-    const charY = (hasBuilding ? centroid[1] + imageSize * 0.1 : centroid[1]) + liftY;
+   const charX = hasBuilding ? centroid[0] - imageSize * 0.25 : centroid[0];
+    const charY = centroid[1] + liftY;
 
     // 건물 이미지 먼저 (뒤에)
     if (hasBuilding) {
       const buildingImg = BUILDING_IMAGES[state.buildings];
       const buildingSize = imageSize * 1.0;
-      const buildingX = centroid[0] + imageSize * 0.15;
-      const buildingY = centroid[1] - imageSize * 0.1 + liftY;
-
+      const buildingX = centroid[0] + imageSize * 0.25;
+      const buildingY = centroid[1] + liftY;
       gPerspective.append('image')
         .attr('href', buildingImg)
         .attr('x', buildingX - buildingSize / 2)
