@@ -306,18 +306,11 @@ if (viewMode === '2d') {
     const player = players.find(p => p.id === state.ownerId);
     if (!player) return;
 
-    const feature = filteredFeatures.find((f: any) => {
-      const fname = f.properties.name?.toLowerCase().replace(/\./g, '').replace(/\s+/g, ' ').trim();
-      const sname = state.name?.toLowerCase().replace(/\./g, '').replace(/\s+/g, ' ').trim();
-      const sid = state.id?.toLowerCase().replace(/\./g, '').replace(/\s+/g, ' ').trim();
-      return fname === sname || fname === sid ||
-        f.properties.name === state.name || f.properties.name === state.id ||
-        fname.includes(sname) || sname.includes(fname);
- });
-    if (!feature) {
-      console.log('❌ 못찾음:', state.name);
-      return;
-    }
+ const mappedName = COUNTRY_NAME_MAP[state.name] || state.name;
+  const feature = filteredFeatures.find((f: any) =>
+    f.properties.name === mappedName || f.properties.name === state.name
+  );
+  if (!feature) return;
     console.log('✅ centroid:', state.name, path.centroid(feature));
     const centroid = path.centroid(feature);
     if (!centroid || isNaN(centroid[0]) || isNaN(centroid[1])) return;
