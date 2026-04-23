@@ -38,7 +38,7 @@ export default function App() {
   const occupiedCountries = Object.values(gameState.countries as Record<string, CountryState>).filter(c => c.ownerId);
 
   return (
-    <div className="relative min-h-screen text-[#e2e8f0] font-sans p-4 md:p-8" style={{background: 'none'}}>
+    <div className="relative min-h-screen text-[#e2e8f0] font-sans p-4 md:p-8" style={{background: '#060d1f'}}>
      <HologramBackground />
       <header className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-center gap-4 bg-white/10 border border-white/20 p-6 rounded-2xl backdrop-blur-md shadow-lg">
         <div className="flex items-center gap-3">
@@ -46,10 +46,10 @@ export default function App() {
             <MapPin className="w-8 h-8 text-white" />
           </div>
           <div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-[#1E293B]">
-              📍 IUBA경상대 <span className="text-blue-600 font-normal">센터 땅따먹기</span>
+            <h1 className="text-3xl font-extrabold tracking-tight text-white">
+              📍 IUBA경상대 <span className="text-blue-400 font-normal">센터 땅따먹기</span>
             </h1>
-            <p className="text-[#64748B] text-[10px] font-bold uppercase tracking-widest">하나님 나라의 확장과 선교 미션</p>
+            <p className="text-blue-200 text-[10px] font-bold uppercase tracking-widest">하나님 나라의 확장과 선교 미션</p>
           </div>
         </div>
 
@@ -87,8 +87,8 @@ export default function App() {
           {currentUser ? (
             <div className="flex items-center gap-3 pl-4 border-l border-[#E2E8F0]">
               <div className="text-right hidden md:block">
-                <p className="text-[10px] font-extrabold text-[#64748B] uppercase tracking-widest leading-none mb-1">Authenticated</p>
-                <p className="text-sm font-black text-[#1E293B]">{currentUser.username}</p>
+                <p className="text-[10px] font-extrabold text-blue-300 uppercase tracking-widest leading-none mb-1">Authenticated</p>
+                <p className="text-sm font-black text-white">{currentUser.username}</p>
               </div>
               <button onClick={handleLogout}
                 className="p-3 bg-red-50 text-red-600 border border-red-100 rounded-xl hover:bg-red-100 transition-colors" title="로그아웃">
