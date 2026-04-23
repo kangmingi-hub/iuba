@@ -64,7 +64,6 @@ export default function Leaderboard({ clubPoints, players, countries, isSyncing,
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: idx * 0.03 }}
              className={cn(
-               className={cn(
                   "flex flex-col gap-2.5 p-3.5 rounded-2xl border transition-all",
                   ownedCount > 0
                     ? "border-blue-300/60 bg-white/80 hover:bg-white/90"
