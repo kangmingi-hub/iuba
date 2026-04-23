@@ -6,7 +6,7 @@
 import React, { useState } from 'react';
 import { AnimatePresence } from 'motion/react';
 import { Map as MapIcon, PlusCircle, History, UserPlus, LogIn, LogOut, MapPin, Flag } from 'lucide-react';
-
+import HologramBackground from './components/background/HologramBackground';
 import WorldMap from './components/WorldMap';
 import LoginOverlay from './components/LoginOverlay';
 import CountryModal from './components/CountryModal';
@@ -39,6 +39,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-[#1E293B] font-sans p-4 md:p-8">
+     <HologramBackground />
       <header className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-center gap-4 bg-white border border-[#E2E8F0] p-6 rounded-2xl shadow-sm">
         <div className="flex items-center gap-3">
           <div className="bg-blue-600 p-3 rounded-2xl shadow-md">
