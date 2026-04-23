@@ -112,3 +112,9 @@ export const CLUB_IMAGES: Record<string, string> = {
   'BPM': '/clubs/BPM.png',
   'EBS': '/clubs/EBS.png',
 };
+
+export const BUILDING_IMAGES: Record<number, string> = {
+  1: '/buildings/housechurch.png',
+  2: '/buildings/branch.png',
+  3: '/buildings/church.png',
+};
