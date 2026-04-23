@@ -317,6 +317,7 @@ if (viewMode === '2d') {
       console.log('❌ 못찾음:', state.name);
       return;
     }
+    console.log('✅ centroid:', state.name, path.centroid(feature));
     const centroid = path.centroid(feature);
     if (!centroid || isNaN(centroid[0]) || isNaN(centroid[1])) return;
 
