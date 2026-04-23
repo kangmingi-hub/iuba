@@ -186,13 +186,13 @@ useEffect(() => {
     // Individual country stacking with "Rising" animation
     if (viewMode === '2d') {
   // buildings 레벨 낮은 나라부터 그려서 높은 나라가 앞에 보이게
-  const sortedFeatures = [...filteredFeatures].sort((a: any, b: any) => {
-    const stateA = countries[a.properties.name] || Object.values(countries).find(c => c.name === a.properties.name);
-    const stateB = countries[b.properties.name] || Object.values(countries).find(c => c.name === b.properties.name);
-    const depthA = stateA ? (2 + stateA.buildings * 1) : 0;
-    const depthB = stateB ? (2 + stateB.buildings * 1) : 0;
-    return depthA - depthB;
-  });
+ const sortedFeatures = [...filteredFeatures].sort((a: any, b: any) => {
+  const centroidA = path.centroid(a);
+  const centroidB = path.centroid(b);
+  const yA = centroidA ? centroidA[1] : 0;
+  const yB = centroidB ? centroidB[1] : 0;
+  return yA - yB; // 위쪽(y 작은) 나라 먼저, 아래쪽 나라 나중에
+});
 
   sortedFeatures.forEach((feature: any) => {
         const countryName = feature.properties.name;
