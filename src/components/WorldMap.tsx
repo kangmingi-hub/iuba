@@ -308,7 +308,11 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
       );
       if (!feature) return;
     
-      if (viewMode === '3d' && !isPointVisible(feature, projection)) return;
+      if (viewMode === '3d') {
+        const centroid2 = d3.geoCentroid(feature);
+        const rotate = projection.rotate();
+        if (d3.geoDistance(centroid2, [-rotate[0], -rotate[1]]) >= Math.PI / 2) return;
+      }
     
       const centroid = path.centroid(feature);
       if (!centroid || isNaN(centroid[0]) || isNaN(centroid[1])) return;
