@@ -312,10 +312,11 @@ if (viewMode === '2d') {
       return fname === sname || fname === sid ||
         f.properties.name === state.name || f.properties.name === state.id ||
         fname.includes(sname) || sname.includes(fname);
-    });
-
-    if (!feature) return;
-
+ });
+    if (!feature) {
+      console.log('❌ 못찾음:', state.name);
+      return;
+    }
     const centroid = path.centroid(feature);
     if (!centroid || isNaN(centroid[0]) || isNaN(centroid[1])) return;
 
