@@ -19,14 +19,17 @@ export default function HologramBackground() {
     resize();
     window.addEventListener('resize', resize);
 
-    // 파티클 — 더 밝고 더 크게
+    const colors = ['#88aaff', '#aac4ff', '#c4b5fd', '#93c5fd', '#6ee7b7', '#ffffff', '#e0eaff'];
+
+    const toHex = (opacity: number) =>
+      Math.max(0, Math.min(255, Math.floor(opacity * 255))).toString(16).padStart(2, '0');
+
+    // 파티클
     const particles: {
       x: number; y: number; vx: number; vy: number;
       size: number; opacity: number; life: number; maxLife: number;
       color: string; glow: boolean;
     }[] = [];
-
-    const colors = ['#88aaff', '#aac4ff', '#c4b5fd', '#93c5fd', '#6ee7b7', '#ffffff', '#e0eaff'];
 
     const spawnParticle = () => {
       const color = colors[Math.floor(Math.random() * colors.length)];
@@ -45,9 +48,9 @@ export default function HologramBackground() {
       });
     };
 
-    for (let i = 0; i < 120; i++) spawnParticle();
+    for (let i = 0; i < 100; i++) spawnParticle();
 
-    // 스캔 라인 — 더 밝고 굵게
+    // 스캔 라인
     const scanLines: { y: number; speed: number; opacity: number; width: number }[] = [];
     for (let i = 0; i < 5; i++) {
       scanLines.push({
@@ -58,17 +61,33 @@ export default function HologramBackground() {
       });
     }
 
-    // 흐르는 연결선
-    const flowLines: { x: number; y: number; angle: number; length: number; speed: number; opacity: number; progress: number }[] = [];
-    for (let i = 0; i < 12; i++) {
-      flowLines.push({
+    // 흐르는 연결선 — 시작/끝이 동일하지 않도록 보장
+    const flowLines: {
+      x: number; y: number; angle: number; length: number;
+      speed: number; opacity: number; progress: number;
+    }[] = [];
+
+    const makeFlowLine = () => ({
+      x: Math.random() * window.innerWidth,
+      y: Math.random() * window.innerHeight,
+      angle: Math.random() * Math.PI * 2,
+      length: Math.random() * 120 + 80, // 최소 80 보장
+      speed: Math.random() * 0.008 + 0.004,
+      opacity: Math.random() * 0.5 + 0.3,
+      progress: Math.random(),
+    });
+
+    for (let i = 0; i < 12; i++) flowLines.push(makeFlowLine());
+
+    // HUD 요소
+    const hudElements: { x: number; y: number; w: number; opacity: number; speed: number }[] = [];
+    for (let i = 0; i < 8; i++) {
+      hudElements.push({
         x: Math.random() * window.innerWidth,
         y: Math.random() * window.innerHeight,
-        angle: Math.random() * Math.PI * 2,
-        length: Math.random() * 120 + 60,
-        speed: Math.random() * 0.8 + 0.4,
-        opacity: Math.random() * 0.5 + 0.3,
-        progress: Math.random(),
+        w: Math.random() * 100 + 30,
+        opacity: Math.random() * 0.25 + 0.12,
+        speed: (Math.random() * 0.4 + 0.15) * (Math.random() > 0.5 ? 1 : -1),
       });
     }
 
@@ -76,7 +95,7 @@ export default function HologramBackground() {
     const drawGlobe = (cx: number, cy: number, radius: number, t: number) => {
       ctx.save();
 
-      // 외부 글로우 — 훨씬 밝게
+      // 외부 글로우
       const outerGlow = ctx.createRadialGradient(cx, cy, radius * 0.5, cx, cy, radius * 1.6);
       outerGlow.addColorStop(0, 'rgba(100, 150, 255, 0.18)');
       outerGlow.addColorStop(0.5, 'rgba(80, 120, 255, 0.08)');
@@ -86,7 +105,7 @@ export default function HologramBackground() {
       ctx.arc(cx, cy, radius * 1.6, 0, Math.PI * 2);
       ctx.fill();
 
-      // 테두리 림 글로우
+      // 림 글로우
       const rimGlow = ctx.createRadialGradient(cx, cy, radius * 0.8, cx, cy, radius * 1.08);
       rimGlow.addColorStop(0, 'rgba(100, 150, 255, 0)');
       rimGlow.addColorStop(0.7, 'rgba(100, 150, 255, 0.2)');
@@ -101,13 +120,12 @@ export default function HologramBackground() {
       ctx.arc(cx, cy, radius, 0, Math.PI * 2);
       ctx.clip();
 
-      // 위도선 — 훨씬 밝게
+      // 위도선
       for (let lat = -80; lat <= 80; lat += 20) {
         const latRad = (lat * Math.PI) / 180;
         const y = cy + radius * Math.sin(latRad);
         const r = radius * Math.cos(latRad);
         if (r <= 0) continue;
-
         ctx.beginPath();
         ctx.ellipse(cx, y, r, r * 0.15, 0, 0, Math.PI * 2);
         ctx.strokeStyle = `rgba(140, 190, 255, ${lat === 0 ? 0.75 : 0.4})`;
@@ -115,12 +133,11 @@ export default function HologramBackground() {
         ctx.stroke();
       }
 
-      // 경도선 — 훨씬 밝게
+      // 경도선
       const numMeridians = 12;
       for (let i = 0; i < numMeridians; i++) {
         const angle = (i / numMeridians) * Math.PI * 2 + t * 0.3;
         const cosA = Math.cos(angle);
-
         ctx.beginPath();
         for (let lat = -90; lat <= 90; lat += 3) {
           const latRad = (lat * Math.PI) / 180;
@@ -151,14 +168,11 @@ export default function HologramBackground() {
         const latRad = p.lat * Math.PI / 180;
         const cosLon = Math.cos(lonRad);
         if (cosLon < 0) return;
-
         const x = cx + radius * Math.cos(latRad) * cosLon;
         const y = cy + radius * Math.sin(latRad);
-        const dotOpacity = cosLon * 0.9;
-
         ctx.beginPath();
         ctx.arc(x, y, 2.5, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(200, 230, 255, ${dotOpacity})`;
+        ctx.fillStyle = `rgba(200, 230, 255, ${cosLon * 0.9})`;
         ctx.fill();
       });
 
@@ -171,7 +185,7 @@ export default function HologramBackground() {
       ctx.lineWidth = 1.5;
       ctx.stroke();
 
-      // 극지방
+      // 극지방 포인트
       [cy - radius, cy + radius].forEach(py => {
         ctx.beginPath();
         ctx.arc(cx, py, 4, 0, Math.PI * 2);
@@ -206,72 +220,49 @@ export default function HologramBackground() {
       ctx.restore();
     };
 
-    // HUD 요소
-    const hudElements: { x: number; y: number; w: number; opacity: number; speed: number }[] = [];
-    for (let i = 0; i < 8; i++) {
-      hudElements.push({
-        x: Math.random() * window.innerWidth,
-        y: Math.random() * window.innerHeight,
-        w: Math.random() * 100 + 30,
-        opacity: Math.random() * 0.25 + 0.12,
-        speed: (Math.random() * 0.4 + 0.15) * (Math.random() > 0.5 ? 1 : -1),
-      });
-    }
-
     const draw = () => {
-      try {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        time += 0.008;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      time += 0.008;
 
-      // 왼쪽 상단 — 매우 어둡게
+      // 왼쪽 상단 어둡게
       const dark1 = ctx.createRadialGradient(
-        canvas.width * 0.05, canvas.height * 0.05, 0,
-        canvas.width * 0.05, canvas.height * 0.05, canvas.width * 0.55
+        0, 0, 0,
+        canvas.width * 0.3, canvas.height * 0.3, canvas.width * 0.6
       );
-      dark1.addColorStop(0, 'rgba(3, 6, 18, 0.7)');
+      dark1.addColorStop(0, 'rgba(3, 6, 18, 0.72)');
       dark1.addColorStop(1, 'rgba(3, 6, 18, 0)');
       ctx.fillStyle = dark1;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // 하단 왼쪽 — 어둡게
+      // 하단 어둡게
       const dark2 = ctx.createRadialGradient(
-        canvas.width * 0.15, canvas.height * 1.0, 0,
-        canvas.width * 0.15, canvas.height * 1.0, canvas.width * 0.45
+        canvas.width * 0.2, canvas.height, 0,
+        canvas.width * 0.2, canvas.height, canvas.width * 0.5
       );
       dark2.addColorStop(0, 'rgba(3, 6, 18, 0.5)');
       dark2.addColorStop(1, 'rgba(3, 6, 18, 0)');
       ctx.fillStyle = dark2;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // 중앙 ~ 오른쪽 — 매우 밝게
+      // 중앙~오른쪽 밝게
       const light1 = ctx.createRadialGradient(
-        canvas.width * 0.6, canvas.height * 0.5, 0,
-        canvas.width * 0.6, canvas.height * 0.5, canvas.width * 0.45
+        canvas.width * 0.58, canvas.height * 0.5, canvas.width * 0.05,
+        canvas.width * 0.58, canvas.height * 0.5, canvas.width * 0.5
       );
       light1.addColorStop(0, 'rgba(140, 190, 255, 0.38)');
-      light1.addColorStop(0.4, 'rgba(100, 150, 230, 0.18)');
+      light1.addColorStop(0.4, 'rgba(100, 150, 230, 0.16)');
       light1.addColorStop(1, 'rgba(80, 120, 200, 0)');
       ctx.fillStyle = light1;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       // 오른쪽 상단 보조 빛
       const light2 = ctx.createRadialGradient(
-        canvas.width * 0.9, canvas.height * 0.2, 0,
-        canvas.width * 0.9, canvas.height * 0.2, canvas.width * 0.3
+        canvas.width * 0.88, canvas.height * 0.18, canvas.width * 0.02,
+        canvas.width * 0.88, canvas.height * 0.18, canvas.width * 0.32
       );
       light2.addColorStop(0, 'rgba(160, 200, 255, 0.22)');
       light2.addColorStop(1, 'rgba(160, 200, 255, 0)');
       ctx.fillStyle = light2;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      // 중앙 하단 보조 빛
-      const light3 = ctx.createRadialGradient(
-        canvas.width * 0.5, canvas.height * 0.85, 0,
-        canvas.width * 0.5, canvas.height * 0.85, canvas.width * 0.3
-      );
-      light3.addColorStop(0, 'rgba(120, 160, 255, 0.15)');
-      light3.addColorStop(1, 'rgba(120, 160, 255, 0)');
-      ctx.fillStyle = light3;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       // 지구본
@@ -282,35 +273,33 @@ export default function HologramBackground() {
 
       // 흐르는 연결선
       flowLines.forEach(line => {
-        line.progress += line.speed * 0.005;
+        line.progress += line.speed;
         if (line.progress > 1) {
+          Object.assign(line, makeFlowLine());
           line.progress = 0;
-          line.x = Math.random() * canvas.width;
-          line.y = Math.random() * canvas.height;
-          line.angle = Math.random() * Math.PI * 2;
-          line.length = Math.random() * 120 + 60;
         }
 
-        const startX = line.x;
-        const startY = line.y;
         const endX = line.x + Math.cos(line.angle) * line.length;
         const endY = line.y + Math.sin(line.angle) * line.length;
-        const curX = startX + (endX - startX) * line.progress;
-        const curY = startY + (endY - startY) * line.progress;
+        const curX = line.x + (endX - line.x) * line.progress;
+        const curY = line.y + (endY - line.y) * line.progress;
 
-        const grad = ctx.createLinearGradient(startX, startY, curX, curY);
-        grad.addColorStop(0, `rgba(160, 200, 255, 0)`);
-        grad.addColorStop(0.5, `rgba(180, 215, 255, ${line.opacity * 0.5})`);
-        grad.addColorStop(1, `rgba(220, 240, 255, ${line.opacity})`);
+        // 시작~현재 거리가 충분할 때만 그라데이션 선 그리기
+        const dist = Math.hypot(curX - line.x, curY - line.y);
+        if (dist > 2) {
+          const grad = ctx.createLinearGradient(line.x, line.y, curX, curY);
+          grad.addColorStop(0, 'rgba(160, 200, 255, 0)');
+          grad.addColorStop(0.6, `rgba(180, 215, 255, ${line.opacity * 0.5})`);
+          grad.addColorStop(1, `rgba(220, 240, 255, ${line.opacity})`);
+          ctx.beginPath();
+          ctx.moveTo(line.x, line.y);
+          ctx.lineTo(curX, curY);
+          ctx.strokeStyle = grad;
+          ctx.lineWidth = 1.2;
+          ctx.stroke();
+        }
 
-        ctx.beginPath();
-        ctx.moveTo(startX, startY);
-        ctx.lineTo(curX, curY);
-        ctx.strokeStyle = grad;
-        ctx.lineWidth = 1.2;
-        ctx.stroke();
-
-        // 선 끝에 빛나는 점
+        // 끝점 빛나는 점
         ctx.beginPath();
         ctx.arc(curX, curY, 2, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(220, 240, 255, ${line.opacity * 0.9})`;
@@ -334,20 +323,19 @@ export default function HologramBackground() {
         const finalOpacity = alpha * p.opacity;
 
         if (p.glow) {
-          // 글로우 파티클 — 빛나는 후광
-          const glowGrad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 4);
-          glowGrad.addColorStop(0, p.color + Math.floor(finalOpacity * 255).toString(16).padStart(2, '0'));
+          const glowR = p.size * 4;
+          const glowGrad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glowR);
+          glowGrad.addColorStop(0, p.color + toHex(finalOpacity));
           glowGrad.addColorStop(1, p.color + '00');
           ctx.beginPath();
-          ctx.arc(p.x, p.y, p.size * 4, 0, Math.PI * 2);
+          ctx.arc(p.x, p.y, glowR, 0, Math.PI * 2);
           ctx.fillStyle = glowGrad;
           ctx.fill();
         }
 
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-       const hexAlpha = Math.max(0, Math.min(255, Math.floor(finalOpacity * 255))).toString(16).padStart(2, '0');
-       ctx.fillStyle = p.color + hexAlpha;
+        ctx.fillStyle = p.color + toHex(finalOpacity);
         ctx.fill();
 
         if (p.life >= p.maxLife) {
@@ -362,10 +350,10 @@ export default function HologramBackground() {
         if (line.y > canvas.height + 50) line.y = -50;
         if (line.y < -50) line.y = canvas.height + 50;
 
-        const grad = ctx.createLinearGradient(0, line.y, canvas.width, line.y);
+        const grad = ctx.createLinearGradient(0, 0, canvas.width, 0);
         grad.addColorStop(0, 'rgba(140, 190, 255, 0)');
         grad.addColorStop(0.2, `rgba(160, 200, 255, ${line.opacity})`);
-        grad.addColorStop(0.5, `rgba(200, 225, 255, ${line.opacity * 1.3})`);
+        grad.addColorStop(0.5, `rgba(200, 225, 255, ${Math.min(1, line.opacity * 1.3)})`);
         grad.addColorStop(0.8, `rgba(160, 200, 255, ${line.opacity})`);
         grad.addColorStop(1, 'rgba(140, 190, 255, 0)');
 
@@ -383,22 +371,16 @@ export default function HologramBackground() {
         if (el.x > canvas.width + 100) el.x = -100;
         if (el.x < -100) el.x = canvas.width + 100;
 
-        ctx.beginPath();
-        ctx.rect(el.x, el.y, el.w, 1.5);
         ctx.fillStyle = `rgba(160, 200, 255, ${el.opacity})`;
-        ctx.fill();
+        ctx.fillRect(el.x, el.y, el.w, 1.5);
 
-        ctx.beginPath();
-        ctx.rect(el.x + el.w * 0.3, el.y + 5, el.w * 0.4, 0.8);
         ctx.fillStyle = `rgba(200, 225, 255, ${el.opacity * 0.7})`;
-        ctx.fill();
+        ctx.fillRect(el.x + el.w * 0.3, el.y + 5, el.w * 0.4, 0.8);
       });
 
-    } catch (e) {
-    // 에러가 나도 애니메이션 계속 유지
-    }
-    animationId = requestAnimationFrame(draw);
-  };
+      animationId = requestAnimationFrame(draw);
+    };
+
     draw();
 
     return () => {
