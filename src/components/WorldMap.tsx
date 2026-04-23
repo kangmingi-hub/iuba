@@ -45,8 +45,10 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
       .then(data => setTopology(data));
   }, []);
 
-  useEffect(() => {
+useEffect(() => {
     if (!topology || !svgRef.current) return;
+    console.log('🔥 viewMode:', viewMode);
+    console.log('🌍 countries:', JSON.stringify(countries));
 
     const svg = d3.select(svgRef.current);
     const width = svgRef.current.clientWidth;
