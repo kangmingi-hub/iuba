@@ -296,110 +296,103 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
       });
     }
 
+// 2D 모드에서만 캐릭터 + 건물 표시
+if (viewMode === '2d') {
+  Object.values(countries).forEach((state) => {
+    if (!state?.ownerId) return;
+    const player = players.find(p => p.id === state.ownerId);
+    if (!player) return;
 
-   s// 소유한 나라 위에 캐릭터 + 건물 표시
-Object.values(countries).forEach((state) => {
-  if (!state?.ownerId) return;
-  const player = players.find(p => p.id === state.ownerId);
-  if (!player) return;
+    const feature = filteredFeatures.find((f: any) =>
+      f.properties.name === state.name || f.id === state.id || f.properties.name === state.id
+    );
+    if (!feature) return;
 
-  const feature = filteredFeatures.find((f: any) =>
-    f.properties.name === state.name || f.id === state.id || f.properties.name === state.id
-  );
-  if (!feature) return;
+    const centroid = path.centroid(feature);
+    if (!centroid || isNaN(centroid[0]) || isNaN(centroid[1])) return;
 
-  if (viewMode === '3d') {
-    const centroid2 = d3.geoCentroid(feature);
-    const rotate = projection.rotate();
-    if (d3.geoDistance(centroid2, [-rotate[0], -rotate[1]]) >= Math.PI / 2) return;
-  }
+    // 나라 경계 크기로 이미지 크기 결정 (줌과 무관하게 나라 크기 기준)
+    const bounds = path.bounds(feature);
+    const boundWidth = bounds[1][0] - bounds[0][0];
+    const boundHeight = bounds[1][1] - bounds[0][1];
+    const countryArea = Math.sqrt(boundWidth * boundHeight);
+    const imageSize = Math.min(Math.max(countryArea * 0.35, 10), 36);
 
-  const centroid = path.centroid(feature);
-  if (!centroid || isNaN(centroid[0]) || isNaN(centroid[1])) return;
+    const hasBuilding = state.buildings > 0;
+    const finalCharSize = hasBuilding ? imageSize * 0.65 : imageSize;
+    const charX = hasBuilding ? centroid[0] - imageSize * 0.4 : centroid[0];
+    const charY = hasBuilding ? centroid[1] + imageSize * 0.2 : centroid[1];
 
-  // 나라 크기에 따라 이미지 크기 결정
-  const bounds = path.bounds(feature);
-  const boundWidth = bounds[1][0] - bounds[0][0];
-  const boundHeight = bounds[1][1] - bounds[0][1];
-  const countrySize = Math.min(Math.max(Math.sqrt(boundWidth * boundHeight), 10), 80);
-  const imageSize = Math.min(Math.max(countrySize * 0.45, 12), 40);
-
-  const targetG = viewMode === '2d' ? gPerspective : gMain;
-  const hasBuilding = state.buildings > 0;
-
-  // 건물 있으면 캐릭터 왼쪽 아래, 없으면 중앙
-  const finalCharSize = hasBuilding ? imageSize * 0.7 : imageSize;
-  const charX = hasBuilding ? centroid[0] - imageSize * 0.5 : centroid[0];
-  const charY = hasBuilding ? centroid[1] + imageSize * 0.3 : centroid[1];
-
-  // 캐릭터 원형 배경
-  targetG.append('circle')
-    .attr('cx', charX)
-    .attr('cy', charY)
-    .attr('r', finalCharSize / 2 + 1.5)
-    .attr('fill', 'white')
-    .attr('stroke', player.color)
-    .attr('stroke-width', 1.5)
-    .attr('class', 'pointer-events-none')
-    .attr('opacity', 0.9);
-
-  // 캐릭터 이미지
-  targetG.append('image')
-    .attr('href', CLUB_IMAGES[player.name] || player.characterUrl || 'https://cdn-icons-png.flaticon.com/512/149/149071.png')
-    .attr('x', charX - finalCharSize / 2)
-    .attr('y', charY - finalCharSize / 2)
-    .attr('width', finalCharSize)
-    .attr('height', finalCharSize)
-    .attr('clip-path', `circle(${finalCharSize / 2}px at ${finalCharSize / 2}px ${finalCharSize / 2}px)`)
-    .attr('class', 'pointer-events-none');
-
-  // 건물 이미지 (오른쪽 위)
-  if (hasBuilding) {
-    const buildingImg = BUILDING_IMAGES[state.buildings];
-    const buildingSize = imageSize * 1.1;
-    const buildingX = centroid[0] + imageSize * 0.2;
-    const buildingY = centroid[1] - imageSize * 0.1;
-
-    // 건물 배경 원
-    targetG.append('circle')
-      .attr('cx', buildingX)
-      .attr('cy', buildingY)
-      .attr('r', buildingSize / 2 + 1.5)
+    // 캐릭터 원형 배경
+    gPerspective.append('circle')
+      .attr('cx', charX)
+      .attr('cy', charY)
+      .attr('r', finalCharSize / 2 + 1.5)
       .attr('fill', 'white')
-      .attr('stroke', '#94a3b8')
-      .attr('stroke-width', 1)
+      .attr('stroke', player.color)
+      .attr('stroke-width', 1.5)
       .attr('class', 'pointer-events-none')
       .attr('opacity', 0.9);
 
+    // 캐릭터 이미지
+    gPerspective.append('image')
+      .attr('href', CLUB_IMAGES[player.name] || player.characterUrl || 'https://cdn-icons-png.flaticon.com/512/149/149071.png')
+      .attr('x', charX - finalCharSize / 2)
+      .attr('y', charY - finalCharSize / 2)
+      .attr('width', finalCharSize)
+      .attr('height', finalCharSize)
+      .attr('clip-path', `circle(${finalCharSize / 2}px at ${finalCharSize / 2}px ${finalCharSize / 2}px)`)
+      .attr('class', 'pointer-events-none');
+
     // 건물 이미지
-    targetG.append('image')
-      .attr('href', buildingImg)
-      .attr('x', buildingX - buildingSize / 2)
-      .attr('y', buildingY - buildingSize / 2)
-      .attr('width', buildingSize)
-      .attr('height', buildingSize)
-      .attr('class', 'pointer-events-none');
+    if (hasBuilding) {
+      const buildingImg = BUILDING_IMAGES[state.buildings];
+      const buildingSize = imageSize * 1.0;
+      const buildingX = centroid[0] + imageSize * 0.25;
+      const buildingY = centroid[1] - imageSize * 0.1;
 
-    // 건물 레벨 뱃지
-    targetG.append('circle')
-      .attr('cx', buildingX + buildingSize / 2)
-      .attr('cy', buildingY - buildingSize / 2)
-      .attr('r', finalCharSize * 0.28)
-      .attr('fill', '#3b82f6')
-      .attr('class', 'pointer-events-none');
+      // 건물 배경 원
+      gPerspective.append('circle')
+        .attr('cx', buildingX)
+        .attr('cy', buildingY)
+        .attr('r', buildingSize / 2 + 1.5)
+        .attr('fill', 'white')
+        .attr('stroke', '#94a3b8')
+        .attr('stroke-width', 1)
+        .attr('class', 'pointer-events-none')
+        .attr('opacity', 0.9);
 
-    targetG.append('text')
-      .attr('x', buildingX + buildingSize / 2)
-      .attr('y', buildingY - buildingSize / 2)
-      .attr('text-anchor', 'middle')
-      .attr('dominant-baseline', 'middle')
-      .attr('font-size', finalCharSize * 0.28)
-      .attr('fill', 'white')
-      .attr('font-weight', 'bold')
-      .attr('class', 'pointer-events-none')
-      .text(state.buildings);
-  }
-});
+      // 건물 이미지
+      gPerspective.append('image')
+        .attr('href', buildingImg)
+        .attr('x', buildingX - buildingSize / 2)
+        .attr('y', buildingY - buildingSize / 2)
+        .attr('width', buildingSize)
+        .attr('height', buildingSize)
+        .attr('class', 'pointer-events-none');
+
+      // 레벨 뱃지
+      gPerspective.append('circle')
+        .attr('cx', buildingX + buildingSize / 2 - 2)
+        .attr('cy', buildingY - buildingSize / 2 + 2)
+        .attr('r', finalCharSize * 0.25)
+        .attr('fill', '#3b82f6')
+        .attr('class', 'pointer-events-none');
+
+      gPerspective.append('text')
+        .attr('x', buildingX + buildingSize / 2 - 2)
+        .attr('y', buildingY - buildingSize / 2 + 2)
+        .attr('text-anchor', 'middle')
+        .attr('dominant-baseline', 'middle')
+        .attr('font-size', finalCharSize * 0.25)
+        .attr('fill', 'white')
+        .attr('font-weight', 'bold')
+        .attr('class', 'pointer-events-none')
+        .text(state.buildings);
+    }
+  });
+}
+  
         
     return () => tooltip.remove();
   }, [topology, countries, players, viewMode, rotation, zoomLevel]);
