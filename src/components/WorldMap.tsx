@@ -299,6 +299,7 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
 
   // 2D 모드에서만 캐릭터 + 건물 표시
 if (viewMode === '2d') {
+  console.log('countries:', JSON.stringify(countries));
   Object.values(countries).forEach((state) => {
     if (!state?.ownerId) return;
     const player = players.find(p => p.id === state.ownerId);
