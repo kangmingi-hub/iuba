@@ -189,7 +189,7 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
         const state = countries[countryName] || countries[feature.id] || 
           Object.values(countries).find(c => c.name === countryName || c.id === countryName);
         const isOwned = !!(state?.ownerId && players.some(p => p.id === state.ownerId));
-        const targetDepth = isOwned ? (6 + state.buildings * 4) : 0;
+        const targetDepth = isOwned ? (3 + state.buildings * 2) : 0;
 
         const countryG = gCountries.append('g').attr('class', 'country-stack');
 
@@ -318,10 +318,16 @@ if (viewMode === '2d') {
     const countryArea = Math.sqrt(boundWidth * boundHeight);
     const imageSize = Math.min(Math.max(countryArea * 0.35, 10), 36);
 
+    // 나라가 올라간 높이만큼 캐릭터도 올라감
+    const targetDepth = 3 + state.buildings * 2;
+    const liftY = state.ownerId ? -targetDepth : 0;
+
     const hasBuilding = state.buildings > 0;
     const finalCharSize = hasBuilding ? imageSize * 0.65 : imageSize;
-    const charX = hasBuilding ? centroid[0] - imageSize * 0.4 : centroid[0];
-    const charY = hasBuilding ? centroid[1] + imageSize * 0.2 : centroid[1];
+
+    // 간격 좁히기: 0.4 → 0.25
+    const charX = hasBuilding ? centroid[0] - imageSize * 0.25 : centroid[0];
+    const charY = (hasBuilding ? centroid[1] + imageSize * 0.1 : centroid[1]) + liftY;
 
     // 캐릭터 이미지
     gPerspective.append('image')
@@ -336,8 +342,10 @@ if (viewMode === '2d') {
     if (hasBuilding) {
       const buildingImg = BUILDING_IMAGES[state.buildings];
       const buildingSize = imageSize * 1.0;
-      const buildingX = centroid[0] + imageSize * 0.25;
-      const buildingY = centroid[1] - imageSize * 0.1;
+
+      // 간격 좁히기: 0.25 → 0.15
+      const buildingX = centroid[0] + imageSize * 0.15;
+      const buildingY = centroid[1] - imageSize * 0.1 + liftY;
 
       gPerspective.append('image')
         .attr('href', buildingImg)
