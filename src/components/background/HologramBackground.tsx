@@ -437,6 +437,8 @@ export default function HologramBackground() {
         pointerEvents: 'none',
         zIndex: 0,
         opacity: 0.9,
+  background: 'none',
+  mixBlendMode: 'screen',
       }}
     />
   );
