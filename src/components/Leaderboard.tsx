@@ -64,11 +64,12 @@ export default function Leaderboard({ clubPoints, players, countries, isSyncing,
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: idx * 0.03 }}
              className={cn(
-                "flex flex-col gap-2.5 p-3.5 rounded-2xl border transition-all",
-                ownedCount > 0
-                  ? "border-blue-300/50 bg-blue-400/35 hover:bg-blue-400/45"
-                  : "border-white/30 bg-white/25 hover:bg-white/35"
-              )}
+               className={cn(
+                  "flex flex-col gap-2.5 p-3.5 rounded-2xl border transition-all",
+                  ownedCount > 0
+                    ? "border-blue-300/60 bg-white/80 hover:bg-white/90"
+                    : "border-white/40 bg-white/75 hover:bg-white/85"
+                )}
             >
               {/* 클럽 정보 */}
               <div className="flex items-center gap-3">
@@ -85,8 +86,8 @@ export default function Leaderboard({ clubPoints, players, countries, isSyncing,
                   />
                 </div>
                 <div>
-                  <h3 className="font-black text-white text-sm uppercase tracking-tight">{club.club_name}</h3>
-                  <p className="text-[9px] font-bold text-blue-200/60">{ownedCount} Territories • {totalBuildings} Centers</p>
+                  <h3 className="font-black text-[#1E293B] text-sm uppercase tracking-tight">
+                  <p className="text-[9px] font-bold text-slate-400">
                 </div>
               </div>
 
