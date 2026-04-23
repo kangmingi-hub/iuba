@@ -40,7 +40,7 @@ export default function App() {
   return (
     <div className="relative min-h-screen bg-transparent text-[#e2e8f0] font-sans p-4 md:p-8">
      <HologramBackground />
-      <header className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-center gap-4 bg-white border border-[#E2E8F0] p-6 rounded-2xl shadow-sm">
+      <header className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-center gap-4 bg-white/5 border border-white/10 p-6 rounded-2xl backdrop-blur-sm">
         <div className="flex items-center gap-3">
           <div className="bg-blue-600 p-3 rounded-2xl shadow-md">
             <MapPin className="w-8 h-8 text-white" />
@@ -53,7 +53,7 @@ export default function App() {
           </div>
         </div>
 
-        <div className="flex bg-[#F8FAFC] border border-[#E2E8F0] p-1 rounded-xl flex-wrap gap-1">
+        <div className="flex bg-white/5 border border-white/10 p-1 rounded-xl flex-wrap gap-1">
           {[
             { key: 'map', icon: <MapIcon className="w-4 h-4" />, label: '지도' },
             ...(currentUser?.role === 'admin' ? [
