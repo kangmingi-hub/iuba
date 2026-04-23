@@ -7,8 +7,7 @@
 
 body {
   margin: 0;
-  background:
-    radial-gradient(ellipse at 65% 45%, #0f1e3d 0%, #0a1228 45%, #060c1a 100%);
+  background: radial-gradient(ellipse at 65% 45%, #0f1e3d 0%, #0a1228 45%, #060c1a 100%);
   min-height: 100vh;
   color: #e2e8f0;
   @apply antialiased selection:bg-blue-500/20 transition-colors duration-200;
