@@ -63,12 +63,12 @@ export default function Leaderboard({ clubPoints, players, countries, isSyncing,
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: idx * 0.03 }}
-             className={cn(
-                  "flex flex-col gap-2.5 p-3.5 rounded-2xl border transition-all",
-                  ownedCount > 0
-                    ? "border-blue-300/60 bg-white/80 hover:bg-white/90"
-                    : "border-white/40 bg-white/75 hover:bg-white/85"
-                )}
+              className={cn(
+                "flex flex-col gap-2.5 p-3.5 rounded-2xl border transition-all",
+                ownedCount > 0
+                  ? "border-blue-300/40 bg-white/85 hover:bg-white/95"
+                  : "border-white/30 bg-white/80 hover:bg-white/90"
+              )}
             >
               {/* 클럽 정보 */}
               <div className="flex items-center gap-3">
@@ -76,40 +76,40 @@ export default function Leaderboard({ clubPoints, players, countries, isSyncing,
                   <img
                     src={CLUB_IMAGES[club.club_name] || player?.characterUrl || `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${club.club_name}`}
                     alt={club.club_name}
-                    className="w-10 h-10 rounded-full border-2 p-0.5 bg-white/10"
-                    style={{ borderColor: player?.color || 'rgba(255,255,255,0.3)' }}
+                    className="w-10 h-10 rounded-full border-2 p-0.5 bg-white"
+                    style={{ borderColor: player?.color || '#CBD5E1' }}
                   />
                   <div
-                    className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white/20 shadow-sm"
-                    style={{ backgroundColor: player?.color || 'rgba(255,255,255,0.3)' }}
+                    className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white shadow-sm"
+                    style={{ backgroundColor: player?.color || '#CBD5E1' }}
                   />
                 </div>
                 <div>
-                  <h3 className="font-black text-[#1E293B] text-sm uppercase tracking-tight">
-                  <p className="text-[9px] font-bold text-slate-400">
+                  <h3 className="font-black text-[#1E293B] text-sm uppercase tracking-tight">{club.club_name}</h3>
+                  <p className="text-[9px] font-bold text-slate-400">{ownedCount} Territories • {totalBuildings} Centers</p>
                 </div>
               </div>
 
               {/* 포인트 */}
-              <div className="flex gap-2 pt-2 border-t border-white/10">
-                <div className="flex-1 flex flex-col gap-1 bg-amber-400/15 p-2.5 rounded-xl border border-amber-300/20">
+              <div className="flex gap-2 pt-2 border-t border-slate-200/60">
+                <div className="flex-1 flex flex-col gap-1 bg-amber-50 p-2.5 rounded-xl border border-amber-100">
                   <div className="flex items-center gap-1.5">
-                    <Users className="w-2.5 h-2.5 text-amber-300/70" />
+                    <Users className="w-2.5 h-2.5 text-amber-500" />
                     <span className="text-[8px] font-black text-amber-600 uppercase tracking-tighter">Evangelism</span>
                   </div>
                   <div className="text-sm font-black text-amber-700 flex items-center gap-1">
                     {(player?.gold ?? club.remaining_evangelism_points).toLocaleString()}
-                    <span className="text-[9px] font-bold text-amber-300/50">P</span>
+                    <span className="text-[9px] font-bold text-amber-400">P</span>
                   </div>
                 </div>
-                <div className="flex-1 flex flex-col gap-1 bg-blue-400/15 p-2.5 rounded-xl border border-blue-300/20">
+                <div className="flex-1 flex flex-col gap-1 bg-blue-50 p-2.5 rounded-xl border border-blue-100">
                   <div className="flex items-center gap-1.5">
-                    <Building2 className="w-2.5 h-2.5 text-blue-300/70" />
+                    <Building2 className="w-2.5 h-2.5 text-blue-500" />
                     <span className="text-[8px] font-black text-blue-600 uppercase tracking-tighter">Speech</span>
                   </div>
                   <div className="text-sm font-black text-blue-700 flex items-center gap-1">
                     {(player?.buildingPower ?? club.remaining_speech_points).toLocaleString()}
-                    <span className="text-[9px] font-bold text-blue-300/50">P</span>
+                    <span className="text-[9px] font-bold text-blue-400">P</span>
                   </div>
                 </div>
               </div>
