@@ -38,9 +38,9 @@ export default function App() {
   const occupiedCountries = Object.values(gameState.countries as Record<string, CountryState>).filter(c => c.ownerId);
 
   return (
-    <div className="relative min-h-screen text-[#e2e8f0] font-sans p-4 md:p-8" style={{background: '#060d1f'}}>
+    <div className="relative min-h-screen text-[#e2e8f0] font-sans p-4 md:p-8" style={{background: 'linear-gradient(135deg, #1a2a4a 0%, #2a3f6f 30%, #1e3a5f 60%, #0f1e3a 100%)'}}>
      <HologramBackground />
-      <header className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-center gap-4 bg-white/10 border border-white/20 p-6 rounded-2xl backdrop-blur-md shadow-lg">
+     <header className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-center gap-4 bg-white/15 border border-white/30 p-6 rounded-2xl backdrop-blur-xl shadow-xl shadow-blue-900/30">
         <div className="flex items-center gap-3">
           <div className="bg-blue-600 p-3 rounded-2xl shadow-md">
             <MapPin className="w-8 h-8 text-white" />
@@ -105,7 +105,7 @@ export default function App() {
       </header>
 
       <main className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <section className="lg:col-span-4 space-y-6 bg-white/15 backdrop-blur-md border border-white/25 rounded-2xl p-4">
+       <section className="lg:col-span-4 space-y-6">
           <Leaderboard
             clubPoints={clubPoints}
             players={gameState.players}
