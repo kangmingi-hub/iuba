@@ -314,14 +314,34 @@ export default function HologramBackground() {
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       time += 0.007;
-const bg = ctx.createRadialGradient(
-  canvas.width * 0.65, canvas.height * 0.45, 0,
-  canvas.width * 0.5, canvas.height * 0.5, canvas.width * 0.9
+// 왼쪽 상단 밝은 빛
+const light1 = ctx.createRadialGradient(
+  canvas.width * 0.15, canvas.height * 0.2, 0,
+  canvas.width * 0.15, canvas.height * 0.2, canvas.width * 0.45
 );
-bg.addColorStop(0, '#0f1e3d');
-bg.addColorStop(0.45, '#0a1228');
-bg.addColorStop(1, '#060c1a');
-ctx.fillStyle = bg;
+light1.addColorStop(0, 'rgba(100, 160, 255, 0.12)');
+light1.addColorStop(1, 'rgba(100, 160, 255, 0)');
+ctx.fillStyle = light1;
+ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+// 오른쪽 하단 밝은 빛
+const light2 = ctx.createRadialGradient(
+  canvas.width * 0.85, canvas.height * 0.75, 0,
+  canvas.width * 0.85, canvas.height * 0.75, canvas.width * 0.4
+);
+light2.addColorStop(0, 'rgba(120, 80, 255, 0.1)');
+light2.addColorStop(1, 'rgba(120, 80, 255, 0)');
+ctx.fillStyle = light2;
+ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+// 중앙 은은한 빛
+const light3 = ctx.createRadialGradient(
+  canvas.width * 0.5, canvas.height * 0.5, 0,
+  canvas.width * 0.5, canvas.height * 0.5, canvas.width * 0.5
+);
+light3.addColorStop(0, 'rgba(60, 120, 220, 0.06)');
+light3.addColorStop(1, 'rgba(60, 120, 220, 0)');
+ctx.fillStyle = light3;
 ctx.fillRect(0, 0, canvas.width, canvas.height);
       
       // 육각 그리드
