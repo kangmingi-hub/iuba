@@ -105,7 +105,7 @@ export default function App() {
       </header>
 
       <main className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <section className="lg:col-span-4 space-y-6">
+        <section className="lg:col-span-4 space-y-6 bg-white/15 backdrop-blur-md border border-white/25 rounded-2xl p-4">
           <Leaderboard
             clubPoints={clubPoints}
             players={gameState.players}
