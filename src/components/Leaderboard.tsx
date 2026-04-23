@@ -96,9 +96,9 @@ export default function Leaderboard({ clubPoints, players, countries, isSyncing,
                 <div className="flex-1 flex flex-col gap-1 bg-amber-400/15 p-2.5 rounded-xl border border-amber-300/20">
                   <div className="flex items-center gap-1.5">
                     <Users className="w-2.5 h-2.5 text-amber-300/70" />
-                    <span className="text-[8px] font-black text-amber-300/70 uppercase tracking-tighter">Evangelism</span>
+                    <span className="text-[8px] font-black text-amber-600 uppercase tracking-tighter">Evangelism</span>
                   </div>
-                  <div className="text-sm font-black text-amber-200 flex items-center gap-1">
+                  <div className="text-sm font-black text-amber-700 flex items-center gap-1">
                     {(player?.gold ?? club.remaining_evangelism_points).toLocaleString()}
                     <span className="text-[9px] font-bold text-amber-300/50">P</span>
                   </div>
@@ -106,9 +106,9 @@ export default function Leaderboard({ clubPoints, players, countries, isSyncing,
                 <div className="flex-1 flex flex-col gap-1 bg-blue-400/15 p-2.5 rounded-xl border border-blue-300/20">
                   <div className="flex items-center gap-1.5">
                     <Building2 className="w-2.5 h-2.5 text-blue-300/70" />
-                    <span className="text-[8px] font-black text-blue-300/70 uppercase tracking-tighter">Speech</span>
+                    <span className="text-[8px] font-black text-blue-600 uppercase tracking-tighter">Speech</span>
                   </div>
-                  <div className="text-sm font-black text-blue-200 flex items-center gap-1">
+                  <div className="text-sm font-black text-blue-700 flex items-center gap-1">
                     {(player?.buildingPower ?? club.remaining_speech_points).toLocaleString()}
                     <span className="text-[9px] font-bold text-blue-300/50">P</span>
                   </div>
