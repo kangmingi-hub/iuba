@@ -154,9 +154,20 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
     const gCountries = gPerspective.append('g').attr('class', 'countries');
     
     // Tooltip Helper
-    const tooltip = d3.select('body').append('div')
-      .attr('class', 'absolute hidden bg-white/95 backdrop-blur-sm text-[#1E293B] p-3 rounded-2xl shadow-xl text-[11px] pointer-events-none z-50 border border-slate-200 font-bold min-w-[120px]');
-
+const tooltip = d3.select('body').append('div')
+  .attr('class', 'absolute hidden pointer-events-none z-50')
+  .style('background', 'rgba(255,255,255,0.92)')
+  .style('backdrop-filter', 'blur(12px)')
+  .style('-webkit-backdrop-filter', 'blur(12px)')
+  .style('border', '1px solid rgba(203,213,225,0.7)')
+  .style('border-radius', '14px')
+  .style('padding', '10px 14px')
+  .style('color', '#1e293b')
+  .style('font-size', '11px')
+  .style('font-weight', '700')
+  .style('box-shadow', '0 4px 20px rgba(148,163,184,0.2)')
+  .style('min-width', '130px');
+    
     const handleMouseOver = (event: any, d: any) => {
       const countryName = d.properties.name;
       const state = countries[countryName];
@@ -334,66 +345,140 @@ const isOwned = !!(state?.ownerId && players.some(p => p.id === state.ownerId));
 
   }, [selectedContinent, topology, viewMode]);
 
-  return (
-    <div className="w-full h-full bg-[#f8fafc] overflow-hidden relative rounded-[2rem] border border-[#E2E8F0] shadow-sm">
-      <svg ref={svgRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
-      
-      <div className="absolute top-6 left-6 flex flex-col gap-3 pointer-events-auto">
-        <div className="flex bg-white/90 backdrop-blur-md p-1 rounded-2xl border border-slate-200 shadow-lg">
-          <button
-            onClick={() => { setViewMode('3d'); setZoomLevel(1); }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${viewMode === '3d' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'}`}
-          >
-            <GlobeIcon className="w-3.5 h-3.5" /> 3D Globe
-          </button>
-          <button
-            onClick={() => { setViewMode('2d'); setZoomLevel(1); setSelectedContinent('world'); }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${viewMode === '2d' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'}`}
-          >
-            <ArrowLeft className="w-3.5 h-3.5" /> 3D Map
-          </button>
-        </div>
+return (
+  <div
+    className="w-full h-full overflow-hidden relative rounded-[2rem]"
+    style={{
+      background: 'rgba(255,255,255,0.72)',
+      backdropFilter: 'blur(24px)',
+      WebkitBackdropFilter: 'blur(24px)',
+      border: '1px solid rgba(255,255,255,0.9)',
+      boxShadow: '0 2px 24px rgba(148,163,184,0.18), inset 0 1px 0 rgba(255,255,255,0.95)',
+    }}
+  >
+    <svg ref={svgRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
 
-        {viewMode === '2d' && (
-          <div className="flex flex-wrap gap-2 max-w-[400px]">
-            {(Object.keys(CONTINENTS) as Continent[]).map((key) => (
-              <button
-                key={key}
-                onClick={() => setSelectedContinent(key)}
-                className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all border shadow-sm ${selectedContinent === key ? 'bg-blue-600 text-white border-blue-600' : 'bg-white/90 text-slate-600 border-slate-200 hover:bg-white'}`}
-              >
-                {CONTINENTS[key].name}
-              </button>
-            ))}
-          </div>
-        )}
+    {/* 상단 컨트롤 */}
+    <div className="absolute top-5 left-5 flex flex-col gap-3 pointer-events-auto">
 
-        {viewMode === '3d' && (
-          <button
-            onClick={() => { setRotation([-10, -20, 0]); setZoomLevel(1); }}
-            className="flex items-center justify-center w-12 h-12 bg-white/90 hover:bg-white text-slate-500 rounded-2xl border border-slate-200 shadow-md transition-all active:scale-95"
-          >
-            <RefreshCcw className="w-5 h-5" />
-          </button>
-        )}
+      {/* 뷰 토글 */}
+      <div
+        className="flex p-[3px] rounded-[14px] gap-[2px]"
+        style={{
+          background: 'rgba(241,245,249,0.85)',
+          border: '1px solid rgba(203,213,225,0.6)',
+        }}
+      >
+        <button
+          onClick={() => { setViewMode('3d'); setZoomLevel(1); }}
+          className="flex items-center gap-2 px-4 py-[6px] rounded-[11px] text-[11px] font-black uppercase tracking-widest transition-all"
+          style={viewMode === '3d'
+            ? { background: 'white', color: '#3b82f6', boxShadow: '0 1px 6px rgba(99,130,190,0.18)' }
+            : { background: 'transparent', color: '#94a3b8' }
+          }
+        >
+          <GlobeIcon className="w-3.5 h-3.5" /> 3D Globe
+        </button>
+        <button
+          onClick={() => { setViewMode('2d'); setZoomLevel(1); setSelectedContinent('world'); }}
+          className="flex items-center gap-2 px-4 py-[6px] rounded-[11px] text-[11px] font-black uppercase tracking-widest transition-all"
+          style={viewMode === '2d'
+            ? { background: 'white', color: '#3b82f6', boxShadow: '0 1px 6px rgba(99,130,190,0.18)' }
+            : { background: 'transparent', color: '#94a3b8' }
+          }
+        >
+          <ArrowLeft className="w-3.5 h-3.5" /> 3D Map
+        </button>
       </div>
 
-      <div className="absolute bottom-6 left-6 bg-white/90 backdrop-blur-md px-4 py-3 rounded-2xl border border-slate-200 text-[10px] text-slate-500 space-y-1.5 shadow-sm font-bold uppercase tracking-tight">
-        <p className="flex items-center gap-2 text-blue-600"><GlobeIcon className="w-3 h-3" /> {viewMode === '3d' ? 'DRAG TO ROTATE' : 'DRAG TO MOVE'}</p>
-        <p className="flex items-center gap-2"><ZoomIn className="w-3 h-3" /> MOUSE WHEEL TO ZOOM</p>
-      </div>
-
-      <div className="absolute bottom-6 right-6 bg-white/90 backdrop-blur-md px-6 py-4 rounded-3xl border border-slate-200 shadow-xl max-w-[150px]">
-        <p className="text-[9px] font-black text-slate-400 mb-3 uppercase tracking-widest text-center">Center Tiers</p>
-        <div className="space-y-3">
-          {BUILDING_TIERS.map(tier => (
-            <div key={tier.level} className="flex items-center gap-3">
-              <div className="w-3 h-3 rounded-sm border border-slate-300 shadow-sm" style={{ height: `${tier.level * 4 + 4}px`, backgroundColor: '#475569' }} />
-              <span className="text-[10px] font-bold text-slate-600">{tier.name}</span>
-            </div>
+      {/* 대륙 칩 */}
+      {viewMode === '2d' && (
+        <div className="flex flex-wrap gap-[6px] max-w-[420px]">
+          {(Object.keys(CONTINENTS) as Continent[]).map((key) => (
+            <button
+              key={key}
+              onClick={() => setSelectedContinent(key)}
+              className="px-[13px] py-[5px] rounded-full text-[11px] font-semibold transition-all"
+              style={selectedContinent === key
+                ? {
+                    background: '#3b82f6',
+                    color: 'white',
+                    border: '1px solid #3b82f6',
+                    boxShadow: '0 2px 8px rgba(59,130,246,0.28)',
+                  }
+                : {
+                    background: 'rgba(255,255,255,0.7)',
+                    color: '#64748b',
+                    border: '1px solid rgba(203,213,225,0.7)',
+                  }
+              }
+            >
+              {CONTINENTS[key].name}
+            </button>
           ))}
         </div>
+      )}
+
+      {/* 리셋 버튼 (3D) */}
+      {viewMode === '3d' && (
+        <button
+          onClick={() => { setRotation([-10, -20, 0]); setZoomLevel(1); }}
+          className="flex items-center justify-center w-10 h-10 rounded-2xl transition-all active:scale-95"
+          style={{
+            background: 'rgba(255,255,255,0.8)',
+            border: '1px solid rgba(203,213,225,0.6)',
+            color: '#64748b',
+            boxShadow: '0 1px 6px rgba(148,163,184,0.15)',
+          }}
+        >
+          <RefreshCcw className="w-4 h-4" />
+        </button>
+      )}
+    </div>
+
+    {/* 힌트 박스 */}
+    <div
+      className="absolute bottom-5 left-5 px-3 py-[10px] rounded-xl text-[10px] space-y-1 font-bold uppercase tracking-tight"
+      style={{
+        background: 'rgba(255,255,255,0.82)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+        border: '1px solid rgba(203,213,225,0.55)',
+      }}
+    >
+      <p className="flex items-center gap-2 text-blue-500">
+        <GlobeIcon className="w-3 h-3" />
+        {viewMode === '3d' ? 'Drag to rotate' : 'Drag to move'}
+      </p>
+      <p className="flex items-center gap-2 text-slate-400">
+        <ZoomIn className="w-3 h-3" /> Mouse wheel to zoom
+      </p>
+    </div>
+
+    {/* Center Tiers */}
+    <div
+      className="absolute bottom-5 right-5 px-[14px] py-[10px] rounded-[14px]"
+      style={{
+        background: 'rgba(255,255,255,0.82)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+        border: '1px solid rgba(203,213,225,0.55)',
+      }}
+    >
+      <p className="text-[9px] font-black text-slate-400 mb-2 uppercase tracking-widest text-center">
+        Center Tiers
+      </p>
+      <div className="space-y-[10px]">
+        {BUILDING_TIERS.map(tier => (
+          <div key={tier.level} className="flex items-center gap-2">
+            <div
+              className="w-[10px] rounded-sm"
+              style={{ height: `${tier.level * 4 + 4}px`, background: '#475569' }}
+            />
+            <span className="text-[10px] font-bold text-slate-600">{tier.name}</span>
+          </div>
+        ))}
       </div>
     </div>
-  );
-}
+  </div>
+);
