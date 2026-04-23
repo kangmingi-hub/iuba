@@ -296,6 +296,37 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
       });
     }
 
+
+    // 소유한 나라 위에 캐릭터 이미지 표시
+    Object.values(countries).forEach((state) => {
+      if (!state?.ownerId) return;
+      const player = players.find(p => p.id === state.ownerId);
+      if (!player) return;
+    
+      const feature = filteredFeatures.find((f: any) =>
+        f.properties.name === state.name || f.id === state.id || f.properties.name === state.id
+      );
+      if (!feature) return;
+    
+      if (viewMode === '3d' && !isPointVisible(feature, projection)) return;
+    
+      const centroid = path.centroid(feature);
+      if (!centroid || isNaN(centroid[0]) || isNaN(centroid[1])) return;
+    
+      const imageSize = 24;
+      const targetG = viewMode === '2d' ? gPerspective : gMain;
+    
+      targetG.append('image')
+        .attr('href', CLUB_IMAGES[player.name] || player.characterUrl || 'https://cdn-icons-png.flaticon.com/512/149/149071.png')
+        .attr('x', centroid[0] - imageSize / 2)
+        .attr('y', centroid[1] - imageSize / 2)
+        .attr('width', imageSize)
+        .attr('height', imageSize)
+        .attr('clip-path', `circle(${imageSize / 2}px at ${imageSize / 2}px ${imageSize / 2}px)`)
+        .attr('class', 'pointer-events-none')
+        .style('border-radius', '50%');
+    });
+        
     return () => tooltip.remove();
   }, [topology, countries, players, viewMode, rotation, zoomLevel]);
 
