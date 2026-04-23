@@ -314,7 +314,16 @@ export default function HologramBackground() {
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       time += 0.007;
-
+const bg = ctx.createRadialGradient(
+  canvas.width * 0.65, canvas.height * 0.45, 0,
+  canvas.width * 0.5, canvas.height * 0.5, canvas.width * 0.9
+);
+bg.addColorStop(0, '#0f1e3d');
+bg.addColorStop(0.45, '#0a1228');
+bg.addColorStop(1, '#060c1a');
+ctx.fillStyle = bg;
+ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
       // 육각 그리드
       drawHexGrid();
 
@@ -437,8 +446,6 @@ export default function HologramBackground() {
         pointerEvents: 'none',
         zIndex: 0,
         opacity: 0.9,
-  background: 'none',
-  mixBlendMode: 'screen',
       }}
     />
   );
