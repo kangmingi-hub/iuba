@@ -332,7 +332,7 @@ if (viewMode === '2d') {
     const hasBuilding = state.buildings > 0;
     const finalCharSize = hasBuilding ? imageSize * 0.65 : imageSize;
     const targetDepth = state.buildings > 0 ? (2 + state.buildings * 1) : 0;
-    const liftY = -targetDepth;
+    const liftY = -(targetDepth * 0.5);
    const charX = hasBuilding ? centroid[0] - imageSize * 0.25 : centroid[0];
     const charY = centroid[1] + liftY;
 
