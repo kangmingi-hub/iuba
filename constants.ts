@@ -55,12 +55,6 @@ export const BUILDING_TIERS = [
   { level: 3, name: '정교회', cost: 600, icon: '🕌' },
 ];
 
-export const BUILDING_IMAGES: Record<number, string> = {
-  1: '/buildings/housechurch.png',
-  2: '/buildings/branch.png',
-  3: '/buildings/church.png',
-};
-
 export const CLUB_IMAGES: Record<string, string> = {
   'A to Z': '/clubs/AtoZ.png',
   'TOY': '/clubs/TOY.png',
@@ -71,4 +65,10 @@ export const CLUB_IMAGES: Record<string, string> = {
   'YITC': '/clubs/YITC.png',
   'BPM': '/clubs/BPM.png',
   'EBS': '/clubs/EBS.png',
+};
+
+export const BUILDING_IMAGES: Record<number, string> = {
+  1: '/buildings/housechurch.png',
+  2: '/buildings/branch.png',
+  3: '/buildings/church.png',
 };
