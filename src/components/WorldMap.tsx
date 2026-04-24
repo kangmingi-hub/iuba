@@ -544,3 +544,4 @@ if (viewMode === '2d') {
       </div>
     </div>
   );
+}
