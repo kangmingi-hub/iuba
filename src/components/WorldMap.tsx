@@ -8,7 +8,7 @@ import * as d3 from 'd3';
 import * as topojson from 'topojson-client';
 import { CountryState, Player } from '../types';
 import { COUNTRY_PRICES, DEFAULT_COUNTRY_PRICE, BUILDING_TIERS, CLUB_IMAGES, BUILDING_IMAGES, COUNTRY_NAME_MAP, getBuildingTiers } from '../constants';
-import { Globe as GlobeIcon, ZoomIn, ZoomOut, ArrowLeft, RefreshCcw } from 'lucide-react';
+import { Globe as GlobeIcon, ZoomIn, ArrowLeft, RefreshCcw } from 'lucide-react';
 
 interface WorldMapProps {
   countries: Record<string, CountryState>;
@@ -20,36 +20,77 @@ type ViewMode = '3d' | '2d';
 type Continent = 'world' | 'africa' | 'asia' | 'europe' | 'northAmerica' | 'southAmerica' | 'oceania';
 
 const CONTINENTS: Record<Continent, { name: string; center: [number, number]; scale: number }> = {
-  world:         { name: '전체 지도',   center: [0, 0],      scale: 1   },
-  africa:        { name: '아프리카',    center: [20, -5],    scale: 3.2 },
-  asia:          { name: '아시아',      center: [95, 35],    scale: 2.8 },
-  europe:        { name: '유럽',        center: [15, 54],    scale: 6.5 },
-  northAmerica:  { name: '북미',        center: [-100, 45],  scale: 2.8 },
-  southAmerica:  { name: '남미',        center: [-58, -20],  scale: 3.2 },
-  // ✅ scale 5.0 → 4.5 조정 (메르카토르에서 과도하게 확대되던 문제 수정)
-  oceania:       { name: '오세아니아',  center: [148, -27],  scale: 4.5 },
+  world:        { name: '전체 지도',  center: [0, 0],     scale: 1   },
+  africa:       { name: '아프리카',   center: [20, -5],   scale: 3.2 },
+  asia:         { name: '아시아',     center: [95, 35],   scale: 2.8 },
+  europe:       { name: '유럽',       center: [15, 54],   scale: 6.5 },
+  northAmerica: { name: '북미',       center: [-100, 45], scale: 2.8 },
+  southAmerica: { name: '남미',       center: [-58, -20], scale: 3.2 },
+  oceania:      { name: '오세아니아', center: [148, -27], scale: 4.5 },
 };
 
 export default function WorldMap({ countries, players, onCountryClick }: WorldMapProps) {
   const svgRef = useRef<SVGSVGElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [topology, setTopology] = useState<any>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('3d');
   const [rotation, setRotation] = useState<[number, number, number]>([-10, -20, 0]);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [selectedContinent, setSelectedContinent] = useState<Continent>('world');
   const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown>>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  
+  const isDraggingRef = useRef(false); // ✅ state 대신 ref 사용 (리렌더 없이)
+
   useEffect(() => {
     fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
       .then(res => res.json())
       .then(data => setTopology(data));
   }, []);
 
-useEffect(() => {
+  // ✅ 터치 이벤트 — 별도 useEffect로 분리 (D3와 충돌 없음)
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    let lastTouch: Touch | null = null;
+
+    const onTouchStart = (e: TouchEvent) => {
+      isDraggingRef.current = true;
+      lastTouch = e.touches[0];
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      if (!lastTouch || viewMode !== '3d') return;
+      e.preventDefault(); // ✅ 스크롤 막기
+      const touch = e.touches[0];
+      const dx = touch.clientX - lastTouch.clientX;
+      const dy = touch.clientY - lastTouch.clientY;
+      const sensitivity = 0.4 / zoomLevel;
+      setRotation(prev => [
+        prev[0] + dx * sensitivity,
+        prev[1] - dy * sensitivity,
+        prev[2],
+      ]);
+      lastTouch = touch;
+    };
+
+    const onTouchEnd = () => {
+      isDraggingRef.current = false;
+      lastTouch = null;
+    };
+
+    el.addEventListener('touchstart', onTouchStart, { passive: true });
+    el.addEventListener('touchmove', onTouchMove, { passive: false }); // ✅ passive: false 로 preventDefault 가능
+    el.addEventListener('touchend', onTouchEnd);
+
+    return () => {
+      el.removeEventListener('touchstart', onTouchStart);
+      el.removeEventListener('touchmove', onTouchMove);
+      el.removeEventListener('touchend', onTouchEnd);
+    };
+  }, [viewMode, zoomLevel]);
+
+  useEffect(() => {
     if (!topology || !svgRef.current) return;
-    console.log('🔥 viewMode:', viewMode);
-    console.log('🌍 countries:', JSON.stringify(countries));
 
     const svg = d3.select(svgRef.current);
     const width = svgRef.current.clientWidth;
@@ -58,27 +99,23 @@ useEffect(() => {
     svg.selectAll('*').remove();
 
     const minSize = Math.min(width, height);
-    
-    // Projection setup
-    const projection = viewMode === '3d' 
+
+    const projection = viewMode === '3d'
       ? d3.geoOrthographic()
           .scale(minSize / 2.2 * zoomLevel)
           .translate([width / 2, height / 2])
           .rotate(rotation)
       : d3.geoMercator()
-          // ✅ 대륙 이동 계산용 projection과 동일한 값으로 통일
           .scale(width / 6.5)
           .translate([width / 2, height / 1.8]);
 
     const path = d3.geoPath().projection(projection);
 
-    // Features
     const features = topojson.feature(topology, topology.objects.countries) as any;
     const filteredFeatures = features.features.filter((f: any) => f.id !== '010' && f.properties.name !== 'Antarctica');
 
     const gMain = svg.append('g').attr('class', 'main-group');
 
-    // Drag & Zoom Interactions
     const zoom = d3.zoom<SVGSVGElement, unknown>()
       .scaleExtent([1, 15])
       .on('zoom', (event) => {
@@ -91,71 +128,35 @@ useEffect(() => {
       .filter((event) => {
         return viewMode === '2d' || event.type !== 'mousedown';
       });
-    
+
     // @ts-ignore
     zoomRef.current = zoom;
     svg.call(zoom);
 
-    // Unified Drag Handler
-  const drag = d3.drag<SVGSVGElement, unknown>()
-    .on('start', () => setIsDragging(true))   // ← 추가
-    .on('drag', (event) => {
-      if (viewMode === '3d') {
-        const sensitivity = 0.4 / zoomLevel;
-        setRotation(prev => [
-          prev[0] + event.dx * sensitivity,
-          prev[1] - event.dy * sensitivity,
-          prev[2]
-        ]);
-      } else {
-        const transform = d3.zoomTransform(svg.node() as any);
-        svg.call(zoom.transform, transform.translate(event.dx / transform.k, event.dy / transform.k));
-      }
-    })
-    .on('end', () => setIsDragging(false));
-    
+    const drag = d3.drag<SVGSVGElement, unknown>()
+      .on('start', () => { isDraggingRef.current = true; })
+      .on('drag', (event) => {
+        if (viewMode === '3d') {
+          const sensitivity = 0.4 / zoomLevel;
+          setRotation(prev => [
+            prev[0] + event.dx * sensitivity,
+            prev[1] - event.dy * sensitivity,
+            prev[2],
+          ]);
+        } else {
+          const transform = d3.zoomTransform(svg.node() as any);
+          svg.call(zoom.transform, transform.translate(event.dx / transform.k, event.dy / transform.k));
+        }
+      })
+      .on('end', () => { isDraggingRef.current = false; });
+
     svg.call(drag as any);
-
-  const svgEl = svgRef.current;
-let lastTouch: Touch | null = null;
-
-const onTouchStart = (e: TouchEvent) => {
-  setIsDragging(true);
-  lastTouch = e.touches[0];
-};
-
-const onTouchMove = (e: TouchEvent) => {
-  if (!lastTouch) return;
-  const touch = e.touches[0];
-  const dx = touch.clientX - lastTouch.clientX;
-  const dy = touch.clientY - lastTouch.clientY;
-
-  if (viewMode === '3d') {
-    const sensitivity = 0.4 / zoomLevel;
-    setRotation(prev => [
-      prev[0] + dx * sensitivity,
-      prev[1] - dy * sensitivity,
-      prev[2]
-    ]);
-  }
-  lastTouch = touch;
-};
-
-const onTouchEnd = () => {
-  setIsDragging(false);
-  lastTouch = null;
-};
-
-svgEl?.addEventListener('touchstart', onTouchStart, { passive: true });
-svgEl?.addEventListener('touchmove', onTouchMove, { passive: true });
-svgEl?.addEventListener('touchend', onTouchEnd);
 
     // Perspective Transformation
     let gPerspective = gMain;
     if (viewMode === '2d') {
-     gPerspective = gMain.append('g')
-      
-      // Grid
+      gPerspective = gMain.append('g');
+
       const gridSize = 100;
       const gridG = gPerspective.append('g').attr('class', 'grid');
       const gBound = 4000;
@@ -168,11 +169,10 @@ svgEl?.addEventListener('touchend', onTouchEnd);
     }
 
     if (viewMode === '3d') {
-      // Glow/Aura for Globe
       gMain.append('circle')
         .attr('cx', width / 2)
         .attr('cy', height / 2)
-        .attr('r', (minSize / 2.2 * zoomLevel))
+        .attr('r', minSize / 2.2 * zoomLevel)
         .attr('fill', 'url(#globe-gradient)')
         .attr('opacity', 0.4);
 
@@ -183,7 +183,6 @@ svgEl?.addEventListener('touchend', onTouchEnd);
 
       gMain.append('path')
         .datum({ type: 'Sphere' })
-        .attr('class', 'sphere')
         .attr('d', path as any)
         .attr('fill', '#f8fafc')
         .attr('stroke', '#e2e8f0')
@@ -191,8 +190,6 @@ svgEl?.addEventListener('touchend', onTouchEnd);
     }
 
     const gCountries = gPerspective.append('g').attr('class', 'countries');
-    
-    // Tooltip Helper
 
     const tooltip = d3.select('body').append('div')
       .attr('class', 'absolute hidden pointer-events-none z-50')
@@ -207,14 +204,13 @@ svgEl?.addEventListener('touchend', onTouchEnd);
       .style('font-weight', '700')
       .style('box-shadow', '0 4px 20px rgba(120,150,190,0.2)')
       .style('min-width', '130px');
-  
+
     const handleMouseOver = (event: any, d: any) => {
       const countryName = d.properties.name;
       const state = countries[countryName];
       const player = state?.ownerId ? players.find(p => p.id === state.ownerId) : null;
       const bCount = state?.buildings || 0;
       const bName = bCount > 0 ? BUILDING_TIERS[bCount - 1].name : '없음';
-
       tooltip.classed('hidden', false).html(`
         <div class="mb-2 border-b border-slate-100 pb-2 text-blue-600 uppercase tracking-widest text-[9px] font-black">${countryName}</div>
         <div class="space-y-1">
@@ -223,29 +219,21 @@ svgEl?.addEventListener('touchend', onTouchEnd);
         </div>
       `);
     };
-
     const handleMouseMove = (event: any) => {
       tooltip.style('left', (event.pageX + 15) + 'px').style('top', (event.pageY - 15) + 'px');
     };
+    const handleMouseOut = () => { tooltip.classed('hidden', true); };
 
-    const handleMouseOut = () => {
-      tooltip.classed('hidden', true);
-    };
-
-    // Individual country stacking with "Rising" animation
     if (viewMode === '2d') {
-  // buildings 레벨 낮은 나라부터 그려서 높은 나라가 앞에 보이게
- const sortedFeatures = [...filteredFeatures].sort((a: any, b: any) => {
-  const centroidA = path.centroid(a);
-  const centroidB = path.centroid(b);
-  const yA = centroidA ? centroidA[1] : 0;
-  const yB = centroidB ? centroidB[1] : 0;
-  return yA - yB; // 위쪽(y 작은) 나라 먼저, 아래쪽 나라 나중에
-});
+      const sortedFeatures = [...filteredFeatures].sort((a: any, b: any) => {
+        const yA = path.centroid(a)?.[1] ?? 0;
+        const yB = path.centroid(b)?.[1] ?? 0;
+        return yA - yB;
+      });
 
-  sortedFeatures.forEach((feature: any) => {
+      sortedFeatures.forEach((feature: any) => {
         const countryName = feature.properties.name;
-        const state = countries[countryName] || countries[feature.id] || 
+        const state = countries[countryName] || countries[feature.id] ||
           Object.values(countries).find(c => c.name === countryName || c.id === countryName);
         const isOwned = !!(state?.ownerId && players.some(p => p.id === state.ownerId));
         const targetDepth = isOwned ? (2 + state.buildings * 1) : 0;
@@ -253,98 +241,61 @@ svgEl?.addEventListener('touchend', onTouchEnd);
         const countryG = gCountries.append('g').attr('class', 'country-stack');
 
         if (isOwned) {
-          // Shadow
-          countryG.append('path')
-            .datum(feature)
-            .attr('d', path as any)
-            .attr('fill', 'rgba(0,0,0,0.1)')
-            .attr('filter', 'blur(4px)')
+          countryG.append('path').datum(feature).attr('d', path as any)
+            .attr('fill', 'rgba(0,0,0,0.1)').attr('filter', 'blur(4px)')
             .attr('transform', `translate(0, ${targetDepth + 4})`);
 
-          // Side Walls
-          const wallSteps = 4;
-          for (let i = 1; i <= wallSteps; i++) {
-            countryG.append('path')
-              .datum(feature)
-              .attr('d', path as any)
-              .attr('transform', `translate(0, ${(i/wallSteps) * targetDepth})`)
+          for (let i = 1; i <= 4; i++) {
+            countryG.append('path').datum(feature).attr('d', path as any)
+              .attr('transform', `translate(0, ${(i / 4) * targetDepth})`)
               .attr('fill', () => {
                 const baseColor = players.find(p => p.id === state.ownerId)?.color || '#cbd5e1';
-                return d3.color(baseColor)?.darker(0.6 * (i/wallSteps))?.toString() || baseColor;
+                return d3.color(baseColor)?.darker(0.6 * (i / 4))?.toString() || baseColor;
               })
               .attr('class', 'pointer-events-none');
           }
         }
 
-        // Top Surface
-        countryG.append('path')
-          .datum(feature)
-          .attr('d', path as any)
+        countryG.append('path').datum(feature).attr('d', path as any)
           .attr('class', 'country-top cursor-pointer')
           .attr('fill', isOwned ? players.find(p => p.id === state!.ownerId)?.color || '#e2e8f0' : '#e2e8f0')
-          .attr('stroke', '#94a3b8')        
-          .attr('stroke-width', '0.5') 
-          .attr('vector-effect', 'non-scaling-stroke')
+          .attr('stroke', '#94a3b8').attr('stroke-width', '0.5').attr('vector-effect', 'non-scaling-stroke')
           .on('click', (event, d: any) => onCountryClick(d.properties.name, d.properties.name))
           .on('mouseover', function(event, d: any) {
             handleMouseOver(event, d);
-            d3.select(this)
-              .attr('fill-opacity', 0.8)
-              .attr('stroke', '#3b82f6')
-              .attr('stroke-width', '1.5')
-              .attr('vector-effect', 'non-scaling-stroke')
-              .raise();
+            d3.select(this).attr('fill-opacity', 0.8).attr('stroke', '#3b82f6').attr('stroke-width', '1.5').attr('vector-effect', 'non-scaling-stroke').raise();
           })
           .on('mousemove', handleMouseMove)
           .on('mouseout', function() {
             handleMouseOut();
-            d3.select(this)
-              .attr('fill-opacity', 1)
-              .attr('stroke', '#94a3b8')
-              .attr('stroke-width', '0.5')
-              .attr('vector-effect', 'non-scaling-stroke');
+            d3.select(this).attr('fill-opacity', 1).attr('stroke', '#94a3b8').attr('stroke-width', '0.5').attr('vector-effect', 'non-scaling-stroke');
           });
 
-        // Entrance Animation
         if (isOwned) {
-          countryG.attr('opacity', 0)
-            .attr('transform', 'translate(0, 0)')
-            .transition()
-            .duration(1000)
-            .delay(Math.random() * 300)
+          countryG.attr('opacity', 0).attr('transform', 'translate(0, 0)')
+            .transition().duration(1000).delay(Math.random() * 300)
             .ease(d3.easeElasticOut.amplitude(1).period(0.6))
-            .attr('opacity', 1)
-            .attr('transform', `translate(0, -${targetDepth})`);
+            .attr('opacity', 1).attr('transform', `translate(0, -${targetDepth})`);
         } else {
-          countryG.attr('opacity', 1)
-            .attr('transform', 'translate(0, 0)');
+          countryG.attr('opacity', 1).attr('transform', 'translate(0, 0)');
         }
       });
     } else {
       gCountries.selectAll('path').data(filteredFeatures).enter().append('path').attr('d', path as any)
         .attr('class', 'country-top cursor-pointer')
-        .attr('stroke', '#94a3b8')
-        .attr('stroke-width', 0.5)
-        .attr('vector-effect', 'non-scaling-stroke')
-        .attr('fill', (d: any) => countries[d.properties.name]?.ownerId ? players.find(p => p.id === countries[d.properties.name].ownerId)?.color || '#CBD5E1' : '#CBD5E1')
+        .attr('stroke', '#94a3b8').attr('stroke-width', 0.5).attr('vector-effect', 'non-scaling-stroke')
+        .attr('fill', (d: any) => countries[d.properties.name]?.ownerId
+          ? players.find(p => p.id === countries[d.properties.name].ownerId)?.color || '#CBD5E1'
+          : '#CBD5E1')
         .on('click', (event, d: any) => onCountryClick(d.properties.name, d.properties.name))
         .on('mouseover', function(event, d: any) {
           handleMouseOver(event, d);
-          d3.select(this)
-            .attr('fill-opacity', 0.8)
-            .attr('stroke', '#3b82f6')
-            .attr('stroke-width', '1.5')
-            .attr('vector-effect', 'non-scaling-stroke')
-            .raise();
+          d3.select(this).attr('fill-opacity', 0.8).attr('stroke', '#3b82f6').attr('stroke-width', '1.5').attr('vector-effect', 'non-scaling-stroke').raise();
         })
         .on('mousemove', handleMouseMove)
         .on('mouseout', function() {
           handleMouseOut();
-          d3.select(this)
-            .attr('fill-opacity', 1)
-            .attr('stroke', '#94a3b8')
-            .attr('stroke-width', '0.5')
-            .attr('vector-effect', 'non-scaling-stroke');
+          d3.select(this).attr('fill-opacity', 1).attr('stroke', '#94a3b8').attr('stroke-width', '0.5').attr('vector-effect', 'non-scaling-stroke');
         });
     }
 
@@ -353,112 +304,86 @@ svgEl?.addEventListener('touchend', onTouchEnd);
       [[100, 100], [800, 150]].forEach(([cx, cy]) => {
         gClouds.append('g').attr('transform', `translate(${cx}, ${cy})`).html('<ellipse cx="0" cy="0" rx="40" ry="20" fill="white" opacity="0.4" />');
       });
+
+      Object.values(countries).forEach((state) => {
+        if (!state?.ownerId) return;
+        const player = players.find(p => p.id === state.ownerId);
+        if (!player) return;
+
+        const mappedName = COUNTRY_NAME_MAP[state.name] || state.name;
+        const feature = filteredFeatures.find((f: any) =>
+          f.properties.name === mappedName || f.properties.name === state.name
+        );
+        if (!feature) return;
+
+        const centroid = path.centroid(feature);
+        if (!centroid || isNaN(centroid[0]) || isNaN(centroid[1])) return;
+
+        const bounds = path.bounds(feature);
+        const boundWidth = bounds[1][0] - bounds[0][0];
+        const boundHeight = bounds[1][1] - bounds[0][1];
+        const countryArea = Math.sqrt(boundWidth * boundHeight);
+        const imageSize = Math.min(Math.max(countryArea * 0.35, 10), 36);
+
+        const hasBuilding = state.buildings > 0;
+        const finalCharSize = hasBuilding ? imageSize * 0.65 : imageSize;
+        const charX = hasBuilding ? centroid[0] - imageSize * 0.15 : centroid[0];
+        const charY = hasBuilding ? centroid[1] - imageSize * 0.3 : centroid[1] - imageSize * 0.5;
+
+        if (hasBuilding) {
+          const buildingImg = BUILDING_IMAGES[state.buildings];
+          const buildingSize = imageSize * 1.0;
+          gPerspective.append('image')
+            .attr('href', buildingImg)
+            .attr('x', centroid[0] + imageSize * 0.15 - buildingSize / 2)
+            .attr('y', centroid[1] - imageSize * 0.5 - buildingSize / 2)
+            .attr('width', buildingSize).attr('height', buildingSize)
+            .attr('class', 'pointer-events-none');
+        }
+
+        gPerspective.append('image')
+          .attr('href', CLUB_IMAGES[player.name] || player.characterUrl || 'https://cdn-icons-png.flaticon.com/512/149/149071.png')
+          .attr('x', charX - finalCharSize / 2).attr('y', charY - finalCharSize / 2)
+          .attr('width', finalCharSize).attr('height', finalCharSize)
+          .attr('class', 'pointer-events-none');
+      });
     }
 
-// 캐릭터 + 건물 표시 (2D 모드만)
-if (viewMode === '2d') {
-  Object.values(countries).forEach((state) => {
-    if (!state?.ownerId) return;
-    const player = players.find(p => p.id === state.ownerId);
-    if (!player) return;
-
- const mappedName = COUNTRY_NAME_MAP[state.name] || state.name;
-  const feature = filteredFeatures.find((f: any) =>
-    f.properties.name === mappedName || f.properties.name === state.name
-  );
-  if (!feature) return;
-    console.log('✅ centroid:', state.name, path.centroid(feature));
-    const centroid = path.centroid(feature);
-    if (!centroid || isNaN(centroid[0]) || isNaN(centroid[1])) return;
-
-    const bounds = path.bounds(feature);
-    const boundWidth = bounds[1][0] - bounds[0][0];
-    const boundHeight = bounds[1][1] - bounds[0][1];
-    const countryArea = Math.sqrt(boundWidth * boundHeight);
-    const imageSize = Math.min(Math.max(countryArea * 0.35, 10), 36);
-
-    const hasBuilding = state.buildings > 0;
-    const finalCharSize = hasBuilding ? imageSize * 0.65 : imageSize;
-    const charX = hasBuilding ? centroid[0] - imageSize * 0.15 : centroid[0];
-    const charY = hasBuilding ? centroid[1] - imageSize * 0.3 : centroid[1] - imageSize * 0.5;
-    
-    // 건물 이미지 먼저 (뒤에)
-    if (hasBuilding) {
-      const buildingImg = BUILDING_IMAGES[state.buildings];
-      const buildingSize = imageSize * 1.0;
-      const buildingX = centroid[0] + imageSize * 0.15;
-      const buildingY = centroid[1] - imageSize * 0.5;
-
-      gPerspective.append('image')
-        .attr('href', buildingImg)
-        .attr('x', buildingX - buildingSize / 2)
-        .attr('y', buildingY - buildingSize / 2)
-        .attr('width', buildingSize)
-        .attr('height', buildingSize)
-        .attr('class', 'pointer-events-none');
-    }
-
-    // 캐릭터 이미지 나중에 (앞에)
-    gPerspective.append('image')
-      .attr('href', CLUB_IMAGES[player.name] || player.characterUrl || 'https://cdn-icons-png.flaticon.com/512/149/149071.png')
-      .attr('x', charX - finalCharSize / 2)
-      .attr('y', charY - finalCharSize / 2)
-      .attr('width', finalCharSize)
-      .attr('height', finalCharSize)
-      .attr('class', 'pointer-events-none');
-  });
-}
-
-        
-    return () => {
-      tooltip.remove();
-      svgEl?.removeEventListener('touchstart', onTouchStart);
-      svgEl?.removeEventListener('touchmove', onTouchMove);
-      svgEl?.removeEventListener('touchend', onTouchEnd);
-    };
+    return () => { tooltip.remove(); };
   }, [topology, countries, players, viewMode, rotation, zoomLevel]);
 
-  // ✅ Handle Continent Zooming - projection을 메인 렌더링과 동일하게 통일
   useEffect(() => {
     if (!topology || !svgRef.current || !zoomRef.current || viewMode !== '2d') return;
-
     const svg = d3.select(svgRef.current);
     const width = svgRef.current.clientWidth;
     const height = svgRef.current.clientHeight;
     const continent = CONTINENTS[selectedContinent];
-
-    // ✅ 핵심 수정: 메인 렌더링 projection과 동일한 scale/translate 사용
     const projection = d3.geoMercator()
-      .scale(width / 6.5)          // 기존 width/5.5 → width/6.5
-      .translate([width / 2, height / 1.8]);  // 기존 height/2 → height/1.8
-
+      .scale(width / 6.5)
+      .translate([width / 2, height / 1.8]);
     const center = projection(continent.center);
     if (!center) return;
-
     const transform = d3.zoomIdentity
       .translate(width / 2, height / 2)
       .scale(continent.scale)
       .translate(-center[0], -center[1]);
-
-    svg.transition()
-      .duration(1000)
-      .ease(d3.easeCubicOut)
-      .call(zoomRef.current.transform, transform);
-
+    svg.transition().duration(1000).ease(d3.easeCubicOut).call(zoomRef.current.transform, transform);
   }, [selectedContinent, topology, viewMode]);
 
+  // ✅ 자동 회전 — isDraggingRef 사용
   useEffect(() => {
-    if (viewMode !== '3d' || isDragging) return;
-  
+    if (viewMode !== '3d') return;
     const interval = setInterval(() => {
-      setRotation(prev => [prev[0] + 0.3, prev[1], prev[2]]);
+      if (!isDraggingRef.current) {
+        setRotation(prev => [prev[0] + 0.3, prev[1], prev[2]]);
+      }
     }, 16);
-  
     return () => clearInterval(interval);
-  }, [viewMode, isDragging]);
+  }, [viewMode]);
 
   return (
     <div
+      ref={containerRef}
       className="w-full h-full overflow-hidden relative rounded-[2rem]"
       style={{
         background: 'rgba(255,255,255,0.38)',
@@ -469,96 +394,56 @@ if (viewMode === '2d') {
       }}
     >
       <svg ref={svgRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
-  
-      {/* 상단 컨트롤 */}
+
       <div className="absolute top-5 left-5 flex flex-col gap-3 pointer-events-auto">
-  
-        {/* 뷰 토글 */}
-        <div
-          className="flex p-[3px] rounded-[14px] gap-[2px]"
-          style={{
-            background: 'rgba(255,255,255,0.45)',
-            border: '1px solid rgba(255,255,255,0.7)',
-            backdropFilter: 'blur(8px)',
-          }}
+        <div className="flex p-[3px] rounded-[14px] gap-[2px]"
+          style={{ background: 'rgba(255,255,255,0.45)', border: '1px solid rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)' }}
         >
-          <button
-            onClick={() => { setViewMode('3d'); setZoomLevel(1); }}
+          <button onClick={() => { setViewMode('3d'); setZoomLevel(1); }}
             className="flex items-center gap-2 px-4 py-[6px] rounded-[11px] text-[11px] font-black uppercase tracking-widest transition-all"
             style={viewMode === '3d'
               ? { background: 'rgba(255,255,255,0.88)', color: '#3b82f6', boxShadow: '0 1px 8px rgba(99,130,190,0.2)' }
-              : { background: 'transparent', color: '#6b8ab0' }
-            }
+              : { background: 'transparent', color: '#6b8ab0' }}
           >
             <GlobeIcon className="w-3.5 h-3.5" /> 3D Globe
           </button>
-          <button
-            onClick={() => { setViewMode('2d'); setZoomLevel(1); setSelectedContinent('world'); }}
+          <button onClick={() => { setViewMode('2d'); setZoomLevel(1); setSelectedContinent('world'); }}
             className="flex items-center gap-2 px-4 py-[6px] rounded-[11px] text-[11px] font-black uppercase tracking-widest transition-all"
             style={viewMode === '2d'
               ? { background: 'rgba(255,255,255,0.88)', color: '#3b82f6', boxShadow: '0 1px 8px rgba(99,130,190,0.2)' }
-              : { background: 'transparent', color: '#6b8ab0' }
-            }
+              : { background: 'transparent', color: '#6b8ab0' }}
           >
             <ArrowLeft className="w-3.5 h-3.5" /> 3D Map
           </button>
         </div>
-  
-        {/* 대륙 칩 */}
+
         {viewMode === '2d' && (
           <div className="flex flex-wrap gap-[6px] max-w-[420px]">
             {(Object.keys(CONTINENTS) as Continent[]).map((key) => (
-              <button
-                key={key}
-                onClick={() => setSelectedContinent(key)}
+              <button key={key} onClick={() => setSelectedContinent(key)}
                 className="px-[13px] py-[5px] rounded-full text-[11px] font-semibold transition-all"
                 style={selectedContinent === key
-                  ? {
-                      background: '#3b82f6',
-                      color: 'white',
-                      border: '1px solid rgba(59,130,246,0.6)',
-                      boxShadow: '0 2px 10px rgba(59,130,246,0.25)',
-                    }
-                  : {
-                      background: 'rgba(255,255,255,0.35)',
-                      color: '#5a7a9a',
-                      border: '1px solid rgba(255,255,255,0.6)',
-                      backdropFilter: 'blur(6px)',
-                    }
-                }
+                  ? { background: '#3b82f6', color: 'white', border: '1px solid rgba(59,130,246,0.6)', boxShadow: '0 2px 10px rgba(59,130,246,0.25)' }
+                  : { background: 'rgba(255,255,255,0.35)', color: '#5a7a9a', border: '1px solid rgba(255,255,255,0.6)', backdropFilter: 'blur(6px)' }}
               >
                 {CONTINENTS[key].name}
               </button>
             ))}
           </div>
         )}
-  
-        {/* 리셋 버튼 (3D) */}
+
         {viewMode === '3d' && (
-          <button
-            onClick={() => { setRotation([-10, -20, 0]); setZoomLevel(1); }}
+          <button onClick={() => { setRotation([-10, -20, 0]); setZoomLevel(1); }}
             className="flex items-center justify-center w-10 h-10 rounded-2xl transition-all active:scale-95"
-            style={{
-              background: 'rgba(255,255,255,0.45)',
-              border: '1px solid rgba(255,255,255,0.7)',
-              backdropFilter: 'blur(8px)',
-              color: '#6b8ab0',
-            }}
+            style={{ background: 'rgba(255,255,255,0.45)', border: '1px solid rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)', color: '#6b8ab0' }}
           >
             <RefreshCcw className="w-4 h-4" />
           </button>
         )}
       </div>
-  
-      {/* 힌트 박스 */}
-      <div
-        className="absolute bottom-5 left-5 px-3 py-[10px] rounded-xl text-[10px] space-y-1 font-bold uppercase tracking-tight"
-        style={{
-          background: 'rgba(255,255,255,0.55)',
-          backdropFilter: 'blur(10px)',
-          WebkitBackdropFilter: 'blur(10px)',
-          border: '1px solid rgba(255,255,255,0.75)',
-        }}
+
+      <div className="absolute bottom-5 left-5 px-3 py-[10px] rounded-xl text-[10px] space-y-1 font-bold uppercase tracking-tight"
+        style={{ background: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.75)' }}
       >
         <p className="flex items-center gap-2 text-blue-500">
           <GlobeIcon className="w-3 h-3" />
@@ -568,27 +453,15 @@ if (viewMode === '2d') {
           <ZoomIn className="w-3 h-3" /> Mouse wheel to zoom
         </p>
       </div>
-  
-      {/* Center Tiers */}
-      <div
-        className="absolute bottom-5 right-5 px-[14px] py-[10px] rounded-[14px]"
-        style={{
-          background: 'rgba(255,255,255,0.55)',
-          backdropFilter: 'blur(10px)',
-          WebkitBackdropFilter: 'blur(10px)',
-          border: '1px solid rgba(255,255,255,0.75)',
-        }}
+
+      <div className="absolute bottom-5 right-5 px-[14px] py-[10px] rounded-[14px]"
+        style={{ background: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.75)' }}
       >
-        <p className="text-[9px] font-black text-slate-400 mb-2 uppercase tracking-widest text-center">
-          Center Tiers
-        </p>
+        <p className="text-[9px] font-black text-slate-400 mb-2 uppercase tracking-widest text-center">Center Tiers</p>
         <div className="space-y-[10px]">
           {BUILDING_TIERS.map(tier => (
             <div key={tier.level} className="flex items-center gap-2">
-              <div
-                className="w-[10px] rounded-sm"
-                style={{ height: `${tier.level * 4 + 4}px`, background: '#64748b' }}
-              />
+              <div className="w-[10px] rounded-sm" style={{ height: `${tier.level * 4 + 4}px`, background: '#64748b' }} />
               <span className="text-[10px] font-bold text-slate-600">{tier.name}</span>
             </div>
           ))}
