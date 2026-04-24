@@ -156,9 +156,21 @@ useEffect(() => {
     const gCountries = gPerspective.append('g').attr('class', 'countries');
     
     // Tooltip Helper
-    const tooltip = d3.select('body').append('div')
-      .attr('class', 'absolute hidden bg-white/95 backdrop-blur-sm text-[#1E293B] p-3 rounded-2xl shadow-xl text-[11px] pointer-events-none z-50 border border-slate-200 font-bold min-w-[120px]');
 
+    const tooltip = d3.select('body').append('div')
+      .attr('class', 'absolute hidden pointer-events-none z-50')
+      .style('background', 'rgba(255,255,255,0.65)')
+      .style('backdrop-filter', 'blur(12px)')
+      .style('-webkit-backdrop-filter', 'blur(12px)')
+      .style('border', '1px solid rgba(255,255,255,0.8)')
+      .style('border-radius', '14px')
+      .style('padding', '10px 14px')
+      .style('color', '#1e293b')
+      .style('font-size', '11px')
+      .style('font-weight', '700')
+      .style('box-shadow', '0 4px 20px rgba(120,150,190,0.2)')
+      .style('min-width', '130px');
+  
     const handleMouseOver = (event: any, d: any) => {
       const countryName = d.properties.name;
       const state = countries[countryName];
