@@ -40,7 +40,15 @@ export default function App() {
   return (
     <div className="relative min-h-screen text-[#e2e8f0] font-sans p-4 md:p-8" style={{background: 'linear-gradient(135deg, #1a2a4a 0%, #2a3f6f 30%, #1e3a5f 60%, #0f1e3a 100%)'}}>
      <HologramBackground />
-     <header className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-center gap-4 bg-white/15 border border-white/30 p-6 rounded-2xl backdrop-blur-xl shadow-xl shadow-blue-900/30">
+     <header className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-center gap-4 p-6 rounded-2xl"
+        style={{
+          background: 'rgba(255,255,255,0.38)',
+          backdropFilter: 'blur(28px)',
+          WebkitBackdropFilter: 'blur(28px)',
+          border: '1px solid rgba(255,255,255,0.75)',
+          boxShadow: '0 4px 32px rgba(120,150,190,0.15), inset 0 1px 0 rgba(255,255,255,0.85)',
+        }}
+      >
         <div className="flex items-center gap-3">
           <div className="bg-blue-600 p-3 rounded-2xl shadow-md">
             <MapPin className="w-8 h-8 text-white" />
@@ -53,7 +61,13 @@ export default function App() {
           </div>
         </div>
 
-        <div className="flex bg-white/80 backdrop-blur-md border border-white/40 p-1 rounded-xl flex-wrap gap-1">
+       <div className="flex p-1 rounded-xl flex-wrap gap-1"
+        style={{
+          background: 'rgba(255,255,255,0.45)',
+          backdropFilter: 'blur(8px)',
+          border: '1px solid rgba(255,255,255,0.7)',
+        }}
+>
           {[
             { key: 'map', icon: <MapIcon className="w-4 h-4" />, label: '지도' },
             ...(currentUser?.role === 'admin' ? [
@@ -85,7 +99,7 @@ export default function App() {
 
         <div className="flex items-center gap-4">
           {currentUser ? (
-            <div className="flex items-center gap-3 pl-4 border-l border-[#E2E8F0]">
+            <div className="flex items-center gap-3 pl-4 border-l border-white/30">
               <div className="text-right hidden md:block">
                 <p className="text-[10px] font-extrabold text-blue-300 uppercase tracking-widest leading-none mb-1">Authenticated</p>
                 <p className="text-sm font-black text-white">{currentUser.username}</p>
