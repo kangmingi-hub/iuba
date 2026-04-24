@@ -55,9 +55,9 @@ export default function App() {
           </div>
           <div>
             <h1 className="text-3xl font-extrabold tracking-tight text-white">
-              📍 IUBA경상대 <span className="text-blue-400 font-normal">센터 땅따먹기</span>
+              📍 IUBA 경상대센터 <span className="text-blue-400 font-normal">땅따먹기</span>
             </h1>
-            <p className="text-blue-200 text-[10px] font-bold uppercase tracking-widest">하나님 나라의 확장과 선교 미션</p>
+            <p className="text-blue-200 text-[10px] font-bold uppercase tracking-widest">전 세계에 하나님의 나라를 건설하자</p>
           </div>
         </div>
 
