@@ -116,6 +116,47 @@ useEffect(() => {
     
     svg.call(drag as any);
 
+  const svgEl = svgRef.current;
+let lastTouch: Touch | null = null;
+
+const onTouchStart = (e: TouchEvent) => {
+  setIsDragging(true);
+  lastTouch = e.touches[0];
+};
+
+const onTouchMove = (e: TouchEvent) => {
+  if (!lastTouch) return;
+  const touch = e.touches[0];
+  const dx = touch.clientX - lastTouch.clientX;
+  const dy = touch.clientY - lastTouch.clientY;
+
+  if (viewMode === '3d') {
+    const sensitivity = 0.4 / zoomLevel;
+    setRotation(prev => [
+      prev[0] + dx * sensitivity,
+      prev[1] - dy * sensitivity,
+      prev[2]
+    ]);
+  }
+  lastTouch = touch;
+};
+
+const onTouchEnd = () => {
+  setIsDragging(false);
+  lastTouch = null;
+};
+
+svgEl?.addEventListener('touchstart', onTouchStart, { passive: true });
+svgEl?.addEventListener('touchmove', onTouchMove, { passive: true });
+svgEl?.addEventListener('touchend', onTouchEnd);
+
+return () => {
+  tooltip.remove();
+  svgEl?.removeEventListener('touchstart', onTouchStart);
+  svgEl?.removeEventListener('touchmove', onTouchMove);
+  svgEl?.removeEventListener('touchend', onTouchEnd);
+};
+
     // Perspective Transformation
     let gPerspective = gMain;
     if (viewMode === '2d') {
