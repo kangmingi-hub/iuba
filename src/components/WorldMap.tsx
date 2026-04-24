@@ -150,13 +150,6 @@ svgEl?.addEventListener('touchstart', onTouchStart, { passive: true });
 svgEl?.addEventListener('touchmove', onTouchMove, { passive: true });
 svgEl?.addEventListener('touchend', onTouchEnd);
 
-return () => {
-  tooltip.remove();
-  svgEl?.removeEventListener('touchstart', onTouchStart);
-  svgEl?.removeEventListener('touchmove', onTouchMove);
-  svgEl?.removeEventListener('touchend', onTouchEnd);
-};
-
     // Perspective Transformation
     let gPerspective = gMain;
     if (viewMode === '2d') {
@@ -417,7 +410,12 @@ if (viewMode === '2d') {
 }
 
         
-    return () => tooltip.remove();
+    return () => {
+      tooltip.remove();
+      svgEl?.removeEventListener('touchstart', onTouchStart);
+      svgEl?.removeEventListener('touchmove', onTouchMove);
+      svgEl?.removeEventListener('touchend', onTouchEnd);
+    };
   }, [topology, countries, players, viewMode, rotation, zoomLevel]);
 
   // ✅ Handle Continent Zooming - projection을 메인 렌더링과 동일하게 통일
