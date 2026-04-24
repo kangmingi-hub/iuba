@@ -27,90 +27,124 @@ export default function AdminPanel({ players, onSubmit, startDate, onStartDateCh
   };
 
   return (
-    <motion.div
-      key="admin"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 20 }}
-      className="sleek-card flex flex-col"
-    >
-      <div className="sleek-panel-header">
-        <h2 className="sleek-panel-title">선교 실적 입력 센터</h2>
-      </div>
-     <div className="p-8 max-w-md mx-auto w-full overflow-y-auto">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-[10px] font-extrabold text-[#64748B] mb-2 uppercase tracking-widest">대원 선택</label>
-            <select
-              value={adminPlayerId}
-              onChange={(e) => setAdminPlayerId(e.target.value)}
-              className="w-full bg-[#FAFBFF] border border-[#E2E8F0] rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm font-medium"
-            >
-              {players.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-[10px] font-extrabold text-[#64748B] mb-2 uppercase tracking-widest">활동 항목</label>
-            <div className="grid grid-cols-2 gap-4">
-              <button type="button" onClick={() => setAdminType('evangelism')}
-                className={cn("py-4 rounded-xl border flex flex-col items-center gap-2 transition-all",
-                  adminType === 'evangelism' ? "bg-amber-50 border-amber-500 text-amber-700 shadow-sm" : "border-[#E2E8F0] text-[#64748B] hover:border-slate-300"
-                )}>
-                <Users className="w-5 h-5" />
-                <span className="text-[10px] font-bold uppercase tracking-wide">전도 (GOLD)</span>
-              </button>
-              <button type="button" onClick={() => setAdminType('speech')}
-                className={cn("py-4 rounded-xl border flex flex-col items-center gap-2 transition-all",
-                  adminType === 'speech' ? "bg-blue-50 border-blue-500 text-blue-700 shadow-sm" : "border-[#E2E8F0] text-[#64748B] hover:border-slate-300"
-                )}>
-                <Building2 className="w-5 h-5" />
-                <span className="text-[10px] font-bold uppercase tracking-wide">발표 (POWER)</span>
-              </button>
+      <motion.div
+        key="admin"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 20 }}
+        className="flex flex-col rounded-2xl overflow-hidden"
+        style={{
+          background: 'rgba(255,255,255,0.38)',
+          backdropFilter: 'blur(28px)',
+          WebkitBackdropFilter: 'blur(28px)',
+          border: '1px solid rgba(255,255,255,0.75)',
+          boxShadow: '0 4px 32px rgba(120,150,190,0.15), inset 0 1px 0 rgba(255,255,255,0.85)',
+        }}
+      >
+        <div className="flex justify-between items-center px-6 py-4 border-b border-white/30">
+          <h2 className="text-sm font-bold text-slate-700 tracking-wide">선교 실적 입력 센터</h2>
+        </div>
+      
+        <div className="p-8 max-w-md mx-auto w-full overflow-y-auto">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label className="block text-[10px] font-extrabold text-slate-500 mb-2 uppercase tracking-widest">대원 선택</label>
+              <select
+                value={adminPlayerId}
+                onChange={(e) => setAdminPlayerId(e.target.value)}
+                className="w-full rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-400 outline-none transition-all text-sm font-medium text-slate-700"
+                style={{
+                  background: 'rgba(255,255,255,0.55)',
+                  border: '1px solid rgba(255,255,255,0.75)',
+                  backdropFilter: 'blur(8px)',
+                }}
+              >
+                {players.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </select>
             </div>
-          </div>
-
-          <div>
-            <label className="block text-[10px] font-extrabold text-[#64748B] mb-2 uppercase tracking-widest">실적 점수</label>
-            <input
-              type="number"
-              value={adminValue || ''}
-              onChange={(e) => setAdminValue(parseInt(e.target.value) || 0)}
-              placeholder="0"
-              className="w-full bg-[#FAFBFF] border border-[#E2E8F0] rounded-xl px-4 py-4 text-3xl font-mono text-center focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-300"
-            />
-          </div>
-
-          <button type="submit" disabled={adminValue <= 0}
-            className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 py-4 rounded-xl font-bold text-white shadow-lg shadow-blue-500/20 transition-all active:scale-[0.98]">
-            실적 등록하기
-          </button>
-          <div className="border-t border-[#E2E8F0] pt-6">
-  <label className="block text-[10px] font-extrabold text-[#64748B] mb-2 uppercase tracking-widest">
-    점수 집계 시작 날짜
-  </label>
-  <div className="flex gap-3">
-    <input
-      type="date"
-      value={startDate}
-      onChange={(e) => onStartDateChange(e.target.value)}
-      className="flex-1 bg-[#FAFBFF] border border-[#E2E8F0] rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none"
-    />
-    <button
-      type="button"
-      onClick={() => onRefresh(startDate)}
-      className="px-5 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-sm transition-all"
-    >
-      적용
-    </button>
-  </div>
-  <p className="mt-2 text-[10px] text-[#64748B]">
-    이 날짜 이후 활동만 점수에 반영됩니다.
-  </p>
-</div>
-          
-        </form>
-      </div>
-    </motion.div>
-  );
-}
+      
+            <div>
+              <label className="block text-[10px] font-extrabold text-slate-500 mb-2 uppercase tracking-widest">활동 항목</label>
+              <div className="grid grid-cols-2 gap-4">
+                <button type="button" onClick={() => setAdminType('evangelism')}
+                  className={cn("py-4 rounded-xl border flex flex-col items-center gap-2 transition-all",
+                    adminType === 'evangelism'
+                      ? "bg-amber-50 border-amber-400 text-amber-700 shadow-sm"
+                      : "text-slate-500 hover:border-slate-300"
+                  )}
+                  style={adminType !== 'evangelism' ? {
+                    background: 'rgba(255,255,255,0.45)',
+                    border: '1px solid rgba(255,255,255,0.6)',
+                  } : {}}
+                >
+                  <Users className="w-5 h-5" />
+                  <span className="text-[10px] font-bold uppercase tracking-wide">전도 (GOLD)</span>
+                </button>
+                <button type="button" onClick={() => setAdminType('speech')}
+                  className={cn("py-4 rounded-xl border flex flex-col items-center gap-2 transition-all",
+                    adminType === 'speech'
+                      ? "bg-blue-50 border-blue-400 text-blue-700 shadow-sm"
+                      : "text-slate-500 hover:border-slate-300"
+                  )}
+                  style={adminType !== 'speech' ? {
+                    background: 'rgba(255,255,255,0.45)',
+                    border: '1px solid rgba(255,255,255,0.6)',
+                  } : {}}
+                >
+                  <Building2 className="w-5 h-5" />
+                  <span className="text-[10px] font-bold uppercase tracking-wide">발표 (POWER)</span>
+                </button>
+              </div>
+            </div>
+      
+            <div>
+              <label className="block text-[10px] font-extrabold text-slate-500 mb-2 uppercase tracking-widest">실적 점수</label>
+              <input
+                type="number"
+                value={adminValue || ''}
+                onChange={(e) => setAdminValue(parseInt(e.target.value) || 0)}
+                placeholder="0"
+                className="w-full rounded-xl px-4 py-4 text-3xl font-mono text-center focus:ring-2 focus:ring-blue-400 outline-none transition-all placeholder:text-slate-300 text-slate-700"
+                style={{
+                  background: 'rgba(255,255,255,0.55)',
+                  border: '1px solid rgba(255,255,255,0.75)',
+                  backdropFilter: 'blur(8px)',
+                }}
+              />
+            </div>
+      
+            <button type="submit" disabled={adminValue <= 0}
+              className="w-full bg-blue-500 hover:bg-blue-400 disabled:opacity-50 py-4 rounded-xl font-bold text-white shadow-lg shadow-blue-400/20 transition-all active:scale-[0.98]">
+              실적 등록하기
+            </button>
+      
+            <div className="pt-6" style={{ borderTop: '1px solid rgba(255,255,255,0.5)' }}>
+              <label className="block text-[10px] font-extrabold text-slate-500 mb-2 uppercase tracking-widest">
+                점수 집계 시작 날짜
+              </label>
+              <div className="flex gap-3">
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => onStartDateChange(e.target.value)}
+                  className="flex-1 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-blue-400 outline-none text-slate-700"
+                  style={{
+                    background: 'rgba(255,255,255,0.55)',
+                    border: '1px solid rgba(255,255,255,0.75)',
+                    backdropFilter: 'blur(8px)',
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => onRefresh(startDate)}
+                  className="px-5 py-3 bg-blue-500 hover:bg-blue-400 text-white rounded-xl font-bold text-sm transition-all">
+                  적용
+                </button>
+              </div>
+              <p className="mt-2 text-[10px] text-slate-400">이 날짜 이후 활동만 점수에 반영됩니다.</p>
+            </div>
+          </form>
+        </div>
+      </motion.div>
+      );
+    }
