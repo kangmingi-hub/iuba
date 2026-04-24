@@ -106,7 +106,7 @@ export default function LoginOverlay({ isVisible, onLogin }: Props) {
               Mission Entry
             </h2>
             <p className="text-slate-500 text-sm font-medium mb-10 italic">
-              "온 세계전도 경상대 IUBA 센터가 완료 하겠습니다!."
+              "온 세계전도 경상대 IUBA 센터가 완료 하겠습니다!"
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-6">
