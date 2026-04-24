@@ -21,16 +21,24 @@ interface Props {
 
 export default function Leaderboard({ clubPoints, players, countries, isSyncing, onRefresh, onReset, onResetManual, currentUser }: Props) {
   return (
-    <div className="flex flex-col h-full overflow-hidden rounded-2xl border border-white/20 bg-white/10 backdrop-blur-xl shadow-xl shadow-blue-900/20">
+    <div className="flex flex-col h-full overflow-hidden rounded-2xl"
+      style={{
+        background: 'rgba(255,255,255,0.38)',
+        backdropFilter: 'blur(28px)',
+        WebkitBackdropFilter: 'blur(28px)',
+        border: '1px solid rgba(255,255,255,0.75)',
+        boxShadow: '0 4px 32px rgba(120,150,190,0.15), inset 0 1px 0 rgba(255,255,255,0.85)',
+      }}
+    >
 
       {/* 헤더 */}
-      <div className="flex justify-between items-center px-5 py-4 border-b border-white/15">
-        <h2 className="text-sm font-bold text-white tracking-wide">지역별 포인트 현황</h2>
+     <div className="flex justify-between items-center px-5 py-4 border-b border-white/30">
+      <h2 className="text-sm font-bold text-slate-700 tracking-wide">지역별 포인트 현황</h2>
         <button
           onClick={onRefresh}
           disabled={isSyncing}
           className={cn(
-            "p-1.5 rounded-lg transition-colors text-white/40 hover:text-white/80 hover:bg-white/10",
+            "p-1.5 rounded-lg transition-colors text-slate-400 hover:text-slate-600 hover:bg-white/40",
             isSyncing && "animate-spin"
           )}
         >
@@ -120,7 +128,7 @@ export default function Leaderboard({ clubPoints, players, countries, isSyncing,
 
       {/* 어드민 버튼 */}
       {currentUser?.role === 'admin' && (
-        <div className="mt-auto p-3 border-t border-white/15 space-y-2">
+        <div className="mt-auto p-3 border-t border-white/30 space-y-2">
           <button
             onClick={onResetManual}
             className="w-full py-2.5 text-[9px] font-black text-white/40 hover:text-amber-300 transition-colors uppercase tracking-[0.2em] bg-white/8 border border-white/15 rounded-xl hover:bg-amber-400/10 hover:border-amber-300/30"
