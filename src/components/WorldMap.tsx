@@ -38,7 +38,8 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
   const [zoomLevel, setZoomLevel] = useState(1);
   const [selectedContinent, setSelectedContinent] = useState<Continent>('world');
   const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown>>(null);
-
+  const [isDragging, setIsDragging] = useState(false);
+  
   useEffect(() => {
     fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
       .then(res => res.json())
@@ -96,20 +97,22 @@ useEffect(() => {
     svg.call(zoom);
 
     // Unified Drag Handler
-    const drag = d3.drag<SVGSVGElement, unknown>()
-      .on('drag', (event) => {
-        if (viewMode === '3d') {
-          const sensitivity = 0.4 / zoomLevel;
-          setRotation(prev => [
-            prev[0] + event.dx * sensitivity, 
-            prev[1] - event.dy * sensitivity, 
-            prev[2]
-          ]);
-        } else {
-          const transform = d3.zoomTransform(svg.node() as any);
-          svg.call(zoom.transform, transform.translate(event.dx / transform.k, event.dy / transform.k));
-        }
-      });
+  const drag = d3.drag<SVGSVGElement, unknown>()
+    .on('start', () => setIsDragging(true))   // ← 추가
+    .on('drag', (event) => {
+      if (viewMode === '3d') {
+        const sensitivity = 0.4 / zoomLevel;
+        setRotation(prev => [
+          prev[0] + event.dx * sensitivity,
+          prev[1] - event.dy * sensitivity,
+          prev[2]
+        ]);
+      } else {
+        const transform = d3.zoomTransform(svg.node() as any);
+        svg.call(zoom.transform, transform.translate(event.dx / transform.k, event.dy / transform.k));
+      }
+    })
+    .on('end', () => setIsDragging(false));
     
     svg.call(drag as any);
 
@@ -404,6 +407,16 @@ if (viewMode === '2d') {
       .call(zoomRef.current.transform, transform);
 
   }, [selectedContinent, topology, viewMode]);
+
+  useEffect(() => {
+    if (viewMode !== '3d' || isDragging) return;
+  
+    const interval = setInterval(() => {
+      setRotation(prev => [prev[0] + 0.3, prev[1], prev[2]]);
+    }, 16);
+  
+    return () => clearInterval(interval);
+  }, [viewMode, isDragging]);
 
   return (
     <div
