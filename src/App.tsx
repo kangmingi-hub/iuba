@@ -29,7 +29,7 @@ export default function App() {
     fetchClubPoints, handleLogin, handleLogout,
     handleAddMember, handleDeleteMember, handleAdminSubmit,
     handleCancelOccupation, healGhostData, buyCountry, buildInCountry, resetGame,
-    cancelBuilding, resetManualPoints
+    cancelBuilding, resetManualPoints, handleColorChange
   } = useGameState();
 
   const [selectedCountry, setSelectedCountry] = useState<{ id: string; name: string } | null>(null);
@@ -166,6 +166,7 @@ export default function App() {
                 players={gameState.players}
                 onAdd={handleAddMember}
                 onDelete={handleDeleteMember}
+                onColorChange={handleColorChange}
               />
             )}
             {activeTab === 'logs' && (
