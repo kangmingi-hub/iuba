@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { UserPlus, Trash2 } from 'lucide-react';
-import { Player } from '../types';
+import { Player, TEAM_COLORS } from '../types';
 
 interface Props {
   players: Player[];
   onAdd: (name: string) => void;
   onDelete: (playerId: string) => void;
+  onColorChange: (playerId: string, color: string) => void;
 }
 
-export default function MembersPanel({ players, onAdd, onDelete }: Props) {
+export default function MembersPanel({ players, onAdd, onDelete, onColorChange }: Props) {
   const [newMemberName, setNewMemberName] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -71,7 +72,7 @@ export default function MembersPanel({ players, onAdd, onDelete }: Props) {
                 <div key={player.id} className="p-4 rounded-2xl flex items-center justify-between transition-all hover:scale-[1.01]"
                   style={{
                     background: 'rgba(255,255,255,0.55)',
-                    border: '1px solid rgba(255,255,255,0.75)',
+                    border: `2px solid ${player.color}`,
                     backdropFilter: 'blur(8px)',
                   }}
                 >
@@ -79,7 +80,21 @@ export default function MembersPanel({ players, onAdd, onDelete }: Props) {
                     <img src={player.characterUrl} className="w-10 h-10 rounded-full bg-white/50 p-1 border border-white/60" />
                     <div>
                       <p className="text-sm font-black text-slate-700 uppercase tracking-tight">{player.name}</p>
-                      <p className="text-[9px] font-bold text-blue-500 uppercase tracking-widest">Active Member</p>
+                      {/* 색깔 선택 */}
+                      <div className="flex gap-1 mt-1 flex-wrap">
+                        {TEAM_COLORS.map(color => (
+                          <button
+                            key={color}
+                            onClick={() => onColorChange(player.id, color)}
+                            className="w-4 h-4 rounded-full border-2 transition-all"
+                            style={{
+                              backgroundColor: color,
+                              borderColor: player.color === color ? '#1e293b' : 'transparent',
+                              transform: player.color === color ? 'scale(1.3)' : 'scale(1)',
+                            }}
+                          />
+                        ))}
+                      </div>
                     </div>
                   </div>
                   <button onClick={() => onDelete(player.id)}
