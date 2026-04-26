@@ -23,6 +23,7 @@ export interface User {
   id: string;
   username: string;
   role: 'admin' | 'member';
+  password?: string;
 }
 
 export interface GameState {
