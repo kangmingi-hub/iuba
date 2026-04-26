@@ -337,12 +337,19 @@ export function useGameState() {
     }
   };
 
+  const handleColorChange = (playerId: string, color: string) => {
+  setGameState(prev => ({
+    ...prev,
+    players: prev.players.map(p => p.id === playerId ? { ...p, color } : p)
+  }));
+};
+
 return {
   gameState, currentUser, clubPoints, isSyncing,
   startDate, setStartDate: handleStartDateChange,
   fetchClubPoints, handleLogin, handleLogout,
     handleAddMember, handleDeleteMember, handleAdminSubmit,
     handleCancelOccupation, healGhostData, buyCountry, buildInCountry, resetGame,
-    cancelBuilding, resetManualPoints,
+    cancelBuilding, resetManualPoints, handleColorChange,
   };
 }
