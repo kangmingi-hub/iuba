@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Users, Building2 } from 'lucide-react';
+// 👇 Users 대신 Coins 아이콘을 불러옵니다.
+import { Coins, Building2 } from 'lucide-react';
 import { Player } from '../types';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -44,7 +45,7 @@ export default function AdminPanel({ players, onSubmit, startDate, onStartDateCh
         <div className="flex justify-between items-center px-6 py-4 border-b border-white/30">
           <h2 className="text-sm font-bold text-slate-700 tracking-wide">선교 실적 입력 센터</h2>
         </div>
-      
+        
         <div className="p-8 max-w-md mx-auto w-full overflow-y-auto">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
@@ -62,7 +63,7 @@ export default function AdminPanel({ players, onSubmit, startDate, onStartDateCh
                 {players.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
             </div>
-      
+        
             <div>
               <label className="block text-[10px] font-extrabold text-slate-500 mb-2 uppercase tracking-widest">활동 항목</label>
               <div className="grid grid-cols-2 gap-4">
@@ -77,8 +78,9 @@ export default function AdminPanel({ players, onSubmit, startDate, onStartDateCh
                     border: '1px solid rgba(255,255,255,0.6)',
                   } : {}}
                 >
-                  <Users className="w-5 h-5" />
-                  <span className="text-[10px] font-bold uppercase tracking-wide">전도 (GOLD)</span>
+                  {/* 👇 아이콘 교체 및 텍스트를 MINERAL로 변경 */}
+                  <Coins className="w-5 h-5" />
+                  <span className="text-[10px] font-bold uppercase tracking-wide">전도 (MINERAL)</span>
                 </button>
                 <button type="button" onClick={() => setAdminType('speech')}
                   className={cn("py-4 rounded-xl border flex flex-col items-center gap-2 transition-all",
@@ -91,12 +93,13 @@ export default function AdminPanel({ players, onSubmit, startDate, onStartDateCh
                     border: '1px solid rgba(255,255,255,0.6)',
                   } : {}}
                 >
+                  {/* 👇 텍스트를 GAS로 변경 */}
                   <Building2 className="w-5 h-5" />
-                  <span className="text-[10px] font-bold uppercase tracking-wide">발표 (POWER)</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wide">발표 (GAS)</span>
                 </button>
               </div>
             </div>
-      
+        
             <div>
               <label className="block text-[10px] font-extrabold text-slate-500 mb-2 uppercase tracking-widest">실적 점수</label>
               <input
@@ -112,12 +115,12 @@ export default function AdminPanel({ players, onSubmit, startDate, onStartDateCh
                 }}
               />
             </div>
-      
+        
             <button type="submit" disabled={adminValue <= 0}
               className="w-full bg-blue-500 hover:bg-blue-400 disabled:opacity-50 py-4 rounded-xl font-bold text-white shadow-lg shadow-blue-400/20 transition-all active:scale-[0.98]">
               실적 등록하기
             </button>
-      
+        
             <div className="pt-6" style={{ borderTop: '1px solid rgba(255,255,255,0.5)' }}>
               <label className="block text-[10px] font-extrabold text-slate-500 mb-2 uppercase tracking-widest">
                 점수 집계 시작 날짜
