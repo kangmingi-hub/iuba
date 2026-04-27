@@ -78,10 +78,30 @@ export function useGameState() {
 
       if (error) throw error;
       if (data) {
-        setClubPoints(data);
-        setGameState(prev => {
-          const playersMap = new Map<string, Player>(prev.players.map(p => [p.name, p]));
-          const updatedPlayers = (data as any[]).filter((club) => club && club.club_name).map((club, idx) => {
+  const MERGE_GROUPS = [
+    { newName: 'EVERGREEN+BPM+MARE', teams: ['EVERGREEN', 'BPM', 'MARE'] },
+  ];
+  const mergedTeamNames = new Set(MERGE_GROUPS.flatMap(g => g.teams));
+  const mergedData: any[] = [];
+  MERGE_GROUPS.forEach(group => {
+    const groupTeams = (data as any[]).filter(d => group.teams.includes(d.club_name));
+    if (groupTeams.length > 0) {
+      mergedData.push({
+        club_name: group.newName,
+        remaining_evangelism_points: groupTeams.reduce((sum, t) => sum + t.remaining_evangelism_points, 0),
+        remaining_speech_points: groupTeams.reduce((sum, t) => sum + t.remaining_speech_points, 0),
+      });
+    }
+  });
+  const finalData = [
+    ...(data as any[]).filter(d => !mergedTeamNames.has(d.club_name)),
+    ...mergedData,
+  ];
+
+  setClubPoints(finalData);
+  setGameState(prev => {
+    const playersMap = new Map<string, Player>(prev.players.map(p => [p.name, p]));
+    const updatedPlayers = finalData.filter((club) => club && club.club_name).map((club, idx) => {
             const existing = playersMap.get(club.club_name);
             if (existing) {
               return { ...existing, gold: club.remaining_evangelism_points, buildingPower: club.remaining_speech_points } as Player;
