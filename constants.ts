@@ -52,19 +52,19 @@ export const DEFAULT_COUNTRY_SIZE: CountrySize = 'small';
 
 export const BUILDING_TIERS_BY_SIZE: Record<CountrySize, { level: number; name: string; icon: string; cost: number }[]> = {
   small: [
-    { level: 1, name: '작은 예배소', cost: 30, icon: '⛪' },
-    { level: 2, name: '지교회', cost: 60, icon: '🕍' },
-    { level: 3, name: '정교회', cost: 90, icon: '🕌' },
+    { level: 1, name: '작은 예배소', cost: 10, icon: '⛪' },
+    { level: 2, name: '지교회', cost: 20, icon: '🕍' },
+    { level: 3, name: '정교회', cost: 30, icon: '🕌' },
   ],
   medium: [
-    { level: 1, name: '작은 예배소', cost: 40, icon: '⛪' },
-    { level: 2, name: '지교회', cost: 80, icon: '🕍' },
-    { level: 3, name: '정교회', cost: 120, icon: '🕌' },
+    { level: 1, name: '작은 예배소', cost: 10, icon: '⛪' },
+    { level: 2, name: '지교회', cost: 20, icon: '🕍' },
+    { level: 3, name: '정교회', cost: 40, icon: '🕌' },
   ],
   large: [
-    { level: 1, name: '작은 예배소', cost: 50, icon: '⛪' },
-    { level: 2, name: '지교회', cost: 100, icon: '🕍' },
-    { level: 3, name: '정교회', cost: 150, icon: '🕌' },
+    { level: 1, name: '작은 예배소', cost: 10, icon: '⛪' },
+    { level: 2, name: '지교회', cost: 30, icon: '🕍' },
+    { level: 3, name: '정교회', cost: 50, icon: '🕌' },
   ],
 };
 
