@@ -12,10 +12,12 @@ export default function HologramBackground() {
     let animationId: number;
     let time = 0;
 
-    const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
+let fixedHeight = window.innerHeight;
+const resize = () => {
+  canvas.width = window.innerWidth;
+  canvas.height = fixedHeight; // 높이는 처음 값 고정
+};
+    
     resize();
     window.addEventListener('resize', resize);
 
