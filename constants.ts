@@ -85,7 +85,7 @@ export const CLUB_IMAGES: Record<string, string> = {
   'YITC': '/clubs/YITC.png',
   'BPM': '/clubs/BPM.png',
   'EBS': '/clubs/EBS.png',
-  'EVERGREEN+BPM+MARE': '/clubs/새파일명.png', 
+  'EVERGREEN+BPM+MARE': '/clubs/EvergreenBpmMare.png', 
 };
 
 export const BUILDING_IMAGES: Record<number, string> = {
