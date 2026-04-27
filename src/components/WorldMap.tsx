@@ -78,7 +78,7 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
       lastTouch = null;
     };
 
-    el.addEventListener('touchstart', onTouchStart, { passive: true });
+    el.addEventListener('touchstart', onTouchStart, { passive: false });
     el.addEventListener('touchmove', onTouchMove, { passive: false }); // ✅ passive: false 로 preventDefault 가능
     el.addEventListener('touchend', onTouchEnd);
 
