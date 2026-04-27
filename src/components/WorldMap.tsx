@@ -391,6 +391,7 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
         WebkitBackdropFilter: 'blur(28px)',
         border: '1px solid rgba(255,255,255,0.75)',
         boxShadow: '0 4px 32px rgba(120,150,190,0.15), inset 0 1px 0 rgba(255,255,255,0.85)',
+        touchAction: 'none', 
       }}
     >
       <svg ref={svgRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
