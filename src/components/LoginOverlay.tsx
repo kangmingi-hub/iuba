@@ -4,19 +4,21 @@ import { Sword, LogIn } from 'lucide-react';
 
 interface Props {
   isVisible: boolean;
-  onLogin: (username: string) => boolean;
+  onLogin: (username: string, password: string) => boolean;
 }
 
 export default function LoginOverlay({ isVisible, onLogin }: Props) {
   const [loginUsername, setLoginUsername] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const success = onLogin(loginUsername);
+    const success = onLogin(loginUsername, loginPassword);
     if (success) {
       setLoginUsername('');
+      setLoginPassword('');
     } else {
-      alert('등록되지 않은 이름입니다. 관리자에게 문의하세요.');
+      alert('이름 또는 비밀번호가 틀렸습니다.');
     }
   };
 
