@@ -395,7 +395,7 @@ const globeR = Math.min(canvas.width, fixedHeight) * 0.28;
     <canvas
       ref={canvasRef}
       style={{
-        position: 'fixed',
+        position: 'absolute',
         top: 0,
         left: 0,
         width: '100%',
