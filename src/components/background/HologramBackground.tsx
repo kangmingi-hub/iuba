@@ -129,7 +129,7 @@ const resize = () => {
         const r = radius * Math.cos(latRad);
         if (r <= 0) continue;
         ctx.beginPath();
-        ctx.ellipse(cx, y, r, r * 0.15, 0, 0, Math.PI * 2);
+        ctx.ellipse(cx, y, r, r * 0.3, 0, 0, Math.PI * 2);
         ctx.strokeStyle = `rgba(140, 190, 255, ${lat === 0 ? 0.75 : 0.4})`;
         ctx.lineWidth = lat === 0 ? 1.5 : 0.8;
         ctx.stroke();
