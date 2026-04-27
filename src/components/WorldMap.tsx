@@ -59,24 +59,28 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
     };
 
     const onTouchMove = (e: TouchEvent) => {
-      if (!lastTouch || viewMode !== '3d') return;
-      e.preventDefault(); // ✅ 스크롤 막기
-      const touch = e.touches[0];
-      const dx = touch.clientX - lastTouch.clientX;
-      const dy = touch.clientY - lastTouch.clientY;
-      const sensitivity = 0.4 / zoomLevel;
-      setRotation(prev => [
-        prev[0] + dx * sensitivity,
-        prev[1] - dy * sensitivity,
-        prev[2],
-      ]);
-      lastTouch = touch;
-    };
+  if (!lastTouch || viewMode !== '3d') return;
+  e.preventDefault();
+  e.stopPropagation();
+  const touch = e.touches[0];
+  const dx = touch.clientX - lastTouch.clientX;
+  const dy = touch.clientY - lastTouch.clientY;
+  const sensitivity = 0.8 / zoomLevel;  // ← 0.4에서 0.8로 감도 올림
+  setRotation(prev => [
+    prev[0] + dx * sensitivity,
+    prev[1] - dy * sensitivity,
+    prev[2],
+  ]);
+  lastTouch = touch;
+  isDraggingRef.current = true;  // ← 자동회전 계속 멈춰있도록
+};
 
     const onTouchEnd = () => {
-      isDraggingRef.current = false;
-      lastTouch = null;
-    };
+  setTimeout(() => {
+    isDraggingRef.current = false;
+  }, 100);  // ← 약간의 딜레이 후 자동회전 재개
+  lastTouch = null;
+};
 
     el.addEventListener('touchstart', onTouchStart, { passive: false });
     el.addEventListener('touchmove', onTouchMove, { passive: false }); // ✅ passive: false 로 preventDefault 가능
