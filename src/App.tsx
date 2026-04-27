@@ -7,7 +7,7 @@ import React, { useState } from 'react';
 import { AnimatePresence } from 'motion/react';
 import { Map as MapIcon, PlusCircle, History, UserPlus, LogIn, LogOut, MapPin, Flag, KeyRound } from 'lucide-react';
 
-import HologramBackground from './components/HologramBackground';
+import HologramBackground from './components/background/HologramBackground';
 import WorldMap from './components/WorldMap';
 import LoginOverlay from './components/LoginOverlay';
 import CountryModal from './components/CountryModal';
