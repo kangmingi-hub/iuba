@@ -149,19 +149,19 @@ export function useGameState() {
 
 const handleLogin = (username: string, password: string) => {
   if (!username.trim()) return false;
+
   const user = gameState.users.find(u => u.username === username);
   if (user) {
-    // admin이거나 비밀번호가 없거나 비밀번호가 맞으면 통과
-    if (!user.password || user.password === password) {
-      setCurrentUser(user);
-      return true;
-    }
-    return false;
+    const pw = user.password || '1234';
+    if (pw !== password) return false;
+    setCurrentUser(user);
+    return true;
   }
   const player = gameState.players.find(p => p.name === username);
   if (player) {
     const userRecord = gameState.users.find(u => u.id === player.id);
-    if (userRecord?.password && userRecord.password !== password) return false;
+    const pw = userRecord?.password || '1234';
+    if (pw !== password) return false;
     setCurrentUser({ id: player.id, username: player.name, role: 'member' });
     return true;
   }
@@ -202,6 +202,21 @@ const handleLogin = (username: string, password: string) => {
     });
     addLog(`${player.name} 대원이 삭제되었습니다.`, 'purchase' as any);
   };
+
+  const handleChangePassword = (userId: string, oldPassword: string, newPassword: string) => {
+  const user = gameState.users.find(u => u.id === userId);
+  const pw = user?.password || '1234';
+  if (pw !== oldPassword) {
+    alert('현재 비밀번호가 틀렸습니다.');
+    return false;
+  }
+  setGameState(prev => ({
+    ...prev,
+    users: prev.users.map(u => u.id === userId ? { ...u, password: newPassword } : u)
+  }));
+  alert('비밀번호가 변경되었습니다!');
+  return true;
+};
 
   const handleAdminSubmit = (playerId: string, value: number, type: 'evangelism' | 'speech') => {
     if (value <= 0 || !playerId) return;
@@ -359,6 +374,6 @@ return {
   fetchClubPoints, handleLogin, handleLogout,
     handleAddMember, handleDeleteMember, handleAdminSubmit,
     handleCancelOccupation, healGhostData, buyCountry, buildInCountry, resetGame,
-    cancelBuilding, resetManualPoints, handleColorChange,
+    cancelBuilding, resetManualPoints, handleColorChange, handleChangePassword,
   };
 }
