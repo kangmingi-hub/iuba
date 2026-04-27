@@ -117,17 +117,19 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
     const gMain = svg.append('g').attr('class', 'main-group');
 
     const zoom = d3.zoom<SVGSVGElement, unknown>()
-      .scaleExtent([1, 15])
-      .on('zoom', (event) => {
-        if (viewMode === '2d') {
-          gMain.attr('transform', event.transform);
-        } else {
-          setZoomLevel(event.transform.k);
-        }
-      })
-      .filter((event) => {
-        return viewMode === '2d' || event.type !== 'mousedown';
-      });
+  .scaleExtent([1, 15])
+  .on('zoom', (event) => {
+    if (viewMode === '2d') {
+      gMain.attr('transform', event.transform);
+    } else {
+      setZoomLevel(event.transform.k);
+    }
+  })
+  .filter((event) => {
+    // 3D 모드에서는 터치 이벤트를 zoom이 가로채지 않음
+    if (viewMode === '3d' && event.type.startsWith('touch')) return false;
+    return viewMode === '2d' || event.type !== 'mousedown';
+  });
 
     // @ts-ignore
     zoomRef.current = zoom;
