@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Users, Building2, RefreshCcw } from 'lucide-react';
+// 👇 Coins 아이콘을 새로 추가했습니다.
+import { Users, Building2, RefreshCcw, Coins } from 'lucide-react';
 import { Player, CountryState, User } from '../types';
 import { CLUB_IMAGES } from '../constants';
 import { clsx, type ClassValue } from 'clsx';
@@ -102,22 +103,27 @@ export default function Leaderboard({ clubPoints, players, countries, isSyncing,
               <div className="flex gap-2 pt-2 border-t border-slate-200/60">
                 <div className="flex-1 flex flex-col gap-1 bg-amber-50 p-2.5 rounded-xl border border-amber-100">
                   <div className="flex items-center gap-1.5">
-                    <Users className="w-2.5 h-2.5 text-amber-500" />
-                    <span className="text-[8px] font-black text-amber-600 uppercase tracking-tighter">Evangelism</span>
+                    {/* 👇 아이콘을 Coins로, 텍스트를 MINERAL로 변경 */}
+                    <Coins className="w-2.5 h-2.5 text-amber-500" />
+                    <span className="text-[8px] font-black text-amber-600 uppercase tracking-tighter">MINERAL</span>
                   </div>
                   <div className="text-sm font-black text-amber-700 flex items-center gap-1">
+                    {/* 주의: types.ts에서 이름을 안 바꿨다면 player?.gold 그대로 두어야 합니다 */}
                     {(player?.gold ?? club.remaining_evangelism_points).toLocaleString()}
-                    <span className="text-[9px] font-bold text-amber-400">P</span>
+                    {/* 👇 단위를 P에서 M으로 변경 */}
+                    <span className="text-[9px] font-bold text-amber-400">M</span>
                   </div>
                 </div>
                 <div className="flex-1 flex flex-col gap-1 bg-blue-50 p-2.5 rounded-xl border border-blue-100">
                   <div className="flex items-center gap-1.5">
+                    {/* 👇 텍스트를 GAS로 변경 */}
                     <Building2 className="w-2.5 h-2.5 text-blue-500" />
-                    <span className="text-[8px] font-black text-blue-600 uppercase tracking-tighter">Speech</span>
+                    <span className="text-[8px] font-black text-blue-600 uppercase tracking-tighter">GAS</span>
                   </div>
                   <div className="text-sm font-black text-blue-700 flex items-center gap-1">
                     {(player?.buildingPower ?? club.remaining_speech_points).toLocaleString()}
-                    <span className="text-[9px] font-bold text-blue-400">P</span>
+                    {/* 👇 단위를 P에서 G로 변경 */}
+                    <span className="text-[9px] font-bold text-blue-400">G</span>
                   </div>
                 </div>
               </div>
