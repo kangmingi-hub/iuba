@@ -147,17 +147,26 @@ export function useGameState() {
     }));
   };
 
-  const handleLogin = (username: string) => {
-    if (!username.trim()) return false;
-    const user = gameState.users.find(u => u.username === username);
-    if (user) { setCurrentUser(user); return true; }
-    const player = gameState.players.find(p => p.name === username);
-    if (player) {
-      setCurrentUser({ id: player.id, username: player.name, role: 'member' });
+const handleLogin = (username: string, password: string) => {
+  if (!username.trim()) return false;
+  const user = gameState.users.find(u => u.username === username);
+  if (user) {
+    // admin이거나 비밀번호가 없거나 비밀번호가 맞으면 통과
+    if (!user.password || user.password === password) {
+      setCurrentUser(user);
       return true;
     }
     return false;
-  };
+  }
+  const player = gameState.players.find(p => p.name === username);
+  if (player) {
+    const userRecord = gameState.users.find(u => u.id === player.id);
+    if (userRecord?.password && userRecord.password !== password) return false;
+    setCurrentUser({ id: player.id, username: player.name, role: 'member' });
+    return true;
+  }
+  return false;
+};
 
   const handleLogout = () => setCurrentUser(null);
 
