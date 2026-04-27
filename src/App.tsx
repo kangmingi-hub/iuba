@@ -41,7 +41,7 @@ export default function App() {
   const occupiedCountries = Object.values(gameState.countries as Record<string, CountryState>).filter(c => c.ownerId);
 
   return (
-    <div className="min-h-screen text-white font-sans p-4 md:p-8" style={{ position: 'relative', background: 'linear-gradient(135deg, #050d1a 0%, #0a1628 50%, #050d1a 100%)' }}>
+    <div className="min-h-screen text-white font-sans p-4 md:p-8" style={{ position: 'relative' }}
       <HologramBackground /> 
       <header className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-center gap-4 p-6 rounded-2xl"
   style={{
