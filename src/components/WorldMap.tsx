@@ -395,9 +395,9 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
     >
       <svg ref={svgRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
 
-      <div className="absolute top-5 left-5 flex flex-col gap-3 pointer-events-auto">
+      <div className="absolute top-5 left-5 flex flex-col gap-3" style={{ pointerEvents: 'none' }}>
         <div className="flex p-[3px] rounded-[14px] gap-[2px]"
-          style={{ background: 'rgba(255,255,255,0.45)', border: '1px solid rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)' }}
+          style={{ background: 'rgba(255,255,255,0.45)', border: '1px solid rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)', pointerEvents: 'auto' }}
         >
           <button onClick={() => { setViewMode('3d'); setZoomLevel(1); }}
             className="flex items-center gap-2 px-4 py-[6px] rounded-[11px] text-[11px] font-black uppercase tracking-widest transition-all"
@@ -418,7 +418,7 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
         </div>
 
         {viewMode === '2d' && (
-          <div className="flex flex-wrap gap-[6px] max-w-[420px]">
+          <div className="flex flex-wrap gap-[6px] max-w-[420px]" style={{ pointerEvents: 'auto' }}>
             {(Object.keys(CONTINENTS) as Continent[]).map((key) => (
               <button key={key} onClick={() => setSelectedContinent(key)}
                 className="px-[13px] py-[5px] rounded-full text-[11px] font-semibold transition-all"
@@ -433,7 +433,7 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
         )}
 
         {viewMode === '3d' && (
-          <button onClick={() => { setRotation([-10, -20, 0]); setZoomLevel(1); }}
+          <button style={{ pointerEvents: 'auto' }} onClick={() => { setRotation([-10, -20, 0]); setZoomLevel(1); }}
             className="flex items-center justify-center w-10 h-10 rounded-2xl transition-all active:scale-95"
             style={{ background: 'rgba(255,255,255,0.45)', border: '1px solid rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)', color: '#6b8ab0' }}
           >
@@ -443,7 +443,7 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
       </div>
 
       <div className="absolute bottom-5 left-5 px-3 py-[10px] rounded-xl text-[10px] space-y-1 font-bold uppercase tracking-tight"
-        style={{ background: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.75)' }}
+        style={{ background: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.75)', pointerEvents: 'none' }}
       >
         <p className="flex items-center gap-2 text-blue-500">
           <GlobeIcon className="w-3 h-3" />
@@ -455,7 +455,7 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
       </div>
 
       <div className="absolute bottom-5 right-5 px-[14px] py-[10px] rounded-[14px]"
-        style={{ background: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.75)' }}
+        style={{ background: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.75)', pointerEvents: 'none' }}
       >
         <p className="text-[9px] font-black text-slate-400 mb-2 uppercase tracking-widest text-center">Center Tiers</p>
         <div className="space-y-[10px]">
