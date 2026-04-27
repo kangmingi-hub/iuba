@@ -119,8 +119,8 @@ export default function App() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <section className="lg:col-span-8 min-h-[600px] flex flex-col" style={{ touchAction: 'none' }}>
+      <main className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-8">
+        <section className="lg:col-span-4 min-h-[600px] flex flex-col" style={{ touchAction: 'none' }}>
           <Leaderboard
             clubPoints={clubPoints}
             players={gameState.players}
@@ -133,7 +133,7 @@ export default function App() {
           />
         </section>
 
-        <section className="lg:col-span-8 min-h-[600px] flex flex-col">
+        <section className="lg:col-span-4 min-h-[600px] flex flex-col">
           <AnimatePresence mode="wait">
             {activeTab === 'map' && (
               <div className="flex-1" style={{ touchAction: 'none' }}>
