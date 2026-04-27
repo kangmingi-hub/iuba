@@ -133,7 +133,7 @@ export default function App() {
           />
         </section>
 
-        <section className="col-span-4 min-h-[600px] flex flex-col"
+        <section className="col-span-4 min-h-[600px] flex flex-col">
           <AnimatePresence mode="wait">
             {activeTab === 'map' && (
               <div className="flex-1" style={{ touchAction: 'none' }}>
