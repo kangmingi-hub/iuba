@@ -11,13 +11,15 @@ export default function HologramBackground() {
 
     let animationId: number;
     let time = 0;
+    let fixedHeight = window.innerHeight;
 
-let fixedHeight = window.innerHeight;
-const resize = () => {
-  canvas.width = window.innerWidth;
-  canvas.height = fixedHeight; // 높이는 처음 값 고정
-};
-    
+    const isMobile = () => window.innerWidth < 768;
+    const isTablet = () => window.innerWidth >= 768 && window.innerWidth < 1024;
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = fixedHeight;
+    };
     resize();
     window.addEventListener('resize', resize);
 
@@ -26,7 +28,6 @@ const resize = () => {
     const toHex = (opacity: number) =>
       Math.max(0, Math.min(255, Math.floor(opacity * 255))).toString(16).padStart(2, '0');
 
-    // 파티클
     const particles: {
       x: number; y: number; vx: number; vy: number;
       size: number; opacity: number; life: number; maxLife: number;
@@ -52,52 +53,42 @@ const resize = () => {
 
     for (let i = 0; i < 100; i++) spawnParticle();
 
-    // 스캔 라인
     const scanLines: { y: number; speed: number; opacity: number; width: number }[] = [];
     for (let i = 0; i < 5; i++) {
       scanLines.push({
-        y: Math.random() * window.innerHeight,
+        y: Math.random() * fixedHeight,
         speed: (Math.random() * 0.6 + 0.4) * (Math.random() > 0.5 ? 1 : -1),
         opacity: Math.random() * 0.45 + 0.25,
         width: Math.random() * 2 + 1,
       });
     }
 
-    // 흐르는 연결선 — 시작/끝이 동일하지 않도록 보장
-    const flowLines: {
-      x: number; y: number; angle: number; length: number;
-      speed: number; opacity: number; progress: number;
-    }[] = [];
-
     const makeFlowLine = () => ({
       x: Math.random() * window.innerWidth,
-      y: Math.random() * window.innerHeight,
+      y: Math.random() * fixedHeight,
       angle: Math.random() * Math.PI * 2,
-      length: Math.random() * 120 + 80, // 최소 80 보장
+      length: Math.random() * 120 + 80,
       speed: Math.random() * 0.008 + 0.004,
       opacity: Math.random() * 0.5 + 0.3,
       progress: Math.random(),
     });
 
-    for (let i = 0; i < 12; i++) flowLines.push(makeFlowLine());
+    const flowLines = Array.from({ length: 12 }, makeFlowLine);
 
-    // HUD 요소
     const hudElements: { x: number; y: number; w: number; opacity: number; speed: number }[] = [];
     for (let i = 0; i < 8; i++) {
       hudElements.push({
         x: Math.random() * window.innerWidth,
-        y: Math.random() * window.innerHeight,
+        y: Math.random() * fixedHeight,
         w: Math.random() * 100 + 30,
         opacity: Math.random() * 0.25 + 0.12,
         speed: (Math.random() * 0.4 + 0.15) * (Math.random() > 0.5 ? 1 : -1),
       });
     }
 
-    // 지구본
     const drawGlobe = (cx: number, cy: number, radius: number, t: number) => {
       ctx.save();
 
-      // 외부 글로우
       const outerGlow = ctx.createRadialGradient(cx, cy, radius * 0.5, cx, cy, radius * 1.6);
       outerGlow.addColorStop(0, 'rgba(100, 150, 255, 0.18)');
       outerGlow.addColorStop(0.5, 'rgba(80, 120, 255, 0.08)');
@@ -107,7 +98,6 @@ const resize = () => {
       ctx.arc(cx, cy, radius * 1.6, 0, Math.PI * 2);
       ctx.fill();
 
-      // 림 글로우
       const rimGlow = ctx.createRadialGradient(cx, cy, radius * 0.8, cx, cy, radius * 1.08);
       rimGlow.addColorStop(0, 'rgba(100, 150, 255, 0)');
       rimGlow.addColorStop(0.7, 'rgba(100, 150, 255, 0.2)');
@@ -117,12 +107,10 @@ const resize = () => {
       ctx.arc(cx, cy, radius * 1.08, 0, Math.PI * 2);
       ctx.fill();
 
-      // 클리핑
       ctx.beginPath();
       ctx.arc(cx, cy, radius, 0, Math.PI * 2);
       ctx.clip();
 
-      // 위도선
       for (let lat = -80; lat <= 80; lat += 20) {
         const latRad = (lat * Math.PI) / 180;
         const y = cy + radius * Math.sin(latRad);
@@ -135,7 +123,6 @@ const resize = () => {
         ctx.stroke();
       }
 
-      // 경도선
       const numMeridians = 12;
       for (let i = 0; i < numMeridians; i++) {
         const angle = (i / numMeridians) * Math.PI * 2 + t * 0.3;
@@ -154,7 +141,6 @@ const resize = () => {
         ctx.stroke();
       }
 
-      // 대륙 점
       const continentPoints = [
         { lon: 20, lat: 50 }, { lon: 30, lat: 55 }, { lon: 40, lat: 45 },
         { lon: 60, lat: 35 }, { lon: 80, lat: 30 }, { lon: 100, lat: 25 },
@@ -180,14 +166,12 @@ const resize = () => {
 
       ctx.restore();
 
-      // 테두리
       ctx.beginPath();
       ctx.arc(cx, cy, radius, 0, Math.PI * 2);
       ctx.strokeStyle = 'rgba(140, 190, 255, 0.55)';
       ctx.lineWidth = 1.5;
       ctx.stroke();
 
-      // 극지방 포인트
       [cy - radius, cy + radius].forEach(py => {
         ctx.beginPath();
         ctx.arc(cx, py, 4, 0, Math.PI * 2);
@@ -195,7 +179,6 @@ const resize = () => {
         ctx.fill();
       });
 
-      // 회전 링 1
       ctx.save();
       ctx.translate(cx, cy);
       ctx.rotate(t * 0.2);
@@ -208,7 +191,6 @@ const resize = () => {
       ctx.setLineDash([]);
       ctx.restore();
 
-      // 회전 링 2
       ctx.save();
       ctx.translate(cx, cy);
       ctx.rotate(-t * 0.15 + 1);
@@ -226,51 +208,47 @@ const resize = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       time += 0.008;
 
-      // 왼쪽 상단 어둡게
-      const dark1 = ctx.createRadialGradient(
-        0, 0, 0,
-        canvas.width * 0.3, canvas.height * 0.3, canvas.width * 0.6
-      );
+      const w = canvas.width;
+      const h = fixedHeight;
+      const mobile = isMobile();
+      const tablet = isTablet();
+
+      // 지구본 위치 — 기기별 조정
+      const globeX = mobile ? w * 0.5 : tablet ? w * 0.7 : w * 0.78;
+      const globeY = mobile ? h * 0.25 : h * 0.5;
+      const globeR = mobile
+        ? Math.min(w, h) * 0.22
+        : tablet
+        ? Math.min(w, h) * 0.2
+        : Math.min(w, h) * 0.18;
+
+      // 배경 그라디언트
+      const dark1 = ctx.createRadialGradient(0, 0, 0, w * 0.3, h * 0.3, w * 0.6);
       dark1.addColorStop(0, 'rgba(3, 6, 18, 0.72)');
       dark1.addColorStop(1, 'rgba(3, 6, 18, 0)');
       ctx.fillStyle = dark1;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillRect(0, 0, w, h);
 
-      // 하단 어둡게
-      const dark2 = ctx.createRadialGradient(
-        canvas.width * 0.2, canvas.height, 0,
-        canvas.width * 0.2, canvas.height, canvas.width * 0.5
-      );
+      const dark2 = ctx.createRadialGradient(w * 0.2, h, 0, w * 0.2, h, w * 0.5);
       dark2.addColorStop(0, 'rgba(3, 6, 18, 0.5)');
       dark2.addColorStop(1, 'rgba(3, 6, 18, 0)');
       ctx.fillStyle = dark2;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillRect(0, 0, w, h);
 
-      // 중앙~오른쪽 밝게
-      const light1 = ctx.createRadialGradient(
-        canvas.width * 0.58, canvas.height * 0.5, canvas.width * 0.05,
-        canvas.width * 0.58, canvas.height * 0.5, canvas.width * 0.5
-      );
+      const lightX = mobile ? w * 0.5 : w * 0.58;
+      const light1 = ctx.createRadialGradient(lightX, h * 0.5, w * 0.05, lightX, h * 0.5, w * 0.5);
       light1.addColorStop(0, 'rgba(140, 190, 255, 0.38)');
       light1.addColorStop(0.4, 'rgba(100, 150, 230, 0.16)');
       light1.addColorStop(1, 'rgba(80, 120, 200, 0)');
       ctx.fillStyle = light1;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillRect(0, 0, w, h);
 
-      // 오른쪽 상단 보조 빛
-      const light2 = ctx.createRadialGradient(
-        canvas.width * 0.88, canvas.height * 0.18, canvas.width * 0.02,
-        canvas.width * 0.88, canvas.height * 0.18, canvas.width * 0.32
-      );
+      const light2 = ctx.createRadialGradient(w * 0.88, h * 0.18, w * 0.02, w * 0.88, h * 0.18, w * 0.32);
       light2.addColorStop(0, 'rgba(160, 200, 255, 0.22)');
       light2.addColorStop(1, 'rgba(160, 200, 255, 0)');
       ctx.fillStyle = light2;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillRect(0, 0, w, h);
 
-      // 지구본
-      const globeX = canvas.width * 0.78;
-const globeY = fixedHeight * 0.5;
-const globeR = Math.min(canvas.width, fixedHeight) * 0.28;
       drawGlobe(globeX, globeY, globeR, time);
 
       // 흐르는 연결선
@@ -280,13 +258,10 @@ const globeR = Math.min(canvas.width, fixedHeight) * 0.28;
           Object.assign(line, makeFlowLine());
           line.progress = 0;
         }
-
         const endX = line.x + Math.cos(line.angle) * line.length;
         const endY = line.y + Math.sin(line.angle) * line.length;
         const curX = line.x + (endX - line.x) * line.progress;
         const curY = line.y + (endY - line.y) * line.progress;
-
-        // 시작~현재 거리가 충분할 때만 그라데이션 선 그리기
         const dist = Math.hypot(curX - line.x, curY - line.y);
         if (dist > 2) {
           const grad = ctx.createLinearGradient(line.x, line.y, curX, curY);
@@ -300,8 +275,6 @@ const globeR = Math.min(canvas.width, fixedHeight) * 0.28;
           ctx.lineWidth = 1.2;
           ctx.stroke();
         }
-
-        // 끝점 빛나는 점
         ctx.beginPath();
         ctx.arc(curX, curY, 2, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(220, 240, 255, ${line.opacity * 0.9})`;
@@ -314,16 +287,9 @@ const globeR = Math.min(canvas.width, fixedHeight) * 0.28;
         p.x += p.vx;
         p.y += p.vy;
         p.life++;
-
         const lifeRatio = p.life / p.maxLife;
-        const alpha = lifeRatio < 0.2
-          ? lifeRatio / 0.2
-          : lifeRatio > 0.8
-          ? (1 - lifeRatio) / 0.2
-          : 1;
-
+        const alpha = lifeRatio < 0.2 ? lifeRatio / 0.2 : lifeRatio > 0.8 ? (1 - lifeRatio) / 0.2 : 1;
         const finalOpacity = alpha * p.opacity;
-
         if (p.glow) {
           const glowR = p.size * 4;
           const glowGrad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glowR);
@@ -334,12 +300,10 @@ const globeR = Math.min(canvas.width, fixedHeight) * 0.28;
           ctx.fillStyle = glowGrad;
           ctx.fill();
         }
-
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fillStyle = p.color + toHex(finalOpacity);
         ctx.fill();
-
         if (p.life >= p.maxLife) {
           particles.splice(i, 1);
           spawnParticle();
@@ -349,19 +313,17 @@ const globeR = Math.min(canvas.width, fixedHeight) * 0.28;
       // 스캔 라인
       scanLines.forEach(line => {
         line.y += line.speed;
-        if (line.y > canvas.height + 50) line.y = -50;
-        if (line.y < -50) line.y = canvas.height + 50;
-
-        const grad = ctx.createLinearGradient(0, 0, canvas.width, 0);
+        if (line.y > h + 50) line.y = -50;
+        if (line.y < -50) line.y = h + 50;
+        const grad = ctx.createLinearGradient(0, 0, w, 0);
         grad.addColorStop(0, 'rgba(140, 190, 255, 0)');
         grad.addColorStop(0.2, `rgba(160, 200, 255, ${line.opacity})`);
         grad.addColorStop(0.5, `rgba(200, 225, 255, ${Math.min(1, line.opacity * 1.3)})`);
         grad.addColorStop(0.8, `rgba(160, 200, 255, ${line.opacity})`);
         grad.addColorStop(1, 'rgba(140, 190, 255, 0)');
-
         ctx.beginPath();
         ctx.moveTo(0, line.y);
-        ctx.lineTo(canvas.width, line.y);
+        ctx.lineTo(w, line.y);
         ctx.strokeStyle = grad;
         ctx.lineWidth = line.width;
         ctx.stroke();
@@ -370,12 +332,10 @@ const globeR = Math.min(canvas.width, fixedHeight) * 0.28;
       // HUD 요소
       hudElements.forEach(el => {
         el.x += el.speed;
-        if (el.x > canvas.width + 100) el.x = -100;
-        if (el.x < -100) el.x = canvas.width + 100;
-
+        if (el.x > w + 100) el.x = -100;
+        if (el.x < -100) el.x = w + 100;
         ctx.fillStyle = `rgba(160, 200, 255, ${el.opacity})`;
         ctx.fillRect(el.x, el.y, el.w, 1.5);
-
         ctx.fillStyle = `rgba(200, 225, 255, ${el.opacity * 0.7})`;
         ctx.fillRect(el.x + el.w * 0.3, el.y + 5, el.w * 0.4, 0.8);
       });
@@ -395,7 +355,7 @@ const globeR = Math.min(canvas.width, fixedHeight) * 0.28;
     <canvas
       ref={canvasRef}
       style={{
-        position: 'absolute',
+        position: 'fixed',
         top: 0,
         left: 0,
         width: '100%',
