@@ -394,8 +394,7 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
         touchAction: 'none', 
       }}
     >
-      <svg ref={svgRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
-
+      <svg ref={svgRef} className="w-full h-full cursor-grab active:cursor-grabbing" style={{ touchAction: 'none' }} />
       <div className="absolute top-5 left-5 flex flex-col gap-3" style={{ pointerEvents: 'none' }}>
         <div className="flex p-[3px] rounded-[14px] gap-[2px]"
           style={{ background: 'rgba(255,255,255,0.45)', border: '1px solid rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)', pointerEvents: 'auto' }}
