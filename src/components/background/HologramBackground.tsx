@@ -269,8 +269,8 @@ const resize = () => {
 
       // 지구본
       const globeX = canvas.width * 0.78;
-      const globeY = canvas.height * 0.5;
-      const globeR = Math.min(canvas.width, canvas.height) * 0.28;
+const globeY = fixedHeight * 0.5;
+const globeR = Math.min(canvas.width, fixedHeight) * 0.28;
       drawGlobe(globeX, globeY, globeR, time);
 
       // 흐르는 연결선
