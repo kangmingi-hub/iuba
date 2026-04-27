@@ -128,6 +128,20 @@ export default function LoginOverlay({ isVisible, onLogin }: Props) {
                     backdropFilter: 'blur(8px)',
                   }}
                 />
+
+<input
+  type="password"
+  value={loginPassword}
+  onChange={(e) => setLoginPassword(e.target.value)}
+  placeholder="비밀번호"
+  className="w-full rounded-2xl px-6 py-4 text-lg font-bold focus:ring-4 focus:ring-blue-400/20 outline-none transition-all placeholder:text-slate-300 text-slate-700 mt-3"
+  style={{
+    background: 'rgba(255,255,255,0.55)',
+    border: '1px solid rgba(255,255,255,0.75)',
+    backdropFilter: 'blur(8px)',
+  }}
+/>
+                
                 <p className="mt-3 text-[10px] text-slate-400 font-medium ml-4">
                   기본 관리자 ID: <span className="text-blue-500 font-bold">admin</span>
                 </p>
