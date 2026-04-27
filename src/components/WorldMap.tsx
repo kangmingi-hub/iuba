@@ -38,7 +38,7 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
   const [zoomLevel, setZoomLevel] = useState(1);
   const [selectedContinent, setSelectedContinent] = useState<Continent>('world');
   const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown>>(null);
-  const isDraggingRef = useRef(false); // ✅ state 대신 ref 사용 (리렌더 없이)
+  const isDraggingRef = useRef(false);
 
   useEffect(() => {
     fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
@@ -46,7 +46,6 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
       .then(data => setTopology(data));
   }, []);
 
-  // ✅ 터치 이벤트 — 별도 useEffect로 분리 (D3와 충돌 없음)
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -59,31 +58,27 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
     };
 
     const onTouchMove = (e: TouchEvent) => {
-  if (!lastTouch || viewMode !== '3d') return;
-  e.preventDefault();
-  e.stopPropagation();
-  const touch = e.touches[0];
-  const dx = touch.clientX - lastTouch.clientX;
-  const dy = touch.clientY - lastTouch.clientY;
-  const sensitivity = 0.8 / zoomLevel;  // ← 0.4에서 0.8로 감도 올림
-  setRotation(prev => [
-    prev[0] + dx * sensitivity,
-    prev[1] - dy * sensitivity,
-    prev[2],
-  ]);
-  lastTouch = touch;
-  isDraggingRef.current = true;  // ← 자동회전 계속 멈춰있도록
-};
+      if (!lastTouch || viewMode !== '3d') return;
+      e.preventDefault();
+      const touch = e.touches[0];
+      const dx = touch.clientX - lastTouch.clientX;
+      const dy = touch.clientY - lastTouch.clientY;
+      const sensitivity = 0.4 / zoomLevel;
+      setRotation(prev => [
+        prev[0] + dx * sensitivity,
+        prev[1] - dy * sensitivity,
+        prev[2],
+      ]);
+      lastTouch = touch;
+    };
 
     const onTouchEnd = () => {
-  setTimeout(() => {
-    isDraggingRef.current = false;
-  }, 100);  // ← 약간의 딜레이 후 자동회전 재개
-  lastTouch = null;
-};
+      isDraggingRef.current = false;
+      lastTouch = null;
+    };
 
-    el.addEventListener('touchstart', onTouchStart, { passive: false });
-    el.addEventListener('touchmove', onTouchMove, { passive: false }); // ✅ passive: false 로 preventDefault 가능
+    el.addEventListener('touchstart', onTouchStart, { passive: true });
+    el.addEventListener('touchmove', onTouchMove, { passive: false });
     el.addEventListener('touchend', onTouchEnd);
 
     return () => {
@@ -114,26 +109,23 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
           .translate([width / 2, height / 1.8]);
 
     const path = d3.geoPath().projection(projection);
-
     const features = topojson.feature(topology, topology.objects.countries) as any;
     const filteredFeatures = features.features.filter((f: any) => f.id !== '010' && f.properties.name !== 'Antarctica');
 
     const gMain = svg.append('g').attr('class', 'main-group');
 
     const zoom = d3.zoom<SVGSVGElement, unknown>()
-  .scaleExtent([1, 15])
-  .on('zoom', (event) => {
-    if (viewMode === '2d') {
-      gMain.attr('transform', event.transform);
-    } else {
-      setZoomLevel(event.transform.k);
-    }
-  })
-  .filter((event) => {
-    // 3D 모드에서는 터치 이벤트를 zoom이 가로채지 않음
-    if (viewMode === '3d' && event.type.startsWith('touch')) return false;
-    return viewMode === '2d' || event.type !== 'mousedown';
-  });
+      .scaleExtent([1, 15])
+      .on('zoom', (event) => {
+        if (viewMode === '2d') {
+          gMain.attr('transform', event.transform);
+        } else {
+          setZoomLevel(event.transform.k);
+        }
+      })
+      .filter((event) => {
+        return viewMode === '2d' || event.type !== 'mousedown';
+      });
 
     // @ts-ignore
     zoomRef.current = zoom;
@@ -158,11 +150,9 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
 
     svg.call(drag as any);
 
-    // Perspective Transformation
     let gPerspective = gMain;
     if (viewMode === '2d') {
       gPerspective = gMain.append('g');
-
       const gridSize = 100;
       const gridG = gPerspective.append('g').attr('class', 'grid');
       const gBound = 4000;
@@ -176,11 +166,9 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
 
     if (viewMode === '3d') {
       gMain.append('circle')
-        .attr('cx', width / 2)
-        .attr('cy', height / 2)
+        .attr('cx', width / 2).attr('cy', height / 2)
         .attr('r', minSize / 2.2 * zoomLevel)
-        .attr('fill', 'url(#globe-gradient)')
-        .attr('opacity', 0.4);
+        .attr('fill', 'url(#globe-gradient)').attr('opacity', 0.4);
 
       const defs = svg.append('defs');
       const grad = defs.append('radialGradient').attr('id', 'globe-gradient');
@@ -243,14 +231,12 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
           Object.values(countries).find(c => c.name === countryName || c.id === countryName);
         const isOwned = !!(state?.ownerId && players.some(p => p.id === state.ownerId));
         const targetDepth = isOwned ? (2 + state.buildings * 1) : 0;
-
         const countryG = gCountries.append('g').attr('class', 'country-stack');
 
         if (isOwned) {
           countryG.append('path').datum(feature).attr('d', path as any)
             .attr('fill', 'rgba(0,0,0,0.1)').attr('filter', 'blur(4px)')
             .attr('transform', `translate(0, ${targetDepth + 4})`);
-
           for (let i = 1; i <= 4; i++) {
             countryG.append('path').datum(feature).attr('d', path as any)
               .attr('transform', `translate(0, ${(i / 4) * targetDepth})`)
@@ -306,36 +292,26 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
     }
 
     if (viewMode === '2d') {
-      const gClouds = gPerspective.append('g').attr('class', 'clouds');
-      [[100, 100], [800, 150]].forEach(([cx, cy]) => {
-        gClouds.append('g').attr('transform', `translate(${cx}, ${cy})`).html('<ellipse cx="0" cy="0" rx="40" ry="20" fill="white" opacity="0.4" />');
-      });
-
       Object.values(countries).forEach((state) => {
         if (!state?.ownerId) return;
         const player = players.find(p => p.id === state.ownerId);
         if (!player) return;
-
         const mappedName = COUNTRY_NAME_MAP[state.name] || state.name;
         const feature = filteredFeatures.find((f: any) =>
           f.properties.name === mappedName || f.properties.name === state.name
         );
         if (!feature) return;
-
         const centroid = path.centroid(feature);
         if (!centroid || isNaN(centroid[0]) || isNaN(centroid[1])) return;
-
         const bounds = path.bounds(feature);
         const boundWidth = bounds[1][0] - bounds[0][0];
         const boundHeight = bounds[1][1] - bounds[0][1];
         const countryArea = Math.sqrt(boundWidth * boundHeight);
         const imageSize = Math.min(Math.max(countryArea * 0.35, 10), 36);
-
         const hasBuilding = state.buildings > 0;
         const finalCharSize = hasBuilding ? imageSize * 0.65 : imageSize;
         const charX = hasBuilding ? centroid[0] - imageSize * 0.15 : centroid[0];
         const charY = hasBuilding ? centroid[1] - imageSize * 0.3 : centroid[1] - imageSize * 0.5;
-
         if (hasBuilding) {
           const buildingImg = BUILDING_IMAGES[state.buildings];
           const buildingSize = imageSize * 1.0;
@@ -346,9 +322,8 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
             .attr('width', buildingSize).attr('height', buildingSize)
             .attr('class', 'pointer-events-none');
         }
-
         gPerspective.append('image')
-          .attr('href', CLUB_IMAGES[player.name] || player.characterUrl || 'https://cdn-icons-png.flaticon.com/512/149/149071.png')
+          .attr('href', CLUB_IMAGES[player.name] || player.characterUrl)
           .attr('x', charX - finalCharSize / 2).attr('y', charY - finalCharSize / 2)
           .attr('width', finalCharSize).attr('height', finalCharSize)
           .attr('class', 'pointer-events-none');
@@ -376,7 +351,6 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
     svg.transition().duration(1000).ease(d3.easeCubicOut).call(zoomRef.current.transform, transform);
   }, [selectedContinent, topology, viewMode]);
 
-  // ✅ 자동 회전 — isDraggingRef 사용
   useEffect(() => {
     if (viewMode !== '3d') return;
     const interval = setInterval(() => {
@@ -397,10 +371,10 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
         WebkitBackdropFilter: 'blur(28px)',
         border: '1px solid rgba(255,255,255,0.75)',
         boxShadow: '0 4px 32px rgba(120,150,190,0.15), inset 0 1px 0 rgba(255,255,255,0.85)',
-        touchAction: 'none', 
       }}
     >
-      <svg ref={svgRef} className="w-full h-full cursor-grab active:cursor-grabbing" style={{ touchAction: 'none' }} />
+      <svg ref={svgRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
+
       <div className="absolute top-5 left-5 flex flex-col gap-3" style={{ pointerEvents: 'none' }}>
         <div className="flex p-[3px] rounded-[14px] gap-[2px]"
           style={{ background: 'rgba(255,255,255,0.45)', border: '1px solid rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)', pointerEvents: 'auto' }}
@@ -439,9 +413,9 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
         )}
 
         {viewMode === '3d' && (
-          <button style={{ pointerEvents: 'auto' }} onClick={() => { setRotation([-10, -20, 0]); setZoomLevel(1); }}
+          <button onClick={() => { setRotation([-10, -20, 0]); setZoomLevel(1); }}
             className="flex items-center justify-center w-10 h-10 rounded-2xl transition-all active:scale-95"
-            style={{ background: 'rgba(255,255,255,0.45)', border: '1px solid rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)', color: '#6b8ab0' }}
+            style={{ background: 'rgba(255,255,255,0.45)', border: '1px solid rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)', color: '#6b8ab0', pointerEvents: 'auto' }}
           >
             <RefreshCcw className="w-4 h-4" />
           </button>
@@ -475,4 +449,4 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
       </div>
     </div>
   );
-}
+          }
