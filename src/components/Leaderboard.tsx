@@ -55,20 +55,26 @@ export default function Leaderboard({ clubPoints, players, countries, isSyncing,
           </div>
         )}
 
-        {clubPoints.map((club, idx) => {
-          const player = players.find(p => p.name === club.club_name);
-          const ownedCount = player
-            ? (Object.values(countries) as CountryState[]).filter(c => c.ownerId === player.id).length
-            : 0;
-          const totalBuildings = player
-            ? (Object.values(countries) as CountryState[])
-                .filter(c => c.ownerId === player.id)
-                .reduce((sum, c) => sum + c.buildings, 0)
-            : 0;
-
-          return (
-            <motion.div
-              key={club.club_name}
+  {clubPoints
+            .filter(club => 
+              club.club_name !== 'Evergreen' && 
+              club.club_name !== 'BPM' && 
+              club.club_name !== 'MARE'
+            )
+            .map((club, idx) => {
+              const player = players.find(p => p.name === club.club_name);
+              const ownedCount = player
+                ? (Object.values(countries) as CountryState[]).filter(c => c.ownerId === player.id).length
+                : 0;
+              const totalBuildings = player
+                ? (Object.values(countries) as CountryState[])
+                    .filter(c => c.ownerId === player.id)
+                    .reduce((sum, c) => sum + c.buildings, 0)
+                : 0;
+  
+              return (
+                <motion.div
+                  key={club.club_name}
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: idx * 0.03 }}
