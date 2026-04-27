@@ -217,10 +217,10 @@ export default function HologramBackground() {
       const globeX = mobile ? w * 0.5 : tablet ? w * 0.7 : w * 0.78;
       const globeY = mobile ? h * 0.25 : h * 0.5;
       const globeR = mobile
-        ? Math.min(w, h) * 0.44
+        ? Math.min(w, h) * 0.33
         : tablet
-        ? Math.min(w, h) * 0.4
-        : Math.min(w, h) * 0.36;
+        ? Math.min(w, h) * 0.3
+        : Math.min(w, h) * 0.27;
 
       // 배경 그라디언트
       const dark1 = ctx.createRadialGradient(0, 0, 0, w * 0.3, h * 0.3, w * 0.6);
