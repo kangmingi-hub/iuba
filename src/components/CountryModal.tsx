@@ -66,7 +66,8 @@ export default function CountryModal({ selectedCountry, countries, players, curr
                   <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Conquer Cost</span>
                   <div className="flex items-center gap-2">
                     <Coins className="w-5 h-5 text-amber-500" />
-                    <span className="text-xl font-black text-amber-600">{COUNTRY_PRICES[selectedCountry.name] || DEFAULT_COUNTRY_PRICE}G</span>
+                    {/* 👇 G를 MINERAL로 변경했습니다 */}
+                    <span className="text-xl font-black text-amber-600">{COUNTRY_PRICES[selectedCountry.name] || DEFAULT_COUNTRY_PRICE} MINERAL</span>
                   </div>
                 </div>
                 <div className="flex flex-col">
@@ -76,10 +77,10 @@ export default function CountryModal({ selectedCountry, countries, players, curr
                     <span className="text-xl font-black text-blue-600 font-mono">
                       {(() => {
                         const tiers = getBuildingTiers(selectedCountry.name);
-const buildings = ownedCountry?.buildings || 0;
-if (buildings >= 3) return 'MAX';
-return tiers[buildings].cost;
-                      })()}P
+                        const buildings = ownedCountry?.buildings || 0;
+                        if (buildings >= 3) return 'MAX';
+                        return tiers[buildings].cost;
+                      })()} GAS {/* 👇 P를 GAS로 변경했습니다 */}
                     </span>
                   </div>
                 </div>
@@ -160,16 +161,16 @@ return tiers[buildings].cost;
               ) : (
                 <div className="space-y-6">
                   <div className="p-4 bg-blue-50/50 rounded-xl border border-blue-100 italic text-[11px] text-blue-600 font-medium text-center">
-                    본 영토는 현재 미점유 상태입니다. 대원의 점수를 사용하여 선교 지경을 넓히십시오.
+                    본 영토는 현재 미점유 상태입니다. 자원을 사용하여 지경을 넓히십시오.
                   </div>
                   <div className="grid grid-cols-3 gap-3">
                     {players.map(player => {
-                      // admin이거나 본인 동아리 버튼만 클릭 가능
                       const canBuyThis = isAdmin || player.id === myPlayer?.id;
                       return (
                         <button
                           key={player.id}
                           onClick={() => canBuyThis && onBuy(selectedCountry.id, player.id, selectedCountry.name)}
+                          /* 👇 주의: types.ts에서 gold를 mineral로 안 바꿨다면 여기를 player.gold로 두셔야 에러가 안 납니다! */
                           disabled={!canBuyThis || player.gold < (COUNTRY_PRICES[selectedCountry.name] || DEFAULT_COUNTRY_PRICE)}
                           className={cn(
                             "py-4 px-2 rounded-2xl border transition-all",
