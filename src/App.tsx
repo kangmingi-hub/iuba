@@ -5,8 +5,8 @@
 
 import React, { useState } from 'react';
 import { AnimatePresence } from 'motion/react';
-import { Map as MapIcon, PlusCircle, History, UserPlus, LogIn, LogOut, MapPin, Flag } from 'lucide-react';
-import HologramBackground from './components/background/HologramBackground';
+import { Map as MapIcon, PlusCircle, History, UserPlus, LogIn, LogOut, MapPin, Flag, KeyRound } from 'lucide-react';
+
 import WorldMap from './components/WorldMap';
 import LoginOverlay from './components/LoginOverlay';
 import CountryModal from './components/CountryModal';
@@ -15,6 +15,7 @@ import MembersPanel from './components/MembersPanel';
 import TerritoriesPanel from './components/TerritoriesPanel';
 import LogsPanel from './components/LogsPanel';
 import Leaderboard from './components/Leaderboard';
+import ChangePasswordModal from './components/ChangePasswordModal';
 import { useGameState } from './hooks/useGameState';
 import { CountryState } from './types';
 import { clsx, type ClassValue } from 'clsx';
@@ -29,45 +30,31 @@ export default function App() {
     fetchClubPoints, handleLogin, handleLogout,
     handleAddMember, handleDeleteMember, handleAdminSubmit,
     handleCancelOccupation, healGhostData, buyCountry, buildInCountry, resetGame,
-    cancelBuilding, resetManualPoints, handleColorChange
+    cancelBuilding, resetManualPoints, handleChangePassword
   } = useGameState();
 
   const [selectedCountry, setSelectedCountry] = useState<{ id: string; name: string } | null>(null);
   const [activeTab, setActiveTab] = useState<'map' | 'admin' | 'logs' | 'members' | 'territories'>('map');
+  const [showChangePassword, setShowChangePassword] = useState(false);
 
   const occupiedCountries = Object.values(gameState.countries as Record<string, CountryState>).filter(c => c.ownerId);
 
   return (
-    <div className="relative min-h-screen text-[#e2e8f0] font-sans p-4 md:p-8" style={{background: 'linear-gradient(135deg, #1a2a4a 0%, #2a3f6f 30%, #1e3a5f 60%, #0f1e3a 100%)'}}>
-     <HologramBackground />
-     <header className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-center gap-4 p-6 rounded-2xl"
-        style={{
-          background: 'rgba(255,255,255,0.38)',
-          backdropFilter: 'blur(28px)',
-          WebkitBackdropFilter: 'blur(28px)',
-          border: '1px solid rgba(255,255,255,0.75)',
-          boxShadow: '0 4px 32px rgba(120,150,190,0.15), inset 0 1px 0 rgba(255,255,255,0.85)',
-        }}
-      >
+    <div className="min-h-screen bg-[#F8FAFC] text-[#1E293B] font-sans p-4 md:p-8">
+      <header className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-center gap-4 bg-white border border-[#E2E8F0] p-6 rounded-2xl shadow-sm">
         <div className="flex items-center gap-3">
           <div className="bg-blue-600 p-3 rounded-2xl shadow-md">
             <MapPin className="w-8 h-8 text-white" />
           </div>
           <div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-white">
-              📍 IUBA 경상대센터 <span className="text-blue-400 font-normal">땅따먹기</span>
+            <h1 className="text-3xl font-extrabold tracking-tight text-[#1E293B]">
+              📍 IUBA경상대 <span className="text-blue-600 font-normal">센터 땅따먹기</span>
             </h1>
-            <p className="text-blue-200 text-[10px] font-bold uppercase tracking-widest">전 세계에 하나님의 나라를 건설하자</p>
+            <p className="text-[#64748B] text-[10px] font-bold uppercase tracking-widest">하나님 나라의 확장과 선교 미션</p>
           </div>
         </div>
 
-       <div className="flex p-1 rounded-xl flex-wrap gap-1"
-        style={{
-          background: 'rgba(255,255,255,0.45)',
-          backdropFilter: 'blur(8px)',
-          border: '1px solid rgba(255,255,255,0.7)',
-        }}
->
+        <div className="flex bg-[#F8FAFC] border border-[#E2E8F0] p-1 rounded-xl flex-wrap gap-1">
           {[
             { key: 'map', icon: <MapIcon className="w-4 h-4" />, label: '지도' },
             ...(currentUser?.role === 'admin' ? [
@@ -99,11 +86,15 @@ export default function App() {
 
         <div className="flex items-center gap-4">
           {currentUser ? (
-            <div className="flex items-center gap-3 pl-4 border-l border-white/30">
+            <div className="flex items-center gap-3 pl-4 border-l border-[#E2E8F0]">
               <div className="text-right hidden md:block">
-                <p className="text-[10px] font-extrabold text-blue-300 uppercase tracking-widest leading-none mb-1">Authenticated</p>
-                <p className="text-sm font-black text-white">{currentUser.username}</p>
+                <p className="text-[10px] font-extrabold text-[#64748B] uppercase tracking-widest leading-none mb-1">Authenticated</p>
+                <p className="text-sm font-black text-[#1E293B]">{currentUser.username}</p>
               </div>
+              <button onClick={() => setShowChangePassword(true)}
+                className="p-3 bg-blue-50 text-blue-600 border border-blue-100 rounded-xl hover:bg-blue-100 transition-colors" title="비밀번호 변경">
+                <KeyRound className="w-5 h-5" />
+              </button>
               <button onClick={handleLogout}
                 className="p-3 bg-red-50 text-red-600 border border-red-100 rounded-xl hover:bg-red-100 transition-colors" title="로그아웃">
                 <LogOut className="w-5 h-5" />
@@ -119,7 +110,7 @@ export default function App() {
       </header>
 
       <main className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
-       <section className="lg:col-span-4 space-y-6">
+        <section className="lg:col-span-4 space-y-6">
           <Leaderboard
             clubPoints={clubPoints}
             players={gameState.players}
@@ -166,7 +157,6 @@ export default function App() {
                 players={gameState.players}
                 onAdd={handleAddMember}
                 onDelete={handleDeleteMember}
-                onColorChange={handleColorChange}
               />
             )}
             {activeTab === 'logs' && (
@@ -186,6 +176,15 @@ export default function App() {
         onBuy={buyCountry}
         onBuild={buildInCountry}
         currentUser={currentUser}
+      />
+
+      <ChangePasswordModal
+        isVisible={showChangePassword}
+        onClose={() => setShowChangePassword(false)}
+        onChangePassword={(old, newPw) => {
+          if (!currentUser) return false;
+          return handleChangePassword(currentUser.id, old, newPw);
+        }}
       />
 
       <style>{`
