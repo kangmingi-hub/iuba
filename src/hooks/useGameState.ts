@@ -79,7 +79,7 @@ export function useGameState() {
       if (error) throw error;
       if (data) {
   const MERGE_GROUPS = [
-    { newName: 'EVERGREEN+BPM+MARE', teams: ['EVERGREEN', 'BPM', 'MARE'] },
+    { newName: 'EVERGREEN+BPM+MARE', teams: ['Evergreen', 'BPM', 'MARE'] },
   ];
   const mergedTeamNames = new Set(MERGE_GROUPS.flatMap(g => g.teams));
   const mergedData: any[] = [];
