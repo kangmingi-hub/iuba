@@ -6,6 +6,12 @@ import { supabase } from '../lib/supabase';
 const STORAGE_KEY = 'kingdom_conquerors_save';
 const AUTH_KEY = 'kingdom_conquerors_auth';
 
+const TEAM_ALIASES: Record<string, string> = {
+  'BPM': 'EVERGREEN+BPM+MARE',
+  'MARE': 'EVERGREEN+BPM+MARE',
+  'Evergreen': 'EVERGREEN+BPM+MARE',
+};
+
 export function useGameState() {
   const [gameState, setGameState] = useState<GameState>(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -177,12 +183,15 @@ const handleLogin = (username: string, password: string) => {
     setCurrentUser(user);
     return true;
   }
-  const player = gameState.players.find(p => p.name === username);
+
+  // 별칭으로 실제 플레이어 찾기
+  const resolvedName = TEAM_ALIASES[username] || username;
+  const player = gameState.players.find(p => p.name === resolvedName);
   if (player) {
     const userRecord = gameState.users.find(u => u.id === player.id);
     const pw = userRecord?.password || '1234';
     if (pw !== password) return false;
-    setCurrentUser({ id: player.id, username: player.name, role: 'member' });
+    setCurrentUser({ id: player.id, username: username, role: 'member' }); // 원래 이름 유지
     return true;
   }
   return false;
