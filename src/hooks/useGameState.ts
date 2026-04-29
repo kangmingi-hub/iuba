@@ -2,15 +2,10 @@ import { useState, useEffect } from 'react';
 import { Player, CountryState, GameState, GameLog, User, TEAM_COLORS } from '../types';
 import { INITIAL_TEAMS, COUNTRY_PRICES, DEFAULT_COUNTRY_PRICE, BUILDING_TIERS, CHARACTER_SEEDS, getBuildingTiers } from '../constants';
 import { supabase } from '../lib/supabase';
+import { TEAM_ALIASES } from '../constants';
 
 const STORAGE_KEY = 'kingdom_conquerors_save';
 const AUTH_KEY = 'kingdom_conquerors_auth';
-
-const TEAM_ALIASES: Record<string, string> = {
-  'BPM': 'EVERGREEN+BPM+MARE',
-  'MARE': 'EVERGREEN+BPM+MARE',
-  'Evergreen': 'EVERGREEN+BPM+MARE',
-};
 
 export function useGameState() {
   const [gameState, setGameState] = useState<GameState>(() => {
