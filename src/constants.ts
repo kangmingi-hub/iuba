@@ -126,3 +126,9 @@ export const COUNTRY_NAME_MAP: Record<string, string> = {
   'S. Sudan': 'South Sudan',
   'W. Sahara': 'Western Sahara',
 };
+
+export const TEAM_ALIASES: Record<string, string> = {
+  'BPM': 'EVERGREEN+BPM+MARE',
+  'MARE': 'EVERGREEN+BPM+MARE',
+  'Evergreen': 'EVERGREEN+BPM+MARE',
+};
