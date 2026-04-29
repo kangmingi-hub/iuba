@@ -2,9 +2,10 @@ import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Coins, Building2, PlusCircle, Lock } from 'lucide-react';
 import { Player, CountryState, User } from '../types';
-import { COUNTRY_PRICES, DEFAULT_COUNTRY_PRICE, CLUB_IMAGES, getBuildingTiers } from '../constants';
+import { COUNTRY_PRICES, DEFAULT_COUNTRY_PRICE, CLUB_IMAGES, getBuildingTiers, TEAM_ALIASES } from '../constants';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+
 
 function cn(...inputs: ClassValue[]) { return twMerge(clsx(inputs)); }
 
@@ -25,7 +26,8 @@ export default function CountryModal({ selectedCountry, countries, players, curr
   const isAdmin = currentUser?.role === 'admin';
 
   // 현재 로그인한 유저의 player 정보
-  const myPlayer = players.find(p => p.name === currentUser?.username);
+  const resolvedName = TEAM_ALIASES[currentUser?.username || ''] || currentUser?.username;
+const myPlayer = players.find(p => p.name === resolvedName);
 
   // 내 동아리가 소유한 나라인지
   const isMyCountry = !!myPlayer && ownedCountry?.ownerId === myPlayer.id;
