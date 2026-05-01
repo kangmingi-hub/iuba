@@ -171,6 +171,7 @@ export function useGameState() {
 const handleLogin = (username: string, password: string) => {
   if (!username.trim()) return false;
 
+  // users 테이블에서 직접 찾기 (admin 포함)
   const user = gameState.users.find(u => u.username === username);
   if (user) {
     const pw = user.password || '1234';
@@ -179,14 +180,23 @@ const handleLogin = (username: string, password: string) => {
     return true;
   }
 
-  // 별칭으로 실제 플레이어 찾기
+  // 별칭으로 찾기
   const resolvedName = TEAM_ALIASES[username] || username;
   const player = gameState.players.find(p => p.name === resolvedName);
   if (player) {
     const userRecord = gameState.users.find(u => u.id === player.id);
     const pw = userRecord?.password || '1234';
     if (pw !== password) return false;
-    setCurrentUser({ id: player.id, username: username, role: 'member' }); // 원래 이름 유지
+
+    // users에 없으면 자동 등록
+    if (!userRecord) {
+      setGameState(prev => ({
+        ...prev,
+        users: [...prev.users, { id: player.id, username: resolvedName, role: 'member' as const }]
+      }));
+    }
+
+    setCurrentUser({ id: player.id, username: username, role: 'member' });
     return true;
   }
   return false;
@@ -227,17 +237,23 @@ const handleLogin = (username: string, password: string) => {
     addLog(`${player.name} 대원이 삭제되었습니다.`, 'purchase' as any);
   };
 
-  const handleChangePassword = (userId: string, oldPassword: string, newPassword: string) => {
+const handleChangePassword = (userId: string, oldPassword: string, newPassword: string) => {
   const user = gameState.users.find(u => u.id === userId);
   const pw = user?.password || '1234';
   if (pw !== oldPassword) {
     alert('현재 비밀번호가 틀렸습니다.');
     return false;
   }
-  setGameState(prev => ({
-    ...prev,
-    users: prev.users.map(u => u.id === userId ? { ...u, password: newPassword } : u)
-  }));
+
+  setGameState(prev => {
+    const userExists = prev.users.some(u => u.id === userId);
+    const updatedUsers = userExists
+      ? prev.users.map(u => u.id === userId ? { ...u, password: newPassword } : u)
+      : [...prev.users, { id: userId, username: currentUser!.username, role: 'member' as const, password: newPassword }];
+    // ↑ users에 없으면 새로 추가
+    return { ...prev, users: updatedUsers };
+  });
+
   alert('비밀번호가 변경되었습니다!');
   return true;
 };
