@@ -70,6 +70,14 @@ export function useGameState() {
     }
   };
 
+  const fetchUsers = async () => {
+  const { data, error } = await supabase.from('users').select('*');
+  if (error) { console.error('users 불러오기 오류:', error); return; }
+  if (data) {
+    setGameState(prev => ({ ...prev, users: data }));
+  }
+};
+
   const fetchClubPoints = async (date?: string) => {
   setIsSyncing(true);
   const targetDate = date || startDate;
@@ -129,18 +137,17 @@ export function useGameState() {
   useEffect(() => {
     fetchClubPoints(startDate); // 날짜 명시적으로 전달
     fetchOccupations();
+    fetchUsers();
 
-    const channel = supabase
-      .channel('country_occupations_changes')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'country_occupations' },
-        () => { fetchOccupations(); }
-      )
-      .subscribe();
+   const channel = supabase
+    .channel('country_occupations_changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'country_occupations' }, () => { fetchOccupations(); })
+    // users 변경도 실시간 반영
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, () => { fetchUsers(); })
+    .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
-  }, [startDate]); 
+  return () => { supabase.removeChannel(channel); };
+}, [startDate]);
 
   useEffect(() => {
     const { countries, ...rest } = gameState;
@@ -171,7 +178,6 @@ export function useGameState() {
 const handleLogin = (username: string, password: string) => {
   if (!username.trim()) return false;
 
-  // users 테이블에서 직접 찾기 (admin 포함)
   const user = gameState.users.find(u => u.username === username);
   if (user) {
     const pw = user.password || '1234';
@@ -180,7 +186,6 @@ const handleLogin = (username: string, password: string) => {
     return true;
   }
 
-  // 별칭으로 찾기
   const resolvedName = TEAM_ALIASES[username] || username;
   const player = gameState.players.find(p => p.name === resolvedName);
   if (player) {
@@ -188,12 +193,11 @@ const handleLogin = (username: string, password: string) => {
     const pw = userRecord?.password || '1234';
     if (pw !== password) return false;
 
-    // users에 없으면 자동 등록
+    // Supabase에 없으면 자동 등록
     if (!userRecord) {
-      setGameState(prev => ({
-        ...prev,
-        users: [...prev.users, { id: player.id, username: resolvedName, role: 'member' as const }]
-      }));
+      const newUser = { id: player.id, username: resolvedName, role: 'member' as const, password: '1234' };
+      supabase.from('users').upsert(newUser); // 비동기지만 기다릴 필요 없음
+      setGameState(prev => ({ ...prev, users: [...prev.users, newUser] }));
     }
 
     setCurrentUser({ id: player.id, username: username, role: 'member' });
@@ -237,7 +241,7 @@ const handleLogin = (username: string, password: string) => {
     addLog(`${player.name} 대원이 삭제되었습니다.`, 'purchase' as any);
   };
 
-const handleChangePassword = (userId: string, oldPassword: string, newPassword: string) => {
+const handleChangePassword = async (userId: string, oldPassword: string, newPassword: string) => {
   const user = gameState.users.find(u => u.id === userId);
   const pw = user?.password || '1234';
   if (pw !== oldPassword) {
@@ -245,15 +249,20 @@ const handleChangePassword = (userId: string, oldPassword: string, newPassword: 
     return false;
   }
 
-  setGameState(prev => {
-    const userExists = prev.users.some(u => u.id === userId);
-    const updatedUsers = userExists
-      ? prev.users.map(u => u.id === userId ? { ...u, password: newPassword } : u)
-      : [...prev.users, { id: userId, username: currentUser!.username, role: 'member' as const, password: newPassword }];
-    // ↑ users에 없으면 새로 추가
-    return { ...prev, users: updatedUsers };
-  });
+  // Supabase에 저장
+  const { error } = await supabase
+    .from('users')
+    .upsert({ id: userId, username: currentUser!.username, role: currentUser!.role, password: newPassword });
 
+  if (error) {
+    alert('저장 오류: ' + error.message);
+    return false;
+  }
+
+  setGameState(prev => ({
+    ...prev,
+    users: prev.users.map(u => u.id === userId ? { ...u, password: newPassword } : u)
+  }));
   alert('비밀번호가 변경되었습니다!');
   return true;
 };
