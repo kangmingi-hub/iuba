@@ -4,6 +4,7 @@ import { Volume2, VolumeX } from 'lucide-react';
 export default function BackgroundMusic() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isMuted, setIsMuted] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
     const audio = new Audio('/bgm.mp3');
@@ -11,21 +12,31 @@ export default function BackgroundMusic() {
     audio.volume = 0.15;
     audioRef.current = audio;
 
+    // 첫 클릭/터치시 재생 시작
     const playAudio = () => {
-      audio.play().catch(() => {});
+      audio.play().then(() => {
+        setIsPlaying(true);
+      }).catch(() => {});
     };
 
     document.addEventListener('click', playAudio, { once: true });
-    audio.play().catch(() => {});
+    document.addEventListener('touchstart', playAudio, { once: true });
 
     return () => {
       audio.pause();
       document.removeEventListener('click', playAudio);
+      document.removeEventListener('touchstart', playAudio);
     };
   }, []);
 
-  const toggleMute = () => {
+  const toggleMute = (e: React.MouseEvent) => {
+    e.stopPropagation(); // 이벤트 버블링 방지
     if (audioRef.current) {
+      if (!isPlaying) {
+        audioRef.current.play().then(() => {
+          setIsPlaying(true);
+        }).catch(() => {});
+      }
       audioRef.current.muted = !audioRef.current.muted;
       setIsMuted(!isMuted);
     }
