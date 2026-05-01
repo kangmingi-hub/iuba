@@ -21,6 +21,7 @@ import { useGameState } from './hooks/useGameState';
 import { CountryState } from './types';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import BackgroundMusic from './components/BackgroundMusic';
 
 function cn(...inputs: ClassValue[]) { return twMerge(clsx(inputs)); }
 
@@ -95,6 +96,7 @@ export default function App() {
         </div>
 
         <div className="flex items-center gap-4">
+          <BackgroundMusic />
           {currentUser ? (
             <div className="flex items-center gap-3 pl-4 border-l border-[#E2E8F0]">
               <div className="text-right hidden md:block">
