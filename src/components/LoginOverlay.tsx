@@ -11,8 +11,7 @@ export default function LoginOverlay({ isVisible, onLogin }: Props) {
   const [loginUsername, setLoginUsername] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+ const handleSubmit = () => {
     const success = onLogin(loginUsername, loginPassword);
     if (success) {
       setLoginUsername('');
@@ -69,7 +68,7 @@ export default function LoginOverlay({ isVisible, onLogin }: Props) {
             <h2 className="text-3xl font-black text-slate-700 mb-2 uppercase tracking-tight">Mission Entry</h2>
             <p className="text-slate-500 text-sm font-medium mb-10 italic">"온 세계전도 경상대 IUBA 센터가 완료 하겠습니다!"</p>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-4">
               <div className="text-left">
                 <label className="block text-[10px] font-extrabold text-slate-500 mb-2 uppercase tracking-widest ml-4">사용자 이름</label>
                 <input
@@ -93,13 +92,13 @@ export default function LoginOverlay({ isVisible, onLogin }: Props) {
                 />
               </div>
               <button
-                type="submit"
+                type="button" onClick={handleSubmit}
                 className="w-full py-5 rounded-2xl font-black text-white transition-all active:scale-[0.98] flex items-center justify-center gap-3 uppercase tracking-widest"
                 style={{ background: 'rgba(59,130,246,0.85)', boxShadow: '0 4px 20px rgba(59,130,246,0.3)', backdropFilter: 'blur(8px)', border: '1px solid rgba(99,179,237,0.3)' }}
               >
                 원정대 함선 탑승 <LogIn className="w-5 h-5" />
               </button>
-            </form>
+            </div>
           </motion.div>
         </div>
       )}
