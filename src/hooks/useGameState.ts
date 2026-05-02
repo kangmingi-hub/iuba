@@ -379,48 +379,64 @@ const handleChangePassword = async (userId: string, oldPassword: string, newPass
     }
   };
 
-  const buyCountry = async (countryId: string, playerId: string, countryName: string) => {
-    const player = gameState.players.find(p => p.id === playerId);
-    const price = COUNTRY_PRICES[countryName] || DEFAULT_COUNTRY_PRICE;
-    if (!player || player.gold < price) { alert('금화가 부족합니다!'); return; }
+const buyCountry = async (countryId: string, playerId: string, countryName: string) => {
+  const player = gameState.players.find(p => p.id === playerId);
+  const price = COUNTRY_PRICES[countryName] || DEFAULT_COUNTRY_PRICE;
+  if (!player || player.gold < price) { alert('금화가 부족합니다!'); return; }
 
-    await supabase.from('country_occupations').upsert({
-      country_id: countryId,
-      country_name: countryName,
-      owner_id: player.id,
-      owner_name: player.name,
-      buildings: 0
-    });
+  await supabase.from('country_occupations').upsert({
+    country_id: countryId,
+    country_name: countryName,
+    owner_id: player.id,
+    owner_name: player.name,
+    buildings: 0
+  });
 
-    setGameState(prev => ({
-      ...prev,
-      players: prev.players.map(p => p.id === playerId ? { ...p, gold: p.gold - price } : p),
-      countries: { ...prev.countries, [countryId]: { id: countryId, name: countryName, ownerId: player.id, buildings: 0 } }
-    }));
-    addLog(`${player.name}님이 ${countryName}를 ${price}G에 점령했습니다!`, 'purchase');
-  };
+  // ✅ 추가: 다른 기기에 포인트 차감 동기화
+  await supabase.from('country_purchases').insert({
+    club_name: player.name,
+    country_name: countryName,
+    price_paid: price,
+    purchased_at: new Date().toISOString()
+  });
 
-  const buildInCountry = async (countryId: string) => {
-    const country = gameState.countries[countryId];
-    if (!country?.ownerId || country.buildings >= 3) return;
-    const tiers = getBuildingTiers(country.name);
-    const nextTier = tiers[country.buildings];
-    const player = gameState.players.find(p => p.id === country.ownerId);
-    if (!player || player.buildingPower < nextTier.cost) return;
+  setGameState(prev => ({
+    ...prev,
+    players: prev.players.map(p => p.id === playerId ? { ...p, gold: p.gold - price } : p),
+    countries: { ...prev.countries, [countryId]: { id: countryId, name: countryName, ownerId: player.id, buildings: 0 } }
+  }));
+  addLog(`${player.name}님이 ${countryName}를 ${price}G에 점령했습니다!`, 'purchase');
+};
 
-    const newBuildings = country.buildings + 1;
+const buildInCountry = async (countryId: string) => {
+  const country = gameState.countries[countryId];
+  if (!country?.ownerId || country.buildings >= 3) return;
+  const tiers = getBuildingTiers(country.name);
+  const nextTier = tiers[country.buildings];
+  const player = gameState.players.find(p => p.id === country.ownerId);
+  if (!player || player.buildingPower < nextTier.cost) return;
 
-    await supabase.from('country_occupations')
-      .update({ buildings: newBuildings })
-      .eq('country_id', countryId);
+  const newBuildings = country.buildings + 1;
 
-    setGameState(prev => ({
-      ...prev,
-      players: prev.players.map(p => p.id === player.id ? { ...p, buildingPower: p.buildingPower - nextTier.cost } : p),
-      countries: { ...prev.countries, [countryId]: { ...country, buildings: newBuildings } }
-    }));
-    addLog(`${player.name}님이 ${country.name}에 '${nextTier.name}'(을)를 건축했습니다!`, 'construction');
-  };
+  await supabase.from('country_occupations')
+    .update({ buildings: newBuildings })
+    .eq('country_id', countryId);
+
+  // ✅ 추가: 다른 기기에 포인트 차감 동기화
+  await supabase.from('building_purchases').insert({
+    club_name: player.name,
+    building_name: nextTier.name,
+    price_paid: nextTier.cost,
+    purchased_at: new Date().toISOString()
+  });
+
+  setGameState(prev => ({
+    ...prev,
+    players: prev.players.map(p => p.id === player.id ? { ...p, buildingPower: p.buildingPower - nextTier.cost } : p),
+    countries: { ...prev.countries, [countryId]: { ...country, buildings: newBuildings } }
+  }));
+  addLog(`${player.name}님이 ${country.name}에 '${nextTier.name}'(을)를 건축했습니다!`, 'construction');
+};
 
   const resetGame = async () => {
     if (window.confirm('정말 모든 데이터를 초기화하시겠습니까? (멤버는 유지됩니다)')) {
