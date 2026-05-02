@@ -40,37 +40,36 @@ export function useGameState() {
     remaining_speech_points: number;
   }[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);
-const [startDate, setStartDate] = useState<string>('2026-01-01');
-const [isDateLoaded, setIsDateLoaded] = useState(false);
+  const [startDate, setStartDate] = useState<string>('2026-01-01');
+  const [isDateLoaded, setIsDateLoaded] = useState(false);
 
-// startDate를 Supabase에서 불러오기
-// 새 코드 - 이걸로 교체
-useEffect(() => {
-  const fetchStartDate = async () => {
+  // startDate를 Supabase에서 불러오기
+  useEffect(() => {
+    const fetchStartDate = async () => {
+      const { data, error } = await supabase
+        .from('app_settings')
+        .select('value')
+        .eq('key', 'start_date')
+        .single();
+      if (!error && data) {
+        setStartDate(data.value);
+      }
+      setIsDateLoaded(true);
+    };
+    fetchStartDate();
+  }, []);
+
+  // 날짜 변경시 Supabase에 저장
+  const handleStartDateChange = async (date: string) => {
+    setStartDate(date);
+    localStorage.setItem('start_date', date);
     const { data, error } = await supabase
       .from('app_settings')
-      .select('value')
-      .eq('key', 'start_date')
-      .single();
-    if (!error && data) {
-      setStartDate(data.value);
-    }
-    setIsDateLoaded(true); // ← 이 줄만 추가된 거예요
+      .upsert({ key: 'start_date', value: date })
+      .select();
+    console.log('저장 결과:', data, error);
+    alert('저장 결과: ' + JSON.stringify({ data, error }));
   };
-  fetchStartDate();
-}, []);
-
-// 날짜 변경시 Supabase에 저장
-  const handleStartDateChange = async (date: string) => {
-  setStartDate(date);
-  localStorage.setItem('start_date', date);
-  const { data, error } = await supabase
-    .from('app_settings')
-    .upsert({ key: 'start_date', value: date })
-    .select();
-  console.log('저장 결과:', data, error);
-  alert('저장 결과: ' + JSON.stringify({ data, error }));
-};
 
   const fetchOccupations = async () => {
     try {
@@ -94,46 +93,46 @@ useEffect(() => {
   };
 
   const fetchUsers = async () => {
-  const { data, error } = await supabase.from('users').select('*');
-  if (error) { console.error('users 불러오기 오류:', error); return; }
-  if (data) {
-    setGameState(prev => ({ ...prev, users: data }));
-  }
-};
+    const { data, error } = await supabase.from('users').select('*');
+    if (error) { console.error('users 불러오기 오류:', error); return; }
+    if (data) {
+      setGameState(prev => ({ ...prev, users: data }));
+    }
+  };
 
   const fetchClubPoints = async (date?: string) => {
-  setIsSyncing(true);
-  const targetDate = date || startDate;
-  try {
-    const { data, error } = await supabase
-      .rpc('get_team_points_from_date', { start_date: targetDate });
+    setIsSyncing(true);
+    const targetDate = date || startDate;
+    try {
+      const { data, error } = await supabase
+        .rpc('get_team_points_from_date', { start_date: targetDate });
 
       if (error) throw error;
       if (data) {
-  const MERGE_GROUPS = [
-    { newName: 'EVERGREEN+BPM+MARE', teams: ['Evergreen', 'BPM', 'MARE'] },
-  ];
-  const mergedTeamNames = new Set(MERGE_GROUPS.flatMap(g => g.teams));
-  const mergedData: any[] = [];
-  MERGE_GROUPS.forEach(group => {
-    const groupTeams = (data as any[]).filter(d => group.teams.includes(d.club_name));
-    if (groupTeams.length > 0) {
-      mergedData.push({
-        club_name: group.newName,
-        remaining_evangelism_points: groupTeams.reduce((sum, t) => sum + t.remaining_evangelism_points, 0),
-        remaining_speech_points: groupTeams.reduce((sum, t) => sum + t.remaining_speech_points, 0),
-      });
-    }
-  });
-  const finalData = [
-    ...(data as any[]).filter(d => !mergedTeamNames.has(d.club_name)),
-    ...mergedData,
-  ];
+        const MERGE_GROUPS = [
+          { newName: 'EVERGREEN+BPM+MARE', teams: ['Evergreen', 'BPM', 'MARE'] },
+        ];
+        const mergedTeamNames = new Set(MERGE_GROUPS.flatMap(g => g.teams));
+        const mergedData: any[] = [];
+        MERGE_GROUPS.forEach(group => {
+          const groupTeams = (data as any[]).filter(d => group.teams.includes(d.club_name));
+          if (groupTeams.length > 0) {
+            mergedData.push({
+              club_name: group.newName,
+              remaining_evangelism_points: groupTeams.reduce((sum, t) => sum + t.remaining_evangelism_points, 0),
+              remaining_speech_points: groupTeams.reduce((sum, t) => sum + t.remaining_speech_points, 0),
+            });
+          }
+        });
+        const finalData = [
+          ...(data as any[]).filter(d => !mergedTeamNames.has(d.club_name)),
+          ...mergedData,
+        ];
 
-  setClubPoints(finalData);
-  setGameState(prev => {
-    const playersMap = new Map<string, Player>(prev.players.map(p => [p.name, p]));
-    const updatedPlayers = finalData.filter((club) => club && club.club_name).map((club, idx) => {
+        setClubPoints(finalData);
+        setGameState(prev => {
+          const playersMap = new Map<string, Player>(prev.players.map(p => [p.name, p]));
+          const updatedPlayers = finalData.filter((club) => club && club.club_name).map((club, idx) => {
             const existing = playersMap.get(club.club_name);
             if (existing) {
               return { ...existing, gold: club.remaining_evangelism_points, buildingPower: club.remaining_speech_points } as Player;
@@ -157,28 +156,27 @@ useEffect(() => {
     }
   };
 
-// 새 코드 - 이걸로 교체
-useEffect(() => {
-  if (!isDateLoaded) return; // ← 추가
-  fetchClubPoints(startDate);
-  fetchOccupations();
-  fetchUsers();
+  useEffect(() => {
+    if (!isDateLoaded) return;
+    fetchClubPoints(startDate);
+    fetchOccupations();
+    fetchUsers();
 
-  const channel = supabase
-    .channel('country_occupations_changes')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'country_occupations' }, () => { fetchOccupations(); })
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, () => { fetchUsers(); })
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'app_settings' }, (payload: any) => {
-      if (payload.new?.key === 'start_date') {
-        setStartDate(payload.new.value);
-      }
-    })
-  .on('postgres_changes', { event: '*', schema: 'public', table: 'country_purchases' }, () => { fetchClubPoints(startDate); })
-  .on('postgres_changes', { event: '*', schema: 'public', table: 'building_purchases' }, () => { fetchClubPoints(startDate); })
-  .subscribe();
+    const channel = supabase
+      .channel('realtime_sync')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'country_occupations' }, () => { fetchOccupations(); })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, () => { fetchUsers(); })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'app_settings' }, (payload: any) => {
+        if (payload.new?.key === 'start_date') setStartDate(payload.new.value);
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'country_purchases' }, () => { fetchClubPoints(startDate); })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'building_purchases' }, () => { fetchClubPoints(startDate); })
+      // ✅ 추가: records 변경도 감지 → 어드민 점수 입력 실시간 반영
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'records' }, () => { fetchClubPoints(startDate); })
+      .subscribe();
 
-  return () => { supabase.removeChannel(channel); };
-}, [startDate, isDateLoaded]); // ← isDateLoaded 추가
+    return () => { supabase.removeChannel(channel); };
+  }, [startDate, isDateLoaded]);
 
   useEffect(() => {
     const { countries, ...rest } = gameState;
@@ -206,40 +204,40 @@ useEffect(() => {
     }));
   };
 
-const handleLogin = (username: string, password: string) => {
-  if (!username.trim()) return false;
+  const handleLogin = (username: string, password: string) => {
+    if (!username.trim()) return false;
 
-  const user = gameState.users.find(u => u.username === username);
-  if (user) {
-    const pw = user.password || '1234';
-    if (pw !== password) return false;
-    setCurrentUser(user);
-    return true;
-  }
-
-  const resolvedName = TEAM_ALIASES[username] || username;
-  const player = gameState.players.find(p => p.name === resolvedName);
-  if (player) {
-    const userRecord = gameState.users.find(u => u.id === player.id);
-    const pw = userRecord?.password || '1234';
-    if (pw !== password) return false;
-
-    // Supabase에 없으면 자동 등록
-    if (!userRecord) {
-      const newUser = { id: player.id, username: resolvedName, role: 'member' as const, password: '1234' };
-      supabase.from('users').upsert(newUser); // 비동기지만 기다릴 필요 없음
-      setGameState(prev => ({ ...prev, users: [...prev.users, newUser] }));
+    const user = gameState.users.find(u => u.username === username);
+    if (user) {
+      const pw = user.password || '1234';
+      if (pw !== password) return false;
+      setCurrentUser(user);
+      return true;
     }
 
-    setCurrentUser({ id: player.id, username: username, role: 'member' });
-    return true;
-  }
-  return false;
-};
+    const resolvedName = TEAM_ALIASES[username] || username;
+    const player = gameState.players.find(p => p.name === resolvedName);
+    if (player) {
+      const userRecord = gameState.users.find(u => u.id === player.id);
+      const pw = userRecord?.password || '1234';
+      if (pw !== password) return false;
+
+      if (!userRecord) {
+        const newUser = { id: player.id, username: resolvedName, role: 'member' as const, password: '1234' };
+        supabase.from('users').upsert(newUser);
+        setGameState(prev => ({ ...prev, users: [...prev.users, newUser] }));
+      }
+
+      setCurrentUser({ id: player.id, username: username, role: 'member' });
+      return true;
+    }
+    return false;
+  };
 
   const handleLogout = () => setCurrentUser(null);
 
-  const handleAddMember = (name: string) => {
+  // ✅ 수정: Supabase INSERT → 다른 기기 실시간 반영
+  const handleAddMember = async (name: string) => {
     if (!name) return;
     const playerId = Math.random().toString(36).substr(2, 9);
     const newUser: User = { id: playerId, username: name, role: 'member' };
@@ -251,12 +249,15 @@ const handleLogin = (username: string, password: string) => {
       gold: 0,
       buildingPower: 0
     };
+    await supabase.from('users').insert(newUser);
     setGameState(prev => ({ ...prev, users: [...prev.users, newUser], players: [...prev.players, newPlayer] }));
   };
 
-  const handleDeleteMember = (playerId: string) => {
+  // ✅ 수정: Supabase DELETE → 다른 기기 실시간 반영
+  const handleDeleteMember = async (playerId: string) => {
     const player = gameState.players.find(p => p.id === playerId);
     if (!player) return;
+    await supabase.from('users').delete().eq('id', playerId);
     setGameState(prev => {
       const updatedCountries = { ...prev.countries };
       Object.keys(updatedCountries).forEach(id => {
@@ -272,46 +273,55 @@ const handleLogin = (username: string, password: string) => {
     addLog(`${player.name} 대원이 삭제되었습니다.`, 'purchase' as any);
   };
 
-const handleChangePassword = async (userId: string, oldPassword: string, newPassword: string) => {
-  const user = gameState.users.find(u => u.id === userId);
-  const pw = user?.password || '1234';
-  if (pw !== oldPassword) {
-    alert('현재 비밀번호가 틀렸습니다.');
-    return false;
-  }
-
-  // Supabase에 저장
-  const { error } = await supabase
-    .from('users')
-    .upsert({ id: userId, username: currentUser!.username, role: currentUser!.role, password: newPassword });
-
-  if (error) {
-    alert('저장 오류: ' + error.message);
-    return false;
-  }
-
-  setGameState(prev => ({
-    ...prev,
-    users: prev.users.map(u => u.id === userId ? { ...u, password: newPassword } : u)
-  }));
-  alert('비밀번호가 변경되었습니다!');
-  return true;
-};
-
-  const handleAdminSubmit = (playerId: string, value: number, type: 'evangelism' | 'speech') => {
-    if (value <= 0 || !playerId) return;
+  const handleChangePassword = async (userId: string, oldPassword: string, newPassword: string) => {
+    const user = gameState.users.find(u => u.id === userId);
+    const pw = user?.password || '1234';
+    if (pw !== oldPassword) {
+      alert('현재 비밀번호가 틀렸습니다.');
+      return false;
+    }
+    const { error } = await supabase
+      .from('users')
+      .upsert({ id: userId, username: currentUser!.username, role: currentUser!.role, password: newPassword });
+    if (error) {
+      alert('저장 오류: ' + error.message);
+      return false;
+    }
     setGameState(prev => ({
       ...prev,
-      players: prev.players.map(p => p.id === playerId ? {
-        ...p,
-        gold: type === 'evangelism' ? p.gold + value : p.gold,
-        buildingPower: type === 'speech' ? p.buildingPower + value : p.buildingPower
-      } : p)
+      users: prev.users.map(u => u.id === userId ? { ...u, password: newPassword } : u)
     }));
-    const player = gameState.players.find(p => p.id === playerId);
-    addLog(`${player?.name}님이 ${type === 'evangelism' ? '전도' : '발표'} 점수 ${value}점을 획득했습니다.`, type);
+    alert('비밀번호가 변경되었습니다!');
+    return true;
   };
 
+  // ✅ 수정: records 테이블에 INSERT → 다른 기기 실시간 점수 반영
+  const handleAdminSubmit = async (playerId: string, value: number, type: 'evangelism' | 'speech') => {
+    if (value <= 0 || !playerId) return;
+    const player = gameState.players.find(p => p.id === playerId);
+    if (!player) return;
+
+    const recordId = Math.random().toString(36).substr(2, 9);
+    const recordType = type === 'evangelism' ? 'SIMPLE_EVANGELISM' : 'PRESENTATION';
+
+    await supabase.from('records').insert({
+      id: recordId,
+      data: {
+        id: recordId,
+        club: player.name,
+        date: new Date().toISOString().split('T')[0],
+        type: recordType,
+        value: value,
+        note: '어드민 수동 입력',
+        isAdminInput: true,
+      }
+    });
+
+    // records 구독이 fetchClubPoints 트리거함 → 다른 기기 자동 반영
+    addLog(`${player.name}님이 ${type === 'evangelism' ? '전도' : '발표'} 점수 ${value}점을 획득했습니다.`, type);
+  };
+
+  // ✅ 수정: country_purchases DELETE 추가 → 환불 다른 기기 반영
   const handleCancelOccupation = async (countryId: string) => {
     const country = gameState.countries[countryId];
     if (!country) return;
@@ -320,6 +330,13 @@ const handleChangePassword = async (userId: string, oldPassword: string, newPass
     const player = gameState.players.find(p => p.id === country.ownerId);
 
     await supabase.from('country_occupations').delete().eq('country_id', countryId);
+
+    // ✅ 추가: country_purchases에서 1건 삭제 → 환불 포인트 다른 기기 반영
+    await supabase.from('country_purchases')
+      .delete()
+      .eq('club_name', player?.name)
+      .eq('country_name', country.name)
+      .limit(1);
 
     setGameState(prev => {
       const cleanCountries = { ...prev.countries };
@@ -337,6 +354,7 @@ const handleChangePassword = async (userId: string, oldPassword: string, newPass
     });
   };
 
+  // ✅ 수정: building_purchases DELETE 추가 → 환불 다른 기기 반영
   const cancelBuilding = async (countryId: string) => {
     const country = gameState.countries[countryId];
     if (!country || country.buildings <= 0) return;
@@ -349,6 +367,13 @@ const handleChangePassword = async (userId: string, oldPassword: string, newPass
     await supabase.from('country_occupations')
       .update({ buildings: newBuildings })
       .eq('country_id', countryId);
+
+    // ✅ 추가: building_purchases에서 1건 삭제 → 환불 포인트 다른 기기 반영
+    await supabase.from('building_purchases')
+      .delete()
+      .eq('club_name', player?.name)
+      .eq('building_name', tier.name)
+      .limit(1);
 
     setGameState(prev => ({
       ...prev,
@@ -379,74 +404,82 @@ const handleChangePassword = async (userId: string, oldPassword: string, newPass
     }
   };
 
-const buyCountry = async (countryId: string, playerId: string, countryName: string) => {
-  const player = gameState.players.find(p => p.id === playerId);
-  const price = COUNTRY_PRICES[countryName] || DEFAULT_COUNTRY_PRICE;
-  if (!player || player.gold < price) { alert('금화가 부족합니다!'); return; }
+  // ✅ 수정: country_purchases INSERT → 포인트 차감 다른 기기 반영
+  const buyCountry = async (countryId: string, playerId: string, countryName: string) => {
+    const player = gameState.players.find(p => p.id === playerId);
+    const price = COUNTRY_PRICES[countryName] || DEFAULT_COUNTRY_PRICE;
+    if (!player || player.gold < price) { alert('금화가 부족합니다!'); return; }
 
-  await supabase.from('country_occupations').upsert({
-    country_id: countryId,
-    country_name: countryName,
-    owner_id: player.id,
-    owner_name: player.name,
-    buildings: 0
-  });
+    await supabase.from('country_occupations').upsert({
+      country_id: countryId,
+      country_name: countryName,
+      owner_id: player.id,
+      owner_name: player.name,
+      buildings: 0
+    });
 
-  // ✅ 추가: 다른 기기에 포인트 차감 동기화
-  await supabase.from('country_purchases').insert({
-    club_name: player.name,
-    country_name: countryName,
-    price_paid: price,
-    purchased_at: new Date().toISOString()
-  });
+    // ✅ 추가: country_purchases에 기록 → 다른 기기 포인트 차감 동기화
+    await supabase.from('country_purchases').insert({
+      club_name: player.name,
+      country_name: countryName,
+      price_paid: price,
+      purchased_at: new Date().toISOString()
+    });
 
-  setGameState(prev => ({
-    ...prev,
-    players: prev.players.map(p => p.id === playerId ? { ...p, gold: p.gold - price } : p),
-    countries: { ...prev.countries, [countryId]: { id: countryId, name: countryName, ownerId: player.id, buildings: 0 } }
-  }));
-  addLog(`${player.name}님이 ${countryName}를 ${price}G에 점령했습니다!`, 'purchase');
-};
+    setGameState(prev => ({
+      ...prev,
+      players: prev.players.map(p => p.id === playerId ? { ...p, gold: p.gold - price } : p),
+      countries: { ...prev.countries, [countryId]: { id: countryId, name: countryName, ownerId: player.id, buildings: 0 } }
+    }));
+    addLog(`${player.name}님이 ${countryName}를 ${price}G에 점령했습니다!`, 'purchase');
+  };
 
-const buildInCountry = async (countryId: string) => {
-  const country = gameState.countries[countryId];
-  if (!country?.ownerId || country.buildings >= 3) return;
-  const tiers = getBuildingTiers(country.name);
-  const nextTier = tiers[country.buildings];
-  const player = gameState.players.find(p => p.id === country.ownerId);
-  if (!player || player.buildingPower < nextTier.cost) return;
+  // ✅ 수정: building_purchases INSERT → 포인트 차감 다른 기기 반영
+  const buildInCountry = async (countryId: string) => {
+    const country = gameState.countries[countryId];
+    if (!country?.ownerId || country.buildings >= 3) return;
+    const tiers = getBuildingTiers(country.name);
+    const nextTier = tiers[country.buildings];
+    const player = gameState.players.find(p => p.id === country.ownerId);
+    if (!player || player.buildingPower < nextTier.cost) return;
 
-  const newBuildings = country.buildings + 1;
+    const newBuildings = country.buildings + 1;
 
-  await supabase.from('country_occupations')
-    .update({ buildings: newBuildings })
-    .eq('country_id', countryId);
+    await supabase.from('country_occupations')
+      .update({ buildings: newBuildings })
+      .eq('country_id', countryId);
 
-  // ✅ 추가: 다른 기기에 포인트 차감 동기화
-  await supabase.from('building_purchases').insert({
-    club_name: player.name,
-    building_name: nextTier.name,
-    price_paid: nextTier.cost,
-    purchased_at: new Date().toISOString()
-  });
+    // ✅ 추가: building_purchases에 기록 → 다른 기기 포인트 차감 동기화
+    await supabase.from('building_purchases').insert({
+      club_name: player.name,
+      building_name: nextTier.name,
+      price_paid: nextTier.cost,
+      purchased_at: new Date().toISOString()
+    });
 
-  setGameState(prev => ({
-    ...prev,
-    players: prev.players.map(p => p.id === player.id ? { ...p, buildingPower: p.buildingPower - nextTier.cost } : p),
-    countries: { ...prev.countries, [countryId]: { ...country, buildings: newBuildings } }
-  }));
-  addLog(`${player.name}님이 ${country.name}에 '${nextTier.name}'(을)를 건축했습니다!`, 'construction');
-};
+    setGameState(prev => ({
+      ...prev,
+      players: prev.players.map(p => p.id === player.id ? { ...p, buildingPower: p.buildingPower - nextTier.cost } : p),
+      countries: { ...prev.countries, [countryId]: { ...country, buildings: newBuildings } }
+    }));
+    addLog(`${player.name}님이 ${country.name}에 '${nextTier.name}'(을)를 건축했습니다!`, 'construction');
+  };
 
+  // ✅ 수정: purchases 테이블도 같이 초기화 → 다른 기기 동기화
   const resetGame = async () => {
     if (window.confirm('정말 모든 데이터를 초기화하시겠습니까? (멤버는 유지됩니다)')) {
       await supabase.from('country_occupations').delete().neq('country_id', '');
+      await supabase.from('country_purchases').delete().neq('id', 0);
+      await supabase.from('building_purchases').delete().neq('id', 0);
+
       setGameState(prev => ({
         ...prev,
         players: prev.players.map(p => ({ ...p, gold: 0, buildingPower: 0 })),
         countries: {},
         logs: [{ id: 'reset', timestamp: Date.now(), message: '게임 데이터가 초기화되었습니다.', type: 'purchase' as any }]
       }));
+
+      await fetchClubPoints(startDate);
     }
   };
 
@@ -458,16 +491,16 @@ const buildInCountry = async (countryId: string) => {
   };
 
   const handleColorChange = (playerId: string, color: string) => {
-  setGameState(prev => ({
-    ...prev,
-    players: prev.players.map(p => p.id === playerId ? { ...p, color } : p)
-  }));
-};
+    setGameState(prev => ({
+      ...prev,
+      players: prev.players.map(p => p.id === playerId ? { ...p, color } : p)
+    }));
+  };
 
-return {
-  gameState, currentUser, clubPoints, isSyncing,
-  startDate, setStartDate: handleStartDateChange,
-  fetchClubPoints, handleLogin, handleLogout,
+  return {
+    gameState, currentUser, clubPoints, isSyncing,
+    startDate, setStartDate: handleStartDateChange,
+    fetchClubPoints, handleLogin, handleLogout,
     handleAddMember, handleDeleteMember, handleAdminSubmit,
     handleCancelOccupation, healGhostData, buyCountry, buildInCountry, resetGame,
     cancelBuilding, resetManualPoints, handleColorChange, handleChangePassword,
