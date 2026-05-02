@@ -309,7 +309,7 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
         const countryArea = Math.sqrt(boundWidth * boundHeight);
 
         const overrideArea: Record<string, number> = {
-          'France': 40,
+          'FRANCE': 40,
         };
         const adjustedArea = overrideArea[mappedName] ?? countryArea;  // ← mappedName 사용!
         
