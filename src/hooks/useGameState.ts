@@ -40,10 +40,32 @@ export function useGameState() {
     remaining_speech_points: number;
   }[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);
-   const [startDate, setStartDate] = useState<string>(() => {
-    return localStorage.getItem('start_date') || '2026-01-01';
-  });
+const [startDate, setStartDate] = useState<string>('2026-01-01');
 
+// startDate를 Supabase에서 불러오기
+useEffect(() => {
+  const fetchStartDate = async () => {
+    const { data, error } = await supabase
+      .from('app_settings')
+      .select('value')
+      .eq('key', 'start_date')
+      .single();
+    if (!error && data) {
+      setStartDate(data.value);
+    }
+  };
+  fetchStartDate();
+}, []);
+
+// 날짜 변경시 Supabase에 저장
+const handleStartDateChange = (date: string) => {
+  setStartDate(date);
+  localStorage.setItem('start_date', date); // 기존 유지
+  supabase
+    .from('app_settings')
+    .upsert({ key: 'start_date', value: date });
+};
+  
   const handleStartDateChange = (date: string) => {
   setStartDate(date);
   localStorage.setItem('start_date', date);
