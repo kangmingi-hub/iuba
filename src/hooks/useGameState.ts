@@ -41,8 +41,10 @@ export function useGameState() {
   }[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);
 const [startDate, setStartDate] = useState<string>('2026-01-01');
+const [isDateLoaded, setIsDateLoaded] = useState(false);
 
 // startDate를 Supabase에서 불러오기
+// 새 코드 - 이걸로 교체
 useEffect(() => {
   const fetchStartDate = async () => {
     const { data, error } = await supabase
@@ -53,6 +55,7 @@ useEffect(() => {
     if (!error && data) {
       setStartDate(data.value);
     }
+    setIsDateLoaded(true); // ← 이 줄만 추가된 거예요
   };
   fetchStartDate();
 }, []);
@@ -154,24 +157,26 @@ useEffect(() => {
     }
   };
 
-  useEffect(() => {
-    fetchClubPoints(startDate); // 날짜 명시적으로 전달
-    fetchOccupations();
-    fetchUsers();
+// 새 코드 - 이걸로 교체
+useEffect(() => {
+  if (!isDateLoaded) return; // ← 추가
+  fetchClubPoints(startDate);
+  fetchOccupations();
+  fetchUsers();
 
-   const channel = supabase
-  .channel('country_occupations_changes')
-  .on('postgres_changes', { event: '*', schema: 'public', table: 'country_occupations' }, () => { fetchOccupations(); })
-  .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, () => { fetchUsers(); })
-  .on('postgres_changes', { event: '*', schema: 'public', table: 'app_settings' }, (payload: any) => {
-    if (payload.new?.key === 'start_date') {
-      setStartDate(payload.new.value);
-    }
-  })
-  .subscribe();
+  const channel = supabase
+    .channel('country_occupations_changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'country_occupations' }, () => { fetchOccupations(); })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, () => { fetchUsers(); })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'app_settings' }, (payload: any) => {
+      if (payload.new?.key === 'start_date') {
+        setStartDate(payload.new.value);
+      }
+    })
+    .subscribe();
 
   return () => { supabase.removeChannel(channel); };
-}, [startDate]);
+}, [startDate, isDateLoaded]); // ← isDateLoaded 추가
 
   useEffect(() => {
     const { countries, ...rest } = gameState;
