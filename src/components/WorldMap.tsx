@@ -312,8 +312,8 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
           'FRANCE': 40,
         };
         const adjustedArea = overrideArea[mappedName] ?? countryArea;  // ← mappedName 사용!
-        
-        const imageSize = Math.min(Math.max(countryArea * 0.35, 10), 36);
+        console.log('나라:', mappedName, '| countryArea:', countryArea, '| adjustedArea:', adjustedArea); // ← 여기
+        const imageSize = Math.min(Math.max(adjustedArea * 0.35, 10), 36);
         const hasBuilding = state.buildings > 0;
         const finalCharSize = hasBuilding ? imageSize * 0.65 : imageSize;
         const charX = hasBuilding ? centroid[0] - imageSize * 0.15 : centroid[0];
