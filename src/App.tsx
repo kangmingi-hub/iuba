@@ -32,7 +32,7 @@ export default function App() {
     fetchClubPoints, handleLogin, handleLogout,
     handleAddMember, handleDeleteMember, handleAdminSubmit,
     handleCancelOccupation, healGhostData, buyCountry, buildInCountry, resetGame,
-    cancelBuilding, resetManualPoints, handleChangePassword
+    cancelBuilding, resetManualPoints, handleChangePassword, handleColorChange
   } = useGameState();
 
   const [selectedCountry, setSelectedCountry] = useState<{ id: string; name: string } | null>(null);
