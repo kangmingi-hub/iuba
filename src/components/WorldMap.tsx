@@ -37,6 +37,7 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
   const [rotation, setRotation] = useState<[number, number, number]>([-10, -20, 0]);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [selectedContinent, setSelectedContinent] = useState<Continent>('world');
+  const [isRotating, setIsRotating] = useState(true);
   const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown>>(null);
   const isDraggingRef = useRef(false);
 
@@ -372,16 +373,16 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
     svg.transition().duration(1000).ease(d3.easeCubicOut).call(zoomRef.current.transform, transform);
   }, [selectedContinent, topology, viewMode]);
 
-  useEffect(() => {
-    if (viewMode !== '3d') return;
-    const interval = setInterval(() => {
-      if (!isDraggingRef.current) {
-        setRotation(prev => [prev[0] + 0.3, prev[1], prev[2]]);
-      }
-    }, 16);
-    return () => clearInterval(interval);
-  }, [viewMode]);
-
+useEffect(() => {
+  if (viewMode !== '3d') return;
+  const interval = setInterval(() => {
+    if (!isDraggingRef.current && isRotating) {
+      setRotation(prev => [prev[0] + 0.3, prev[1], prev[2]]);
+    }
+  }, 16);
+  return () => clearInterval(interval);
+}, [viewMode, isRotating]);
+  
   return (
     <div
       ref={containerRef}
@@ -442,6 +443,15 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
             style={{ background: 'rgba(255,255,255,0.45)', border: '1px solid rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)', color: '#6b8ab0', pointerEvents: 'auto' }}
           >
             <RefreshCcw className="w-4 h-4" />
+          </button>
+        )}
+
+        {viewMode === '3d' && (
+          <button onClick={() => setIsRotating(prev => !prev)}
+            className="flex items-center justify-center w-10 h-10 rounded-2xl transition-all active:scale-95"
+            style={{ background: 'rgba(255,255,255,0.45)', border: '1px solid rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)', color: '#6b8ab0', pointerEvents: 'auto' }}
+          >
+            {isRotating ? '⏸' : '▶'}
           </button>
         )}
       </div>
