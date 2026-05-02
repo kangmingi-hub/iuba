@@ -173,7 +173,9 @@ useEffect(() => {
         setStartDate(payload.new.value);
       }
     })
-    .subscribe();
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'country_purchases' }, () => { fetchClubPoints(startDate); })
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'building_purchases' }, () => { fetchClubPoints(startDate); })
+  .subscribe();
 
   return () => { supabase.removeChannel(channel); };
 }, [startDate, isDateLoaded]); // ← isDateLoaded 추가
