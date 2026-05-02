@@ -65,11 +65,6 @@ const handleStartDateChange = (date: string) => {
     .from('app_settings')
     .upsert({ key: 'start_date', value: date });
 };
-  
-  const handleStartDateChange = (date: string) => {
-  setStartDate(date);
-  localStorage.setItem('start_date', date);
-};
 
   const fetchOccupations = async () => {
     try {
