@@ -300,20 +300,32 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
         const feature = filteredFeatures.find((f: any) =>
           f.properties.name === mappedName || f.properties.name === state.name
         );
-        if (!feature) return;
-        const centroid = path.centroid(feature);
+       if (!feature) return;
+
+        const getMainFeature = (feature: any) => {
+          if (feature.geometry.type === 'MultiPolygon') {
+            const polygons = feature.geometry.coordinates;
+            let maxArea = 0;
+            let mainPolygon = polygons[0];
+            polygons.forEach((poly: any) => {
+              const fake = { type: 'Feature', geometry: { type: 'Polygon', coordinates: poly }, properties: {} };
+              const b = path.bounds(fake as any);
+              const area = (b[1][0] - b[0][0]) * (b[1][1] - b[0][1]);
+              if (area > maxArea) { maxArea = area; mainPolygon = poly; }
+            });
+            return { ...feature, geometry: { type: 'Polygon', coordinates: mainPolygon } };
+          }
+          return feature;
+        };
+        
+        const mainFeature = getMainFeature(feature);
+        const centroid = path.centroid(mainFeature);
         if (!centroid || isNaN(centroid[0]) || isNaN(centroid[1])) return;
-        const bounds = path.bounds(feature);
+        const bounds = path.bounds(mainFeature);
         const boundWidth = bounds[1][0] - bounds[0][0];
         const boundHeight = bounds[1][1] - bounds[0][1];
         const countryArea = Math.sqrt(boundWidth * boundHeight);
-
-        const overrideArea: Record<string, number> = {
-          'FRANCE': 40,
-        };
-        const adjustedArea = overrideArea[mappedName] ?? countryArea;  // ← mappedName 사용!
-        console.log('나라:', mappedName, '| countryArea:', countryArea, '| adjustedArea:', adjustedArea); // ← 여기
-        const imageSize = Math.min(Math.max(adjustedArea * 0.35, 10), 36);
+        const imageSize = Math.min(Math.max(countryArea * 0.35, 10), 36);
         const hasBuilding = state.buildings > 0;
         const finalCharSize = hasBuilding ? imageSize * 0.65 : imageSize;
         const charX = hasBuilding ? centroid[0] - imageSize * 0.15 : centroid[0];
