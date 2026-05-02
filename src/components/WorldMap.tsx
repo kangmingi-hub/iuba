@@ -307,7 +307,11 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
         const boundWidth = bounds[1][0] - bounds[0][0];
         const boundHeight = bounds[1][1] - bounds[0][1];
         const countryArea = Math.sqrt(boundWidth * boundHeight);
-        const adjustedArea = countryName === 'France' ? 40 : countryArea;
+
+        const overrideArea: Record<string, number> = {
+          'France': 40,
+        };
+        const adjustedArea = overrideArea[mappedName] ?? countryArea;  // ← mappedName 사용!
         
         const imageSize = Math.min(Math.max(countryArea * 0.35, 10), 36);
         const hasBuilding = state.buildings > 0;
