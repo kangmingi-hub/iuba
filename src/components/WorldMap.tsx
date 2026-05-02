@@ -303,7 +303,31 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
         if (!feature) return;
         const centroid = path.centroid(feature);
         if (!centroid || isNaN(centroid[0]) || isNaN(centroid[1])) return;
-        const bounds = path.bounds(feature);
+
+// feature가 MultiPolygon일 경우 가장 큰 polygon만 추출
+const getMainPolygonBounds = (feature: any) => {
+  if (feature.geometry.type === 'MultiPolygon') {
+    // 각 polygon의 면적을 계산해서 가장 큰 것만 사용
+    const polygons = feature.geometry.coordinates;
+    let maxArea = 0;
+    let mainPolygon = polygons[0];
+    polygons.forEach((poly: any) => {
+      const fakeFeat = { type: 'Feature', geometry: { type: 'Polygon', coordinates: poly }, properties: {} };
+      const b = path.bounds(fakeFeat as any);
+      const area = (b[1][0] - b[0][0]) * (b[1][1] - b[0][1]);
+      if (area > maxArea) { maxArea = area; mainPolygon = poly; }
+    });
+    return path.bounds({ type: 'Feature', geometry: { type: 'Polygon', coordinates: mainPolygon }, properties: {} } as any);
+  }
+  return path.bounds(feature);
+};
+
+const bounds = getMainPolygonBounds(feature);
+const boundWidth = bounds[1][0] - bounds[0][0];
+const boundHeight = bounds[1][1] - bounds[0][1];
+const countryArea = Math.sqrt(boundWidth * boundHeight);
+const imageSize = Math.min(Math.max(countryArea * 0.35, 10), 36); // 기존 값 유지
+        
         const boundWidth = bounds[1][0] - bounds[0][0];
         const boundHeight = bounds[1][1] - bounds[0][1];
         const countryArea = Math.sqrt(boundWidth * boundHeight);
