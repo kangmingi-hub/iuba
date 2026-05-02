@@ -157,11 +157,15 @@ const handleStartDateChange = (date: string) => {
     fetchUsers();
 
    const channel = supabase
-    .channel('country_occupations_changes')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'country_occupations' }, () => { fetchOccupations(); })
-    // users 변경도 실시간 반영
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, () => { fetchUsers(); })
-    .subscribe();
+  .channel('country_occupations_changes')
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'country_occupations' }, () => { fetchOccupations(); })
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, () => { fetchUsers(); })
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'app_settings' }, (payload: any) => {
+    if (payload.new?.key === 'start_date') {
+      setStartDate(payload.new.value);
+    }
+  })
+  .subscribe();
 
   return () => { supabase.removeChannel(channel); };
 }, [startDate]);
