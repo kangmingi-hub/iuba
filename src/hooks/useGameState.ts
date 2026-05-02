@@ -92,13 +92,20 @@ export function useGameState() {
     }
   };
 
-  const fetchUsers = async () => {
-    const { data, error } = await supabase.from('users').select('*');
-    if (error) { console.error('users 불러오기 오류:', error); return; }
-    if (data) {
-      setGameState(prev => ({ ...prev, users: data }));
-    }
-  };
+ const fetchUsers = async () => {
+  const { data, error } = await supabase.from('users').select('*');
+  if (error) { console.error('users 불러오기 오류:', error); return; }
+  if (data) {
+    setGameState(prev => ({
+      ...prev,
+      users: data,
+      players: prev.players.map(p => {
+        const user = data.find((u: any) => u.id === p.id);
+        return user?.color ? { ...p, color: user.color } : p;
+      })
+    }));
+  }
+};
 
   const fetchClubPoints = async (date?: string) => {
     setIsSyncing(true);
@@ -140,7 +147,7 @@ export function useGameState() {
             return {
               id: `club-${club.club_name.replace(/\s+/g, '-').toLowerCase()}`,
               name: club.club_name,
-              color: TEAM_COLORS[(prev.players.length + idx) % TEAM_COLORS.length],
+              color: existing?.color || TEAM_COLORS[idx % TEAM_COLORS.length],
               characterUrl: `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${club.club_name}`,
               gold: club.remaining_evangelism_points,
               buildingPower: club.remaining_speech_points
@@ -490,12 +497,13 @@ export function useGameState() {
     }
   };
 
-  const handleColorChange = (playerId: string, color: string) => {
-    setGameState(prev => ({
-      ...prev,
-      players: prev.players.map(p => p.id === playerId ? { ...p, color } : p)
-    }));
-  };
+const handleColorChange = async (playerId: string, color: string) => {
+  await supabase.from('users').update({ color }).eq('id', playerId);
+  setGameState(prev => ({
+    ...prev,
+    players: prev.players.map(p => p.id === playerId ? { ...p, color } : p)
+  }));
+};
 
   return {
     gameState, currentUser, clubPoints, isSyncing,
