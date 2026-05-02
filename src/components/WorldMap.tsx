@@ -392,7 +392,9 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
         boxShadow: '0 4px 32px rgba(120,150,190,0.15), inset 0 1px 0 rgba(255,255,255,0.85)',
       }}
     >
-      <svg ref={svgRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
+      <svg ref={svgRef} className="w-full h-full cursor-grab active:cursor-grabbing"
+        style={{ willChange: 'transform' }}
+        />
 
       <div className="absolute top-5 left-5 flex flex-col gap-3" style={{ pointerEvents: 'none' }}>
         <div className="flex p-[3px] rounded-[14px] gap-[2px]"
