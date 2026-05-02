@@ -57,9 +57,11 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
       lastTouch = e.touches[0];
     };
 
-    const onTouchMove = (e: TouchEvent) => {
+   const onTouchMove = (e: TouchEvent) => {
       if (!lastTouch || viewMode !== '3d') return;
-      e.preventDefault();
+      if (isDraggingRef.current) {
+        e.preventDefault();
+      }
       const touch = e.touches[0];
       const dx = touch.clientX - lastTouch.clientX;
       const dy = touch.clientY - lastTouch.clientY;
@@ -390,6 +392,7 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
         WebkitBackdropFilter: 'blur(28px)',
         border: '1px solid rgba(255,255,255,0.75)',
         boxShadow: '0 4px 32px rgba(120,150,190,0.15), inset 0 1px 0 rgba(255,255,255,0.85)',
+        touchAction: 'pan-y',
       }}
     >
       <svg ref={svgRef} className="w-full h-full cursor-grab active:cursor-grabbing"
