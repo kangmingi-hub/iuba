@@ -58,12 +58,15 @@ useEffect(() => {
 }, []);
 
 // 날짜 변경시 Supabase에 저장
-const handleStartDateChange = (date: string) => {
+  const handleStartDateChange = async (date: string) => {
   setStartDate(date);
-  localStorage.setItem('start_date', date); // 기존 유지
-  supabase
+  localStorage.setItem('start_date', date);
+  const { data, error } = await supabase
     .from('app_settings')
-    .upsert({ key: 'start_date', value: date });
+    .upsert({ key: 'start_date', value: date })
+    .select();
+  console.log('저장 결과:', data, error);
+  alert('저장 결과: ' + JSON.stringify({ data, error }));
 };
 
   const fetchOccupations = async () => {
