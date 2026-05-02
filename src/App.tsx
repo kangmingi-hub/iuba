@@ -165,11 +165,13 @@ export default function App() {
               />
             )}
             {activeTab === 'members' && currentUser?.role === 'admin' && (
-              <MembersPanel
-                players={gameState.players}
-                onAdd={handleAddMember}
-                onDelete={handleDeleteMember}
-              />
+
+            <MembersPanel
+              players={gameState.players}
+              onAdd={handleAddMember}
+              onDelete={handleDeleteMember}
+              onColorChange={handleColorChange}  // ← 추가
+            />
             )}
             {activeTab === 'logs' && (
               <LogsPanel logs={gameState.logs} />
