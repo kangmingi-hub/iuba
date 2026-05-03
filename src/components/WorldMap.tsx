@@ -328,8 +328,9 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
         const boundWidth = bounds[1][0] - bounds[0][0];
         const boundHeight = bounds[1][1] - bounds[0][1];
         const countryArea = Math.sqrt(boundWidth * boundHeight);
-        const scaleFactor = Math.min(width, height) / 600; // 화면 크기 기준
-        const imageSize = Math.min(Math.max(countryArea * 0.35 * scaleFactor, 8), 30 * scaleFactor);
+        const isMobile = width < 768;
+        const scaleFactor = Math.min(width, height) / (isMobile ? 1100 : 600); // 모바일은 더 작게
+        const imageSize = Math.min(Math.max(countryArea * 0.35 * scaleFactor, isMobile ? 5 : 8), (isMobile ? 18 : 30) * scaleFactor);
         const hasBuilding = state.buildings > 0;
         const finalCharSize = hasBuilding ? imageSize * 0.65 : imageSize;
         const charX = hasBuilding ? centroid[0] - imageSize * 0.15 : centroid[0];
