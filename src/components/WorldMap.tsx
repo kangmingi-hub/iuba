@@ -329,19 +329,29 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
         const boundHeight = bounds[1][1] - bounds[0][1];
         const countryArea = Math.sqrt(boundWidth * boundHeight);
         const isMobile = window.innerWidth < 768;
-const scaleFactor = Math.min(width, height) / (isMobile ? 1100 : 600);
-const imageSize = Math.min(Math.max(countryArea * 0.35 * scaleFactor, isMobile ? 5 : 8), (isMobile ? 18 : 30) * scaleFactor);
+        const scaleFactor = Math.min(width, height) / (isMobile ? 1100 : 600);
+        const imageSize = Math.min(Math.max(countryArea * 0.35 * scaleFactor, isMobile ? 5 : 8), (isMobile ? 18 : 30) * scaleFactor);
         const hasBuilding = state.buildings > 0;
+        
+        // 지면이 떠오르는 높이 계산 (countryG의 targetDepth와 동일한 로직)
+        const isOwned = !!state.ownerId;
+        const targetDepth = isOwned ? (2 + state.buildings * 1) : 0;
+        
         const finalCharSize = hasBuilding ? imageSize * 0.65 : imageSize;
         const charX = hasBuilding ? centroid[0] - imageSize * 0.15 : centroid[0];
-        const charY = hasBuilding ? centroid[1] - imageSize * 0.3 : centroid[1] - imageSize * 0.5;
+        // targetDepth만큼 y좌표를 위로 올림
+        const charY = hasBuilding
+          ? centroid[1] - imageSize * 0.3 - targetDepth
+          : centroid[1] - imageSize * 0.5 - targetDepth;
+        
         if (hasBuilding) {
           const buildingImg = BUILDING_IMAGES[state.buildings];
           const buildingSize = imageSize * 1.0;
           gPerspective.append('image')
             .attr('href', buildingImg)
             .attr('x', centroid[0] + imageSize * 0.15 - buildingSize / 2)
-            .attr('y', centroid[1] - imageSize * 0.5 - buildingSize / 2)
+            // 건물도 targetDepth만큼 위로
+            .attr('y', centroid[1] - imageSize * 0.5 - buildingSize / 2 - targetDepth)
             .attr('width', buildingSize).attr('height', buildingSize)
             .attr('class', 'pointer-events-none');
         }
