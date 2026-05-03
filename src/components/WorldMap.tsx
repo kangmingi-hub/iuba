@@ -223,10 +223,12 @@ export default function WorldMap({ countries, players, onCountryClick }: WorldMa
 
     if (viewMode === '2d') {
       const sortedFeatures = [...filteredFeatures].sort((a: any, b: any) => {
-        const yA = path.centroid(a)?.[1] ?? 0;
-        const yB = path.centroid(b)?.[1] ?? 0;
-        return yA - yB;
-      });
+      const boundsA = path.bounds(a);
+      const boundsB = path.bounds(b);
+      const yA = boundsA?.[0]?.[1] ?? 0;
+      const yB = boundsB?.[0]?.[1] ?? 0;
+      return yA - yB;
+    });
 
       sortedFeatures.forEach((feature: any) => {
         const countryName = feature.properties.name;
